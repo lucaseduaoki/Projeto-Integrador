@@ -1,116 +1,128 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<?php
+$tituloPagina = 'Login';
+include __DIR__ . '/../shared/header.php';
+include __DIR__ . '/../shared/navbar.php';
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login • Projeto Integrador</title>
+$erros = $erros ?? [];
+?>
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
-            border-radius: 1rem;
-            border: none;
-        }
-
-        .login-card .card-title {
-            font-weight: 700;
-            color: #333;
-        }
-
-        .btn-login {
-            background: linear-gradient(to right, #667eea, #764ba2);
-            border: none;
-            font-weight: 600;
-            padding: 0.8rem;
-        }
-
-        .btn-login:hover {
-            opacity: 0.9;
-        }
-
-        .input-group-text {
-            background-color: transparent;
-            border-right: none;
-        }
-
-        .form-control {
-            border-left: none;
-        }
-
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #dee2e6;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="card login-card shadow-lg">
-        <div class="card-body">
-            <div class="text-center mb-4">
-                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
-                <h3 class="card-title mt-2">Acesso ao Sistema</h3>
-                <p class="text-muted small">Entre com suas credenciais para continuar</p>
-            </div>
-
-            <?php if (isset($erros)): ?>
-                <div class="alert alert-danger d-flex align-items-center" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Left Column - Ilustração (Desktop only) -->
+        <div class="hidden lg:flex flex-col justify-center bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-12 text-white">
+            <h2 class="text-3xl font-bold mb-6">Conecte-se ao trabalho que você precisa.</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
                     <div>
-                        <?= is_array($erros) ? implode('<br>', $erros) : $erros ?>
+                        <p class="font-semibold">Oportunidades em tempo real</p>
+                        <p class="text-blue-100 text-sm">Acesse vagas antes de qualquer um.</p>
                     </div>
                 </div>
-            <?php endif; ?>
-
-            <form action="<?= URL_BASE ?>/logar" method="post">
-                <div class="mb-3">
-                    <label for="email" class="form-label small fw-bold">E-mail</label>
-                    <div class="input-group">
-                        <span class="input-group-text text-muted">
-                            <i class="bi bi-envelope"></i>
-                        </span>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="nome@exemplo.com" required>
+                
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="font-semibold">Contratos e segurança</p>
+                        <p class="text-blue-100 text-sm">Trabalhe com proteção e confiança.</p>
                     </div>
                 </div>
-
-                <div class="mb-4">
-                    <label for="senha" class="form-label small fw-bold">Senha</label>
-                    <div class="input-group">
-                        <span class="input-group-text text-muted">
-                            <i class="bi bi-lock"></i>
-                        </span>
-                        <input type="password" class="form-control" id="senha" name="senha" placeholder="Sua senha" required>
+                
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="font-semibold">Comunidade confiável</p>
+                        <p class="text-blue-100 text-sm">Avaliações e reputação verificadas.</p>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="d-grid shadow-sm">
-                    <button type="submit" class="btn btn-primary btn-login text-white">
-                        Entrar <i class="bi bi-arrow-right ms-2"></i>
+        <!-- Right Column - Formulário -->
+        <div class="flex items-center">
+            <div class="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Bem-vindo de volta</h1>
+                <p class="text-gray-600 mb-6">Acesse sua conta e continue de onde parou.</p>
+
+                <!-- Erro Geral -->
+                <?php if (isset($erros['geral'])): ?>
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+                        <?= htmlspecialchars($erros['geral'], ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" action="/login/submit" class="space-y-5">
+                    
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['email']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                            placeholder="seu@email.com"
+                        >
+                        <?php if (isset($erros['email'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['email'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Senha -->
+                    <div>
+                        <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="senha" 
+                                name="senha" 
+                                required
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['senha']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                                placeholder="••••••••"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="document.getElementById('senha').type = document.getElementById('senha').type === 'password' ? 'text' : 'password'"
+                                class="absolute right-3 top-2.5 text-gray-600 hover:text-gray-900"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <?php if (isset($erros['senha'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['senha'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Botão Entrar -->
+                    <button 
+                        type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                    >
+                        Entrar
                     </button>
-                </div>
-            </form>
+                </form>
+
+                <!-- Link Cadastro -->
+                <p class="text-center text-gray-600 text-sm mt-6">
+                    Não tem conta? 
+                    <a href="/cadastro" class="text-blue-600 hover:text-blue-700 font-semibold">Cadastre-se</a>
+                </p>
+            </div>
         </div>
     </div>
+</main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+<?php include __DIR__ . '/../shared/footer.php'; ?>

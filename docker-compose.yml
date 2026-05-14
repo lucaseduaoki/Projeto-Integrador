@@ -1,0 +1,66 @@
+
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_freelaja
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: America/Sao_Paulo
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./app/database/scripts/script.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - internal
+
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: app_freelaja
+    restart: always
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      APP_ENV: ${APP_ENV}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - internal
+    volumes:
+      - ./:/var/www/html
+      - /var/www/html/vendor
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_freelaja
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - internal
+
+volumes:
+  mysql_data:
+  
+networks:
+  internal:
+    driver: bridge
+

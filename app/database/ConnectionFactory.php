@@ -14,8 +14,12 @@ class ConnectionFactory {
 
             try {
                 
-                $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME ;
+                $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME ;
                 self::$connection = self::createConnection($dsn);
+                
+                // Always ensure database schema exists
+                $databaseInit = new DatabaseInitializer();
+                $databaseInit->init(self::$connection);
                 
             } catch(Exception $e){
                 
@@ -23,14 +27,14 @@ class ConnectionFactory {
                 print("<br>O erro foi: ". $e->getMessage());
                 print("<br>Tentando inicializar o banco de dados...");
 
-                $dsn = "mysql:host=" . DB_HOST;
+                $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT;
                 self::$connection = self::createConnection($dsn);
 
                 $databaseInit = new DatabaseInitializer();
                 $databaseInit->init(self::$connection);
 
                 // Re-attempt after initialization
-                $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME ;
+                $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME ;
                 self::$connection = self::createConnection($dsn);
 
             }

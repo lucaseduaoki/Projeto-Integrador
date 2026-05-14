@@ -20,6 +20,11 @@
 
         <div class="card shadow-sm col-md-8 mx-auto">
             <div class="card-body p-4">
+                <?php if (isset($erro)): ?>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <?= $erro ?>
+                    </div>
+                <?php endif; ?>
                 <form action="<?= URL_BASE ?>/usuarios/<?= isset($usuario['id']) ? 'atualizar' : 'salvar' ?>" method="post">
                     <?php if (isset($usuario['id'])): ?>
                         <input type="hidden" name="id" value="<?= $usuario['id'] ?>">

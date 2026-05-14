@@ -7,7 +7,6 @@ use app\helpers\Validador;
 use app\models\Usuario;
 use app\services\UsuarioService;
 
-
 class UsuarioController extends Controller
 {
     private UsuarioService $service;
@@ -17,80 +16,87 @@ class UsuarioController extends Controller
         $this->service = new UsuarioService();
     }
 
-    public function index()
+    /**
+     * Exibir página de cadastro
+     */
+    public function exibirCadastro(): void
     {
-        $data['usuarios'] = $this->service->getUsuarios();
-        $this->view('usuarios/usuario_list', $data);
+        $this->view('usuario/cadastro', [
+        ]);
     }
 
-    public function cadastrar()
+    /**
+     * Processar cadastro (já feito em AutenticacaoController)
+     */
+    public function cadastrar(): void
     {
-        $this->view('usuarios/usuario_create');
+        $this->redirect(URL_BASE . '/cadastro');
     }
 
-    public function salvar()
+    /**
+     * Exibir perfil do usuário logado
+     */
+    public function exibirPerfil(): void
     {
+        $this->autenticacaoRequired();
+        
+        $usuario = $this->usuarioLogado();
+        $habilidades = $this->service->buscarHabilidades($usuario->getIdUsuario());
+        
+        $this->view('usuario/perfil', [
+            'usuario' => $usuario,
+            'habilidades' => $habilidades
+        ]);
+    }
+
+    /**
+     * Editar perfil do usuário
+     */
+    public function editarPerfil(): void
+    {
+        $this->autenticacaoRequired();
+
+        $usuario = $this->usuarioLogado();
+
+        // Sanitizar entrada
+        $nome = htmlspecialchars(trim($_POST['nome'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $descricao = htmlspecialchars(trim($_POST['descricao'] ?? ''), ENT_QUOTES, 'UTF-8');
+
+        // Validar
         $validador = new Validador();
-
-        //Sanitizar
-        $nomeUsuario = filter_input(INPUT_POST, 'nomeUsuario', FILTER_SANITIZE_SPECIAL_CHARS);
-        $email  = $_POST['email'];
-        $senha  = $_POST['senha'];
-        $perfil = $_POST['perfil'];
-
-        //Validar
-        $validador->obrigatorio('nomeUsuario', $nomeUsuario);
-        $validador->obrigatorio('email', $email);
+        $validador->obrigatorio('nome', $nome)
+                  ->minimo('nome', $nome, 3)
+                  ->maximo('nome', $nome, 100);
 
         if ($validador->temErros()) {
-
-            $data['usuario'] = $_POST;
-            $data['erros'] = $validador->getErros();
-
-            $this->view('usuarios/usuario_create', $data);
-
+            $this->view('usuario/perfil', [
+                'usuario' => $usuario,
+                'erros' => $validador->getErros(),
+            ]);
             return;
         }
 
+        try {
+            // Atualizar dados
+            $usuario->setNome($nome);
+            $usuario->setTelefone($telefone ?: null);
+            $usuario->setDescricao($descricao ?: null);
+            
+            $this->service->atualizarPerfil($usuario);
+            
+            // Atualizar sessão
+            $_SESSION['usuario_logado'] = $usuario;
 
-        //Salvar
-        $usuario = new Usuario(0, $nomeUsuario, $email, $senha, $perfil);
-
-        if ($this->service->saveUsuario($usuario)) {
-            $this->redirect(URL_BASE . '/usuarios');
-        } else {
-
-            $data["usuario"] = $_POST;
-            $data['erros']['email'] = "Erro: Este e-mail já está cadastrado!";
-
-            $this->view('usuarios/usuario_create', $data);
+            $this->view('usuario/perfil', [
+                'usuario' => $usuario,
+                'sucesso' => 'Perfil atualizado com sucesso!',
+            ]);
+        } catch (\Exception $e) {
+            $this->view('usuario/perfil', [
+                'usuario' => $usuario,
+                'erro' => $e->getMessage(),
+            ]);
         }
-    }
-
-    public function editar()
-    {
-        $id = $_GET['id'];
-        $data['usuario'] = $this->service->getUsuarioById($id);
-        $this->view('usuarios/usuario_edit', $data);
-    }
-
-    public function atualizar()
-    {
-        $usuario = new Usuario(
-            $_POST['id'],
-            $_POST['nomeUsuario'],
-            $_POST['email'],
-            $_POST['senha'] ?? '',
-            $_POST['perfil']
-        );
-        $this->service->updateUsuario($usuario);
-        $this->redirect(URL_BASE . '/usuarios');
-    }
-
-    public function excluir()
-    {
-        $id = $_GET['id'];
-        $this->service->deleteUsuario($id);
-        $this->redirect(URL_BASE . '/usuarios');
     }
 }
