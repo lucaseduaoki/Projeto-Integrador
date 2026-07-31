@@ -1,0 +1,11 @@
+# Ativa o motor de reescrita do Apache
+RewriteEngine On
+
+# Impede que bisbilhoteiros vejam a lista de arquivos das pastas (o famoso "arreda daí")
+Options -Indexes
+
+# Se não for um arquivo de verdade (-f) e nem um diretório (-d)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Manda tudo pro index.php pro roteador dar conta do trem
+RewriteRule ^(.*)$ index.php [L,QSA]
