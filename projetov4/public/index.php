@@ -44,6 +44,8 @@ $router->post('/interesse/demonstrar',      'InteresseController@demonstrar');
 $router->get('/interesse/interessados',     'InteresseController@listarInteressados');
 $router->get('/interesse/historico',     'InteresseController@historico');
 $router->get('/interesse/historico/visualizar',     'InteresseController@visualizarHistorico');
+$router->post('/interesse/aceitar',      'InteresseController@aceitar');
+$router->get('/interesse/aceitos',      'InteresseController@listarAceitos');
 
 
 
