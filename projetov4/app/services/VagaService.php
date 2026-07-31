@@ -45,6 +45,8 @@ class VagaService
         return $this->repository->criar($vaga);
     }
 
+
+
     /**
      * Buscar vaga
      */

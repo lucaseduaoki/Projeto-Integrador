@@ -121,7 +121,9 @@ public function exibirFormCriar(): void
  */
 public function criar(): void
 {
+    error_log("ENTROU NO CONTROLLER criar");
     $this->contratanteRequired();
+        error_log("Informações recebidas para criar vaga: " . print_r($_POST, true)); // Log the received data
 
     $usuario = $this->usuarioLogado();
 
@@ -147,10 +149,9 @@ public function criar(): void
         ]);
         return;
     }
-
     try {
 
-        $id = $this->service->criar(
+        $id = $this->vagaService->criar(
             $usuario->getIdUsuario(),
             $idCategoria,
             $titulo,
@@ -171,6 +172,24 @@ public function criar(): void
         ]);
     }
 }
+
+public function minhas(): void
+{
+    $this->contratanteRequired();
+
+    $usuario = $this->usuarioLogado();
+
+    $vagas = $this->vagaService
+        ->listarPorContratante(
+            $usuario->getIdUsuario()
+        );
+
+
+    $this->view('vaga/minhas', [
+        'vagas' => $vagas,
+        'usuario' => $usuario
+    ]);
+}
     /**
  * Exibir formulário de edição
  */
@@ -184,7 +203,7 @@ public function exibirFormEditar(): void
         $this->redirect(URL_BASE . '/vagas');
     }
 
-    $vaga = $this->service->buscarPorId($idVaga);
+    $vaga = $this->vagaService->buscarPorId($idVaga);
 
     if (!$vaga || $vaga->getIdContratante() !== $this->usuarioLogado()->getIdUsuario()) {
         $this->redirect(URL_BASE . '/403');
@@ -207,7 +226,7 @@ public function editar(): void
 
     $idVaga = (int)($_POST['id'] ?? 0);
 
-    $vaga = $this->service->buscarPorId($idVaga);
+    $vaga = $this->vagaService->buscarPorId($idVaga);
 
     if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
         $this->redirect(URL_BASE . '/403');
@@ -258,7 +277,7 @@ public function editar(): void
          */
         $vaga->setIdCategoria($idCategoria);
 
-        $this->service->atualizar($vaga);
+        $this->vagaService->atualizar($vaga);
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
 
@@ -282,7 +301,7 @@ public function excluir(): void
 
     $idVaga = (int)($_POST['id'] ?? 0);
 
-    $vaga = $this->service->buscarPorId($idVaga);
+    $vaga = $this->vagaService->buscarPorId($idVaga);
 
     if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
         $this->redirect(URL_BASE . '/403');
@@ -290,7 +309,7 @@ public function excluir(): void
 
     try {
 
-        $this->service->deletar($idVaga);
+        $this->vagaService->deletar($idVaga);
 
         $this->redirect(URL_BASE . '/vagas');
 
@@ -311,7 +330,7 @@ public function encerrar(): void
 
     $idVaga = (int)($_POST['id'] ?? 0);
 
-    $vaga = $this->service->buscarPorId($idVaga);
+    $vaga = $this->vagaService->buscarPorId($idVaga);
 
     if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
         $this->redirect(URL_BASE . '/403');
@@ -319,7 +338,7 @@ public function encerrar(): void
 
     try {
 
-        $this->service->encerrar($idVaga);
+        $this->vagaService->encerrar($idVaga);
 
     } catch (\Exception $e) {
         // Opcional: registrar log
@@ -339,7 +358,7 @@ public function reabrir(): void
 
     $idVaga = (int)($_POST['id'] ?? 0);
 
-    $vaga = $this->service->buscarPorId($idVaga);
+    $vaga = $this->vagaService->buscarPorId($idVaga);
 
     if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
         $this->redirect(URL_BASE . '/403');
@@ -347,7 +366,7 @@ public function reabrir(): void
 
     try {
 
-        $this->service->reabrir($idVaga);
+        $this->vagaService->reabrir($idVaga);
 
     } catch (\Exception $e) {
         // Opcional: registrar log

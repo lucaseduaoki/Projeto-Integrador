@@ -29,7 +29,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
                 <a href="<?= URL_BASE ?>/vagas/buscar" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Buscar</a>
                 
                 <?php if ($usuarioLogado && $isContratante): ?>
-                    <a href="<?= URL_BASE ?>/vagas" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Meus Anúncios</a>
+                    <a href="<?= URL_BASE ?>/vagas/minhas" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Meus Anúncios</a>
                 <?php endif; ?>
                 
                 <?php if ($usuarioLogado && $isTrabalhador): ?>
@@ -80,7 +80,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
             <a href="<?= URL_BASE ?>/vagas/buscar" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Buscar</a>
             
             <?php if ($usuarioLogado && $isContratante): ?>
-                <a href="<?= URL_BASE ?>/vagas" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Meus Anúncios</a>
+                <a href="<?= URL_BASE ?>/vagas/minhas" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Meus Anúncios</a>
             <?php endif; ?>
             
             <?php if ($usuarioLogado && $isTrabalhador): ?>

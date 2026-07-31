@@ -228,4 +228,6 @@ class VagaRepository
 
         return $stmt->execute();
     }
+
+
 }

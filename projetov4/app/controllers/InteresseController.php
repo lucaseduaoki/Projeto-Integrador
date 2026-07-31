@@ -4,14 +4,17 @@ namespace app\controllers;
 
 use app\core\Controller;
 use app\services\InteresseService;
+use app\services\VagaService;
 
 class InteresseController extends Controller
 {
     private InteresseService $service;
+    private VagaService $vagaService;
 
     public function __construct()
     {
         $this->service = new InteresseService();
+        $this->vagaService = new VagaService();
     }
 
 
@@ -55,6 +58,7 @@ class InteresseController extends Controller
 
      public function listarInteressados(): void
     {
+        error_log("ENTROU NO CONTROLLER listarInteressados");
         $this->contratanteRequired();
 
         $usuario = $this->usuarioLogado();
@@ -65,7 +69,7 @@ class InteresseController extends Controller
             $this->redirect(URL_BASE . '/vagas');
             return;
         }
-
+        error_log("Buscando vaga com ID: " . $idVaga);
 
         $vaga = $this->vagaService->buscarPorId($idVaga);
 
@@ -83,11 +87,10 @@ class InteresseController extends Controller
         }
 
 
-        $interessados = $this->interesseService
-            ->listarPorVaga($idVaga);
+        $interessados = $this->service->listarInteressados($idVaga);
+        error_log("Interessados encontrados: " . print_r($interessados, true));
 
-
-        $this->view('interesse/interessados_list', [
+        $this->view('interesse/candidatos_list', [
             'vaga' => $vaga,
             'interessados' => $interessados,
             'usuario' => $usuario

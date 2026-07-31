@@ -35,6 +35,7 @@ $router->get('/vagas/visualizar',    'VagaController@visualizar');
 $router->get('/vagas/editar',        'VagaController@exibirFormEditar');
 $router->post('/vagas/editar/submit','VagaController@editar');
 $router->post('/vagas/excluir',      'VagaController@excluir');
+$router->get('/vagas/minhas',        'VagaController@minhas');
 
 // ============================================================================
 // INTERESSES
