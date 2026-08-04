@@ -1,5 +1,0 @@
-RewriteEngine On
-
-# Redireciona tudo de forma silenciosa para a pasta public/
-RewriteRule ^$ public/ [L]
-RewriteRule ^((?!public/).*)$ public/$1 [L]
