@@ -74,51 +74,126 @@ class InteresseService
         return $this->repository->listarPorVaga($idVaga);
     }
 
-    /**
-     * Aceita um interessado.
-     */
-    public function aceitarInteressado(int $idInteresse): bool
-    {
-        $interesse = $this->repository->buscarPorId($idInteresse);
+public function aceitarInteressado(
+    int $idInteressado,
+    int $idContratante
+): bool {
 
-        if (!$interesse) {
-            throw new Exception("Interesse não encontrado.");
-        }
+    error_log("[ACEITAR] Iniciando aceite. Interesse={$idInteressado} Contratante={$idContratante}");
 
-        $vaga = $this->vagaRepository->buscarPorId(
-            $interesse->getIdVaga()
+    $interesse = $this->repository->buscarPorId($idInteressado);
+
+    error_log("[ACEITAR] Interesse encontrado: " . ($interesse ? "SIM" : "NÃO"));
+
+    if (!$interesse) {
+        throw new Exception("Interesse não encontrado.");
+    }
+
+    $vaga = $this->vagaRepository->buscarPorId(
+        $interesse->getIdVaga()
+    );
+
+    error_log("[ACEITAR] Vaga encontrada: " . ($vaga ? "SIM" : "NÃO"));
+
+    if (!$vaga) {
+        throw new Exception("Vaga não encontrada.");
+    }
+
+    error_log("[ACEITAR] Dono da vaga: {$vaga->getIdContratante()}");
+    error_log("[ACEITAR] Usuário logado: {$idContratante}");
+
+    if ($vaga->getIdContratante() !== $idContratante) {
+        throw new Exception("Sem permissão.");
+    }
+
+    error_log("[ACEITAR] Status da vaga: {$vaga->getStatus()}");
+
+    if ($vaga->getStatus() !== 'ATIVA') {
+        throw new Exception("A vaga está encerrada.");
+    }
+
+    // Impede aceitar o mesmo trabalhador duas vezes
+    if ($interesse->getStatus() === 'ACEITO') {
+        throw new Exception("Este trabalhador já foi aceito.");
+    }
+
+    // Verifica se ainda há vagas disponíveis
+    $totalAceitos = $this->repository->contarAceitos(
+        $vaga->getIdVaga()
+    );
+
+    error_log("[ACEITAR] Aceitos atualmente: {$totalAceitos}");
+    error_log("[ACEITAR] Limite da vaga: {$vaga->getTrabalhadoresLimite()}");
+
+    if ($totalAceitos >= $vaga->getTrabalhadoresLimite()) {
+        throw new Exception(
+            "Esta vaga já atingiu o número máximo de trabalhadores."
         );
+    }
+
+    error_log("[ACEITAR] Aceitando interesse...");
+
+    $this->repository->aceitar($idInteressado);
+
+    error_log("[ACEITAR] Interesse aceito.");
+
+    // Conta novamente após aceitar
+    $totalAceitos = $this->repository->contarAceitos(
+        $vaga->getIdVaga()
+    );
+
+    error_log("[ACEITAR] Total após aceite: {$totalAceitos}");
+
+    // Se acabou de atingir o limite, encerra a vaga
+    if ($totalAceitos >= $vaga->getTrabalhadoresLimite()) {
+
+        error_log("[ACEITAR] Limite atingido. Encerrando vaga.");
+
+        $this->vagaRepository->mudarStatus(
+            $vaga->getIdVaga(),
+            'ENCERRADA'
+        );
+    }
+
+    error_log("[ACEITAR] Processo finalizado com sucesso.");
+
+    return true;
+}
+
+    public function listarContatosAceitos(
+    int $idVaga,
+    int $idContratante
+): array {
+
+    $vaga = $this->vagaRepository->buscarPorId($idVaga);
+
+    if (!$vaga) {
+        throw new Exception("Vaga não encontrada.");
+    }
+
+    if ($vaga->getIdContratante() !== $idContratante) {
+        throw new Exception("Sem permissão.");
+    }
+
+    return $this->repository->listarContatosAceitos($idVaga);
+}
+
+
+    /**
+     * Lista somente os aceitos.
+     */
+    public function listarAceitos(int $idVaga, int $idContratante): array
+    {
+        $vaga = $this->vagaRepository->buscarPorId($idVaga);
 
         if (!$vaga) {
             throw new Exception("Vaga não encontrada.");
         }
 
-        if ($vaga->getStatus() !== 'ATIVA') {
-            throw new Exception("A vaga já está encerrada.");
+        if ($vaga->getIdContratante() !== $idContratante) {
+            throw new Exception("Sem permissão.");
         }
 
-        $this->repository->aceitar($idInteresse);
-
-        $totalAceitos = $this->repository->contarAceitos(
-            $vaga->getIdVaga()
-        );
-
-        if ($totalAceitos >= $vaga->getTrabalhadoresLimite()) {
-
-            $this->vagaRepository->mudarStatus(
-                $vaga->getIdVaga(),
-                'ENCERRADA'
-            );
-        }
-
-        return true;
-    }
-
-    /**
-     * Lista somente os aceitos.
-     */
-    public function listarAceitos(int $idVaga): array
-    {
         return $this->repository->listarAceitos($idVaga);
     }
     

@@ -4,15 +4,19 @@ namespace app\services;
 
 use app\models\Vaga;
 use app\repositories\VagaRepository;
+use app\repositories\UsuarioRepository;
 use Exception;
 
 class VagaService
 {
     private VagaRepository $repository;
+    private UsuarioRepository $usuarioRepository;
 
     public function __construct()
     {
         $this->repository = new VagaRepository();
+        $this->usuarioRepository = new UsuarioRepository();
+
     }
 
     /**
@@ -83,6 +87,11 @@ class VagaService
             $titulo,
             $localizacao
         );
+    }
+
+    public function buscarContratantePorVaga(int $idVaga): ?object
+    {
+        return $this->usuarioRepository->buscarContratantePorVaga($idVaga);
     }
 
     /**

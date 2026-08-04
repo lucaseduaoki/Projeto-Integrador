@@ -97,6 +97,88 @@ class InteresseController extends Controller
         ]);
     }
 
+public function aceitar(): void
+{
+    error_log("[CONTROLLER] Entrou no método aceitar.");
+
+    $idInteresse = (int)($_POST['id'] ?? 0);
+
+    error_log("[CONTROLLER] ID Interesse: {$idInteresse}");
+
+    $usuario = $this->usuarioLogado();
+
+    error_log("[CONTROLLER] Usuário: {$usuario->getIdUsuario()}");
+
+    try {
+
+        $this->service->aceitarInteressado(
+            $idInteresse,
+            $usuario->getIdUsuario()
+        );
+
+        error_log("[CONTROLLER] Aceite realizado.");
+
+    } catch (\Exception $e) {
+
+        error_log("[ERRO] " . $e->getMessage());
+    }
+
+    $this->redirect(URL_BASE . '/vagas');
+}
+
+public function listarAceitos(): void
+{
+    error_log("[ACEITOS] Entrou no controller");
+
+    $this->contratanteRequired();
+
+    $usuario = $this->usuarioLogado();
+
+    error_log("[ACEITOS] Usuário: " . $usuario->getIdUsuario());
+
+    $idVaga = (int)($_GET['id'] ?? 0);
+
+    error_log("[ACEITOS] ID Vaga: " . $idVaga);
+
+    if ($idVaga <= 0) {
+        error_log("[ACEITOS] ID inválido");
+
+        http_response_code(400);
+
+        echo json_encode([
+            'erro' => 'ID da vaga inválido.'
+        ]);
+
+        return;
+    }
+
+    try {
+
+        error_log("[ACEITOS] Chamando service...");
+
+        $aceitos = $this->service->listarContatosAceitos(
+            $idVaga,
+            $usuario->getIdUsuario()
+        );
+
+        error_log("[ACEITOS] Retorno do service:");
+        error_log(print_r($aceitos, true));
+
+        header('Content-Type: application/json');
+
+        echo json_encode($aceitos);
+
+    } catch (\Exception $e) {
+
+        error_log("[ACEITOS] ERRO: " . $e->getMessage());
+
+        http_response_code(403);
+
+        echo json_encode([
+            'erro' => $e->getMessage()
+        ]);
+    }
+}
     public function visualizarHistorico(): void
     {
         $this->trabalhadorRequired();
@@ -135,11 +217,32 @@ class InteresseController extends Controller
 
         $usuario = $this->usuarioLogado();
 
-        $interesses = $this->service->listarHistorico($usuario->getIdUsuario());
+        $interesses = $this->service->listarHistorico(
+            $usuario->getIdUsuario()
+        );
+
+        $candidaturas = array_map(function ($interesse) {
+            error_log("Montando histórico para interesse ID: " . $interesse->getIdInteresse());
+            error_log("Interesse: " . print_r($interesse->toArray(), true));
+
+            return [
+                'candidatura' => $interesse,
+                'vaga' => $this->vagaService->buscarPorId(
+                    $interesse->getIdVaga()
+                ),
+                'contratante' => $this->vagaService->buscarContratantePorVaga(
+                    $interesse->getIdVaga()
+                )
+            ];
+
+        }, $interesses);
+
+        error_log("Histórico montado:");
+        error_log(print_r($candidaturas, true));
 
         $this->view('interesse/historico', [
-            'interesses' => $interesses,
-            'usuario' => $usuario
+            'interesses' => $candidaturas,
+            'usuarioLogado' => $usuario
         ]);
     }
 }

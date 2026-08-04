@@ -104,6 +104,22 @@ $isProprietario =
                             <p class="text-xs text-gray-600 uppercase font-semibold">Remuneração</p>
                             <p class="text-green-600 font-bold text-lg">R$ <?= $remuneracao ?></p>
                         </div>
+                        <div class="mt-4 space-y-1">
+
+    <span class="font-semibold">
+        R$ <?= number_format($vaga->getRemuneracao(), 2, ',', '.') ?>
+    </span>
+
+    <div class="text-sm text-gray-600">
+        Trabalhadores aceitos:
+        <span class="font-semibold text-green-600">
+            <?= $vaga->getTotalAceitos() ?>
+        </span>
+        /
+        <?= $vaga->getTrabalhadoresLimite() ?>
+    </div>
+
+</div>
                         <div class="text-center">
                             <svg class="w-6 h-6 text-blue-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>

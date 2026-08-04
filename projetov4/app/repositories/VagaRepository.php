@@ -20,24 +20,35 @@ class VagaRepository
      */
     private function mapear(array $row): Vaga
     {
-        return new Vaga(
-            (int)$row['id_vaga'],
-            (int)$row['id_contratante'],
-            (int)$row['id_categoria'],
-            $row['titulo'],
-            $row['descricao'],
-            $row['localizacao'],
-            $row['remuneracao'] !== null ? (float)$row['remuneracao'] : null,
-            $row['data_publicacao'],
-            $row['data_limite'],
-            $row['trabalhadores_limite']
-        );
+return new Vaga(
+    (int)$row['id_vaga'],
+    (int)$row['id_contratante'],
+    (int)$row['id_categoria'],
+    $row['titulo'],
+    $row['descricao'],
+    $row['localizacao'],
+    $row['remuneracao'] !== null ? (float)$row['remuneracao'] : null,
+    $row['data_publicacao'],
+    $row['data_limite'],
+    $row['trabalhadores_limite'],
+    $row['status'],
+    isset($row['total_aceitos']) ? (int)$row['total_aceitos'] : 0
+);
     }
 
     public function buscarPorId(int $id): ?Vaga
     {
-        $sql = "SELECT * FROM vaga WHERE id_vaga = :id";
-
+        $sql = "
+            SELECT
+                v.*,
+                COUNT(i.id_interesse) AS total_aceitos
+            FROM vaga v
+            LEFT JOIN interesse i
+                ON i.id_vaga = v.id_vaga
+            AND i.status = 'ACEITO'
+            WHERE v.id_vaga = :id
+            GROUP BY v.id_vaga
+        ";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -73,12 +84,18 @@ class VagaRepository
 
     public function listarPorContratante(int $idContratante): array
     {
-        $sql = "
-            SELECT *
-            FROM vaga
-            WHERE id_contratante = :id
-            ORDER BY data_publicacao DESC
-        ";
+$sql = "
+    SELECT
+        v.*,
+        COUNT(i.id_interesse) AS total_aceitos
+    FROM vaga v
+    LEFT JOIN interesse i
+        ON i.id_vaga = v.id_vaga
+       AND i.status = 'ACEITO'
+    WHERE v.id_contratante = :id
+    GROUP BY v.id_vaga
+    ORDER BY v.data_publicacao DESC
+";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $idContratante, PDO::PARAM_INT);

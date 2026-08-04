@@ -287,4 +287,17 @@ class UsuarioRepository
     {
         return $this->bloquear($id);
     }
+
+    public function buscarContratantePorVaga(int $idVaga): ?object
+    {
+        $sql = "SELECT u.* FROM usuario u
+                INNER JOIN vaga v ON u.id_usuario = v.id_contratante
+                WHERE v.id_vaga = :id_vaga";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id_vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $resultado = $stmt->fetch();
+        return $resultado ? Usuario::arrayParaObjeto($resultado) : null;
+    }
 }

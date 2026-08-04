@@ -43,6 +43,11 @@ class Usuario
     }
 
     // Getters
+    public function getLocalizacao(): ?string
+    {
+        return "Foz do Iguaçu, PR"; // Retorna a localização fixa
+    }
+    
     public function getIdUsuario(): int
     {
         return $this->idUsuario;
@@ -99,6 +104,11 @@ class Usuario
     }
 
     // Setters
+    public function setLocalizacao(?string $localizacao): self
+    {
+        $this->localizacao = $localizacao;
+        return $this;
+    }
     public function setNome(string $nome): self
     {
         $this->nome = $nome;

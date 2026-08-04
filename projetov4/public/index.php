@@ -22,6 +22,7 @@ $router->post('/cadastro/submit','AutenticacaoController@cadastrar');
 // PERFIL DE USUÁRIO
 // ============================================================================
 $router->get('/perfil',         'UsuarioController@exibirPerfil');
+$router->get('/perfil/editar',    'UsuarioController@exibirFormEditarPerfil');
 $router->post('/perfil/editar', 'UsuarioController@editarPerfil');
 
 // ============================================================================

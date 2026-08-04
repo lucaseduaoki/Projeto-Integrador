@@ -76,12 +76,12 @@ include __DIR__ . '/../shared/navbar.php';
                     <?php endif; ?>
                 </div>
 
-                <!-- Aviso de Consentimento -->
+                <!-- Aviso de Consentimento
                 <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p class="text-sm text-yellow-800">
                         <strong>⚠️ Importante:</strong> Todas as denúncias são revisadas manualmente pela nossa equipe de moderação. Denúncias falsas ou infundadas podem resultar em ação contra sua conta.
                     </p>
-                </div>
+                </div> -->
 
                 <!-- Botões -->
                 <div class="flex gap-4 pt-6 border-t border-gray-200">

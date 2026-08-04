@@ -15,20 +15,22 @@ class Vaga
     private ?string $dataLimite;
     private ?int $trabalhadoresLimite;
     private string $status;
+    private int $totalAceitos = 0;
 
-    public function __construct(
-        int $idVaga,
-        int $idContratante,
-        int $idCategoria,
-        string $titulo,
-        string $descricao,
-        ?string $localizacao = null,
-        ?float $remuneracao = null,
-        ?string $dataPublicacao = null,
-        ?string $dataLimite = null,
-        ?int $trabalhadoresLimite = null,
-        string $status = 'ATIVA'
-    ) {
+public function __construct(
+    int $idVaga,
+    int $idContratante,
+    int $idCategoria,
+    string $titulo,
+    string $descricao,
+    ?string $localizacao = null,
+    ?float $remuneracao = null,
+    ?string $dataPublicacao = null,
+    ?string $dataLimite = null,
+    ?int $trabalhadoresLimite = null,
+    string $status = 'ATIVA',
+    int $totalAceitos = 0
+) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
         $this->idCategoria = $idCategoria;
@@ -40,6 +42,7 @@ class Vaga
         $this->dataLimite = $dataLimite;
         $this->trabalhadoresLimite = $trabalhadoresLimite;
         $this->status = $status;
+        $this->totalAceitos = $totalAceitos;    
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -55,8 +58,19 @@ class Vaga
             $dados['data_publicacao'] ?? null,
             $dados['data_limite'] ?? null,
             isset($dados['trabalhadores_limite']) ? (int)$dados['trabalhadores_limite'] : null,
-            $dados['status'] ?? 'ATIVA'
+            $dados['status'] ?? 'ATIVA',
+            isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0
         );
+    }
+
+    public function getTotalAceitos(): int
+    {
+        return $this->totalAceitos;
+    }
+
+    public function setTotalAceitos(int $totalAceitos): void
+    {
+        $this->totalAceitos = $totalAceitos;
     }
 
     public function getIdVaga(): int

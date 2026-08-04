@@ -6,6 +6,7 @@ include __DIR__ . '/../shared/navbar.php';
 $usuario = $usuario ?? null;
 $habilidades = $habilidades ?? [];
 $avaliacoes = $avaliacoes ?? [];
+$localizacao = $usuario->getLocalizacao() ?? 'Não informado';
 if (!$usuario) {
     header('Location: /login');
     exit;
@@ -54,6 +55,17 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
                                 <span><?= $telefone ?></span>
                             </div>
                         </div>
+
+                        <!-- Documento -->
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <strong>Documento:</strong> <?= htmlspecialchars($usuario->getDocumento(), ENT_QUOTES, 'UTF-8') ?>
+                        </div>
+
+                        <!-- Localização -->
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <strong>Localização:</strong> <?= htmlspecialchars($localizacao) ?>
+                        </div>
+
                         
                         <!-- Botão Editar -->
                         <a href="/perfil/editar" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-center transition-colors duration-200">

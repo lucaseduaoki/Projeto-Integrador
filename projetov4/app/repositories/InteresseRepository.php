@@ -54,6 +54,28 @@ class InteresseRepository
         return null;
     }
 
+    public function listarContatosAceitos(int $idVaga): array
+{
+    $sql = "
+        SELECT
+            u.nome,
+            u.email,
+            u.telefone
+        FROM interesse i
+        INNER JOIN usuario u
+            ON u.id_usuario = i.id_trabalhador
+        WHERE i.id_vaga = :vaga
+          AND i.status = 'ACEITO'
+        ORDER BY u.nome
+    ";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
     public function criar(Interesse $interesse): int
     {
         error_log("Chegou no repository criar com os valores: vaga=" . $interesse->getIdVaga() . ", trabalhador=" . $interesse->getIdTrabalhador() . ", status=" . $interesse->getStatus() . ", data=" . $interesse->getDataInteresse()); // Log the values being inserted

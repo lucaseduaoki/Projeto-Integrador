@@ -41,6 +41,7 @@ class UsuarioController extends Controller
         $this->autenticacaoRequired();
         
         $usuario = $this->usuarioLogado();
+        error_log("Print Usuario: " . print_r($usuario, true));
         $habilidades = $this->service->buscarHabilidades($usuario->getIdUsuario());
         
         $this->view('usuario/perfil', [
@@ -54,6 +55,8 @@ class UsuarioController extends Controller
      */
     public function editarPerfil(): void
     {
+        error_log("Dados recebidos para editar perfil: " . print_r($_POST, true));
+
         $this->autenticacaoRequired();
 
         $usuario = $this->usuarioLogado();
@@ -62,12 +65,18 @@ class UsuarioController extends Controller
         $nome = htmlspecialchars(trim($_POST['nome'] ?? ''), ENT_QUOTES, 'UTF-8');
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
         $descricao = htmlspecialchars(trim($_POST['descricao'] ?? ''), ENT_QUOTES, 'UTF-8');
-
+        $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $localizacao = htmlspecialchars(trim($_POST['localizacao'] ?? ''), ENT_QUOTES, 'UTF-8');
+        
         // Validar
         $validador = new Validador();
         $validador->obrigatorio('nome', $nome)
-                  ->minimo('nome', $nome, 3)
-                  ->maximo('nome', $nome, 100);
+            ->obrigatorio('documento', $documento)
+            ->maximo('nome', $nome, 100)
+            ->maximo('telefone', $telefone, 20)
+            ->maximo('descricao', $descricao, 500)
+            ->maximo('documento', $documento, 20)
+            ->maximo('localizacao', $localizacao, 100);
 
         if ($validador->temErros()) {
             $this->view('usuario/perfil', [
@@ -82,7 +91,8 @@ class UsuarioController extends Controller
             $usuario->setNome($nome);
             $usuario->setTelefone($telefone ?: null);
             $usuario->setDescricao($descricao ?: null);
-            
+            $usuario->setDocumento($documento);
+            error_log("Print Usuario antes de atualizar: " . print_r($usuario, true));
             $this->service->atualizarPerfil($usuario);
             
             // Atualizar sessão
@@ -98,5 +108,18 @@ class UsuarioController extends Controller
                 'erro' => $e->getMessage(),
             ]);
         }
+    }
+
+    public function exibirFormEditarPerfil(): void
+    {
+        $this->autenticacaoRequired();
+
+        $usuario = $this->usuarioLogado();
+        $habilidades = $this->service->buscarHabilidades($usuario->getIdUsuario());
+        error_log("Print Usuario: " . print_r($usuario, true));
+        $this->view('usuario/perfil_editar', [
+            'usuario' => $usuario,
+            'habilidades' => $habilidades
+        ]);
     }
 }
