@@ -17,9 +17,7 @@ class ConnectionFactory {
                 $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME ;
                 self::$connection = self::createConnection($dsn);
                 
-                // Always ensure database schema exists
-                $databaseInit = new DatabaseInitializer();
-                $databaseInit->init(self::$connection);
+
                 
             } catch(Exception $e){
                 
