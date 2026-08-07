@@ -1,6 +1,4 @@
-DROP DATABASE IF EXISTS freelajav4;
-CREATE DATABASE freelajav4;
-USE freelajav4;
+
 
 -- ============================================================================
 -- ESTRUTURA
