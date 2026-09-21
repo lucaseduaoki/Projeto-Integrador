@@ -39,6 +39,21 @@ class Controller
     }
 
     /**
+     * Mensagem segura para mostrar ao usuário. Erro de banco (PDOException) nunca chega à tela:
+     * o detalhe vai só para o log e a pessoa recebe $padrao. Exceções de regra de negócio, que já
+     * têm texto próprio para o usuário, passam como estão.
+     */
+    protected function mensagemAmigavel(\Throwable $e, string $padrao = 'Não foi possível concluir a operação agora. Tente novamente em instantes.'): string
+    {
+        if ($e instanceof \PDOException) {
+            error_log('[DB] ' . $e->getMessage());
+            return $padrao;
+        }
+
+        return $e->getMessage();
+    }
+
+    /**
      * Redirecionar para URL
      */
     public function redirect(string $url)

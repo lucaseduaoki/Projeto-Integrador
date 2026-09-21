@@ -65,9 +65,9 @@ class ConnectionFactory
                     . $initException->getMessage()
                 );
 
+                // O detalhe (credenciais, host, SQL) fica só no log acima; a tela recebe texto genérico
                 throw new Exception(
-                    "Não foi possível inicializar o banco: "
-                    . $initException->getMessage()
+                    "Não foi possível conectar ao banco de dados. Tente novamente em instantes."
                 );
             }
         }

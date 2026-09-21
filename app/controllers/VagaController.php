@@ -244,7 +244,7 @@ public function criar(): void
     } catch (\Exception $e) {
 
         $this->view('vaga/vaga_form', [
-            'erro' => $e->getMessage(),
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar o anúncio agora. Tente novamente em instantes.'),
             'acao' => 'criar'
         ]);
     }
@@ -425,7 +425,7 @@ public function editar(): void
 
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
-            'erro' => $e->getMessage(),
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar as alterações agora. Tente novamente em instantes.'),
             'acao' => 'editar',
             'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);

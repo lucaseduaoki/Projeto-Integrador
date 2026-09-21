@@ -5,6 +5,18 @@ require_once __DIR__ . '/../app/config/Config.php';
 
 use app\core\Router;
 
+// Última barreira: qualquer exceção sem tratamento vira uma página amigável. O detalhe (SQL, host,
+// caminho do arquivo) vai só para o log, nunca para a tela.
+set_exception_handler(function (\Throwable $e) {
+    error_log('[ERRO NAO TRATADO] ' . get_class($e) . ': ' . $e->getMessage() . ' em ' . $e->getFile() . ':' . $e->getLine());
+
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+
+    require __DIR__ . '/../app/views/errors/500.php';
+});
+
 $router = new Router();
 
 $router->get('/', 'AutenticacaoController@exibirLogin');

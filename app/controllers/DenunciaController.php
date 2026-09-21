@@ -127,7 +127,7 @@ class DenunciaController extends Controller
                 'mensagem' => 'Denúncia registrada. Obrigado por manter a plataforma segura!'
             ]);
         } catch (\Exception $e) {
-            $this->view('denuncia/denuncia_form', $dadosForm + ['erro' => $e->getMessage()]);
+            $this->view('denuncia/denuncia_form', $dadosForm + ['erro' => $this->mensagemAmigavel($e, 'Não foi possível registrar a denúncia agora. Tente novamente em instantes.')]);
         }
     }
 
@@ -191,7 +191,7 @@ class DenunciaController extends Controller
                 'mensagem' => 'Não comparecimento registrado. A moderação vai analisar o caso.'
             ]);
         } catch (\Exception $e) {
-            $this->view('denuncia/nao_comparecimento', $dadosForm + ['erro' => $e->getMessage()]);
+            $this->view('denuncia/nao_comparecimento', $dadosForm + ['erro' => $this->mensagemAmigavel($e, 'Não foi possível registrar o não comparecimento agora. Tente novamente em instantes.')]);
         }
     }
 
@@ -248,7 +248,7 @@ class DenunciaController extends Controller
 
             $this->redirect(URL_BASE . '/admin/denuncias?status=pendentes');
         } catch (\Exception $e) {
-            $this->redirect(URL_BASE . '/admin/denuncias?erro=' . urlencode($e->getMessage()));
+            $this->redirect(URL_BASE . '/admin/denuncias?erro=' . urlencode($this->mensagemAmigavel($e, 'Não foi possível concluir a moderação agora. Tente novamente em instantes.')));
         }
     }
 }

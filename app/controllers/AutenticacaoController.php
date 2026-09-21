@@ -92,7 +92,7 @@ class AutenticacaoController extends Controller
         } catch (\Exception $e) {
             error_log('[LOGIN] Falha no login: ' . $e->getMessage());
             $this->view('autenticacao/login', [
-                'erros' => ['geral' => $e->getMessage()],
+                'erros' => ['geral' => $this->mensagemAmigavel($e, 'Não foi possível concluir agora. Tente novamente em instantes.')],
             ]);
         }
     }
@@ -183,7 +183,7 @@ class AutenticacaoController extends Controller
             $this->redirect(URL_BASE . '/perfil');
         } catch (\Exception $e) {
             $this->view('autenticacao/cadastro', [
-                'erros' => ['geral' => $e->getMessage()],
+                'erros' => ['geral' => $this->mensagemAmigavel($e, 'Não foi possível concluir agora. Tente novamente em instantes.')],
                 'nome' => $nome,
                 'email' => $email,
                 'papeis' => $papeis,

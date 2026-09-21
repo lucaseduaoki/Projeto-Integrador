@@ -156,7 +156,7 @@ class UsuarioController extends Controller
 
             $this->view('usuario/perfil', [
                 'usuario' => $usuario,
-                'erro' => $e->getMessage(),
+                'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar o perfil agora. Tente novamente em instantes.'),
             ]);
         }
     }

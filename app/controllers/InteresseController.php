@@ -179,7 +179,7 @@ public function listarAceitos(): void
         http_response_code(403);
 
         echo json_encode([
-            'erro' => $e->getMessage()
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível carregar os contatos agora. Tente novamente em instantes.')
         ]);
     }
 }
