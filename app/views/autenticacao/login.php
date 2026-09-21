@@ -10,51 +10,33 @@ $erros = $erros ?? [];
     <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         <!-- Left Column - Ilustração (Desktop only) -->
-        <div class="hidden lg:flex flex-col justify-center bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-12 text-white">
-            <h2 class="text-3xl font-bold mb-6">Conecte-se ao trabalho que você precisa.</h2>
-            
-            <div class="space-y-4">
-                <div class="flex items-start gap-4">
-                    <svg class="w-6 h-6 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <div>
-                        <p class="font-semibold">Oportunidades em tempo real</p>
-                        <p class="text-blue-100 text-sm">Acesse vagas antes de qualquer um.</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-start gap-4">
-                    <svg class="w-6 h-6 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <div>
-                        <p class="font-semibold">Contratos e segurança</p>
-                        <p class="text-blue-100 text-sm">Trabalhe com proteção e confiança.</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-start gap-4">
-                    <svg class="w-6 h-6 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <div>
-                        <p class="font-semibold">Comunidade confiável</p>
-                        <p class="text-blue-100 text-sm">Avaliações e reputação verificadas.</p>
-                    </div>
-                </div>
-            </div>
+        <div class="hidden lg:flex flex-col justify-center bg-blue-700 rounded-md p-12 text-white">
+            <h2 class="text-3xl font-bold mb-8 leading-tight">Serviço combinado, prazo combinado, pagamento combinado.</h2>
+            <ul class="space-y-5 border-l border-blue-500 pl-5">
+                <li>
+                    <p class="font-semibold">Vagas novas todo dia</p>
+                    <p class="text-blue-100 text-sm mt-0.5">Contratantes da sua região publicam direto na plataforma.</p>
+                </li>
+                <li>
+                    <p class="font-semibold">Você escolhe</p>
+                    <p class="text-blue-100 text-sm mt-0.5">Demonstre interesse só nas vagas que fazem sentido pra você.</p>
+                </li>
+                <li>
+                    <p class="font-semibold">Denúncia disponível</p>
+                    <p class="text-blue-100 text-sm mt-0.5">Algo saiu errado? A moderação analisa cada caso.</p>
+                </li>
+            </ul>
         </div>
 
         <!-- Right Column - Formulário -->
         <div class="flex items-center">
-            <div class="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div class="w-full bg-white rounded-md border border-gray-100 p-8">
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">Bem-vindo de volta</h1>
                 <p class="text-gray-600 mb-6">Acesse sua conta e continue de onde parou.</p>
 
                 <!-- Erro Geral -->
                 <?php if (isset($erros['geral'])): ?>
-                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6">
                         <?= htmlspecialchars($erros['geral'], ENT_QUOTES, 'UTF-8') ?>
                     </div>
                 <?php endif; ?>
@@ -70,7 +52,7 @@ $erros = $erros ?? [];
                             id="email" 
                             name="email" 
                             required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['email']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['email']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                             placeholder="seu@email.com"
                         >
                         <?php if (isset($erros['email'])): ?>
@@ -87,7 +69,7 @@ $erros = $erros ?? [];
                                 id="senha" 
                                 name="senha" 
                                 required
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['senha']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['senha']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                                 placeholder="••••••••"
                             >
                             <button 
@@ -109,7 +91,7 @@ $erros = $erros ?? [];
                     <!-- Botão Entrar -->
                     <button 
                         type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
                     >
                         Entrar
                     </button>
@@ -118,7 +100,7 @@ $erros = $erros ?? [];
                 <!-- Link Cadastro -->
                 <p class="text-center text-gray-600 text-sm mt-6">
                     Não tem conta? 
-                    <a href="/cadastro" class="text-blue-600 hover:text-blue-700 font-semibold">Cadastre-se</a>
+                    <a href="<?= URL_BASE ?>/cadastro" class="text-blue-600 hover:text-blue-700 font-semibold">Cadastre-se</a>
                 </p>
             </div>
         </div>

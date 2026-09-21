@@ -12,7 +12,7 @@ $modoEdicao = $modoEdicao ?? false;
 <main class="flex-1">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div class="bg-white rounded-md border border-gray-100 p-8">
 
             <h1 class="text-2xl font-bold text-gray-900 mb-6">
                 <?= $modoEdicao ? 'Editar Vaga' : 'Publicar Nova Vaga' ?>
@@ -20,7 +20,7 @@ $modoEdicao = $modoEdicao ?? false;
 
 
             <?php if (isset($erros['geral'])): ?>
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6">
                     <?= htmlspecialchars($erros['geral'], ENT_QUOTES, 'UTF-8') ?>
                 </div>
             <?php endif; ?>
@@ -50,7 +50,7 @@ $modoEdicao = $modoEdicao ?? false;
     id="id_categoria"
     name="id_categoria"
     required
-    class="w-full border border-gray-300 rounded-lg px-3 py-2"
+    class="w-full border border-gray-300 rounded px-3 py-2"
 >
 
     <option value="">
@@ -116,7 +116,7 @@ $modoEdicao = $modoEdicao ?? false;
                         name="titulo"
                         required
                         value="<?= $vaga ? htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') : '' ?>"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        class="w-full border border-gray-300 rounded px-3 py-2"
                     >
 
                 </div>
@@ -135,7 +135,7 @@ $modoEdicao = $modoEdicao ?? false;
                         name="descricao"
                         required
                         rows="5"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        class="w-full border border-gray-300 rounded px-3 py-2"
                     ><?= $vaga ? htmlspecialchars($vaga->getDescricao(), ENT_QUOTES, 'UTF-8') : '' ?></textarea>
 
                 </div>
@@ -158,7 +158,7 @@ $modoEdicao = $modoEdicao ?? false;
                             name="localizacao"
                             required
                             value="<?= $vaga ? htmlspecialchars($vaga->getLocalizacao(), ENT_QUOTES, 'UTF-8') : '' ?>"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
                         >
 
                     </div>
@@ -180,7 +180,7 @@ $modoEdicao = $modoEdicao ?? false;
                             step="0.01"
                             min="0"
                             value="<?= $vaga ? number_format($vaga->getRemuneracao(),2,'.','') : '' ?>"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
                         >
 
                     </div>
@@ -199,7 +199,7 @@ $modoEdicao = $modoEdicao ?? false;
                             id="data_limite"
                             name="data_limite"
                             value="<?= $vaga ? htmlspecialchars($vaga->getDataLimite(), ENT_QUOTES, 'UTF-8') : '' ?>"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
                         >
 
                     </div>
@@ -219,7 +219,7 @@ $modoEdicao = $modoEdicao ?? false;
                             name="trabalhadores_limite"
                             min="1"
                             value="<?= $vaga ? $vaga->getTrabalhadoresLimite() : 1 ?>"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
                         >
 
                     </div>
@@ -236,7 +236,7 @@ $modoEdicao = $modoEdicao ?? false;
                     <button
                         type="button"
                         onclick="preencherFormularioTeste()"
-                        class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg"
+                        class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded"
                     >
                         Preencher teste
                     </button>
@@ -244,15 +244,15 @@ $modoEdicao = $modoEdicao ?? false;
 
                     <button
                         type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
                     >
                         <?= $modoEdicao ? 'Salvar alterações' : 'Publicar vaga' ?>
                     </button>
 
 
                     <a
-                        href="/vagas"
-                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded-lg"
+                        href="<?= URL_BASE ?>/vagas"
+                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded"
                     >
                         Cancelar
                     </a>

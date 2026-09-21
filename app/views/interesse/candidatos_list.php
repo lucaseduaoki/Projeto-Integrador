@@ -51,7 +51,7 @@ include __DIR__ . '/../shared/navbar.php';
 
         <?php if(empty($interessados)): ?>
 
-            <div class="text-center py-16 bg-white rounded-xl border">
+            <div class="text-center py-16 bg-white rounded-md border">
 
                 <p class="text-gray-500 text-lg">
                     Nenhum trabalhador demonstrou interesse ainda.
@@ -63,7 +63,7 @@ include __DIR__ . '/../shared/navbar.php';
         <?php else: ?>
 
 
-            <div class="bg-white rounded-xl shadow border overflow-hidden">
+            <div class="bg-white rounded-md shadow border overflow-hidden">
 
                 <table class="w-full">
 
@@ -190,7 +190,7 @@ include __DIR__ . '/../shared/navbar.php';
                                 <?php if($status === 'PENDENTE'): ?>
 
 
-                                    <form method="POST" action="/interesse/aceitar">
+                                    <form method="POST" action="<?= URL_BASE ?>/interesse/aceitar">
 
                                         <input
                                             type="hidden"

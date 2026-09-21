@@ -26,7 +26,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
             
             <!-- Coluna Esquerda - Card de Perfil -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <div class="bg-white rounded-md border border-gray-100 p-6 sticky top-24">
                     
                     <!-- Avatar -->
                     <div class="flex flex-col items-center">
@@ -68,7 +68,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
                         
                         <!-- Botão Editar -->
-                        <a href="/perfil/editar" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-center transition-colors duration-200">
+                        <a href="<?= URL_BASE ?>/perfil/editar" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded text-center transition-colors duration-200">
                             Editar Perfil
                         </a>
                     </div>
@@ -79,7 +79,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
             <div class="lg:col-span-2 space-y-6">
                 
                 <!-- Sobre Mim -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="bg-white rounded-md border border-gray-100 p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Sobre mim</h3>
                     <p class="text-gray-600 whitespace-pre-wrap">
                         <?= $descricao ?: 'Nenhuma descrição adicionada ainda.' ?>
@@ -88,7 +88,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
                 <!-- Habilidades (apenas trabalhadores) -->
                 <?php if ($usuario->isTrabalhador() && !empty($habilidades)): ?>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="bg-white rounded-md border border-gray-100 p-6">
                         <h3 class="text-lg font-bold text-gray-900 mb-4">Habilidades</h3>
                         <div class="flex flex-wrap gap-2">
                             <?php foreach ($habilidades as $habilidade): ?>

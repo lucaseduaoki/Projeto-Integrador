@@ -4,36 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreelaJá | <?= htmlspecialchars($tituloPagina ?? 'Plataforma', ENT_QUOTES, 'UTF-8') ?></title>
-    
-    <!-- Tailwind CSS CDN -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // As classes "blue-*" e "gray-*" usadas nas views apontam para a paleta da marca
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: { DEFAULT: '#2563EB', hover: '#1D4ED8' },
-                        secondary: { DEFAULT: '#7C3AED', hover: '#6D28D9' },
-                        success: '#16A34A',
-                        danger: '#DC2626',
-                        warning: '#D97706',
-                        neutral: { 50: '#F8FAFC', 100: '#F1F5F9', 800: '#1E293B' }
+                        blue: {
+                            50: '#eef5f1', 100: '#d8e8df', 200: '#b3d1c1', 500: '#2f7a5f',
+                            600: '#1f5e4b', 700: '#174a3b', 800: '#123a2f', 900: '#0d2a22'
+                        },
+                        gray: {
+                            50: '#f7f4ee', 100: '#ece7dd', 200: '#ddd6c8', 300: '#c6bdac',
+                            400: '#a0968a', 500: '#7c7367', 600: '#5f574d',
+                            700: '#463f37', 800: '#2e2924', 900: '#1d1a17'
+                        }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['"Public Sans"', 'system-ui', 'sans-serif'],
+                        display: ['Fraunces', 'Georgia', 'serif']
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Public Sans', system-ui, sans-serif; }
+        h1, h2, .font-display { font-family: 'Fraunces', Georgia, serif; letter-spacing: -0.01em; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">

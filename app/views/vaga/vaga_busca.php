@@ -17,10 +17,10 @@ $totalResultados = $totalResultados ?? count($vagas);
             
             <!-- Sidebar Filtros (1/4) -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <div class="bg-white rounded-md border border-gray-100 p-6 sticky top-24">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Filtros</h3>
                     
-                    <form method="GET" action="/vagas/buscar" class="space-y-6">
+                    <form method="GET" action="<?= URL_BASE ?>/vagas/buscar" class="space-y-6">
                         
                         <!-- Palavras-chave -->
                         <div>
@@ -31,7 +31,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                                 name="keywords" 
                                 value="<?= htmlspecialchars($filtros['keywords'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                                 placeholder="Ex: pedreiro"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                         </div>
 
@@ -44,7 +44,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                                 name="localizacao" 
                                 value="<?= htmlspecialchars($filtros['localizacao'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                                 placeholder="Cidade"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                         </div>
 
@@ -54,7 +54,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                             <select 
                                 id="tipo_servico" 
                                 name="tipo_servico" 
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                                 <option value="">Todos</option>
                                 <option value="TEMPORARIO" <?= isset($filtros['tipo_servico']) && $filtros['tipo_servico'] === 'TEMPORARIO' ? 'selected' : '' ?>>Temporário</option>
@@ -73,7 +73,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                                 placeholder="0.00"
                                 step="0.01"
                                 min="0"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                         </div>
 
@@ -88,7 +88,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                                 placeholder="999999.99"
                                 step="0.01"
                                 min="0"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                         </div>
 
@@ -100,7 +100,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                                 id="data_from" 
                                 name="data_from" 
                                 value="<?= htmlspecialchars($filtros['data_from'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                         </div>
 
@@ -108,12 +108,12 @@ $totalResultados = $totalResultados ?? count($vagas);
                         <div class="space-y-2">
                             <button 
                                 type="submit"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
                             >
                                 Aplicar Filtros
                             </button>
                             <a 
-                                href="/vagas/buscar"
+                                href="<?= URL_BASE ?>/vagas/buscar"
                                 class="block text-center text-gray-600 hover:text-gray-900 font-medium text-sm"
                             >
                                 Limpar
@@ -131,7 +131,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                     <h2 class="text-xl font-bold text-gray-900">
                         <?= $totalResultados ?> vaga<?= $totalResultados !== 1 ? 's' : '' ?> encontrada<?= $totalResultados !== 1 ? 's' : '' ?>
                     </h2>
-                    <select class="mt-4 sm:mt-0 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <select class="mt-4 sm:mt-0 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                         <option>Mais recentes</option>
                         <option>Maior salário</option>
                         <option>Menor salário</option>
@@ -140,7 +140,7 @@ $totalResultados = $totalResultados ?? count($vagas);
 
                 <!-- Grid de Resultados -->
                 <?php if (empty($vagas)): ?>
-                    <div class="text-center py-16 bg-white rounded-xl border border-gray-100">
+                    <div class="text-center py-16 bg-white rounded-md border border-gray-100">
                         <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                         </svg>
@@ -155,7 +155,7 @@ $totalResultados = $totalResultados ?? count($vagas);
                             $localizacao = htmlspecialchars($vaga->getLocalizacao(), ENT_QUOTES, 'UTF-8');
                             $remuneracao = number_format($vaga->getRemuneracao(), 2, ',', '.');
                         ?>
-                            <a href="/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>" class="bg-white rounded-lg border border-gray-100 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>" class="bg-white rounded border border-gray-100 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div class="flex-1">
                                     <h3 class="text-lg font-semibold text-gray-900"><?= $titulo ?></h3>
                                     <p class="text-sm text-gray-600 mt-1"><?= $descricao ?></p>

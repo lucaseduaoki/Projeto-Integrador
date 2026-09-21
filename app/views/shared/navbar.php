@@ -8,18 +8,14 @@ $nomeUsuario = $usuarioLogado ? htmlspecialchars($usuarioLogado->getNome(), ENT_
 $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 1)) : '';
 ?>
 
-<nav class="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 shadow-sm z-50">
+<nav class="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             
             <!-- Logo -->
             <div class="flex-shrink-0 flex items-center">
-                <a href="<?= URL_BASE ?>/vagas" class="flex items-center gap-2 text-xl font-bold text-blue-600">
-                    <!-- Briefcase Icon -->
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H9V1H5v2zm0 2h10v10H5V5z"/>
-                    </svg>
-                    FreelaJá
+                <a href="<?= URL_BASE ?>/vagas" class="flex items-center gap-2 font-display text-2xl font-bold text-blue-600">
+                    Freela<span class="text-amber-600">Já</span>
                 </a>
             </div>
 
@@ -51,7 +47,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
                 <?php else: ?>
                     <!-- User Dropdown -->
                     <div class="relative group">
-                        <button class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+                        <button class="flex items-center justify-center w-10 h-10 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
                             <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
                         </button>
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
