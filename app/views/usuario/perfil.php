@@ -35,9 +35,13 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
                     
                     <!-- Avatar -->
                     <div class="flex flex-col items-center">
-                        <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold mb-4">
-                            <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
-                        </div>
+                        <?php if ($usuario->getFotoUrl()): ?>
+                            <img src="<?= htmlspecialchars($usuario->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="Foto de <?= $nomeUsuario ?>" class="w-24 h-24 rounded-full object-cover mb-4">
+                        <?php else: ?>
+                            <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold mb-4">
+                                <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
+                            </div>
+                        <?php endif; ?>
                         
                         <!-- Nome e Tipo -->
                         <h2 class="text-xl font-bold text-gray-900"><?= $nomeUsuario ?></h2>

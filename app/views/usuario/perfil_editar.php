@@ -50,18 +50,22 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                 <div class="bg-gray-50 rounded p-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Foto de Perfil</h3>
                     <div class="flex flex-col sm:flex-row gap-6 items-start">
-                        <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold flex-shrink-0">
-                            <?= htmlspecialchars(strtoupper(substr($usuario->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
-                        </div>
+                        <?php if ($usuario->getFotoUrl()): ?>
+                            <img src="<?= htmlspecialchars($usuario->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="Foto atual" class="w-24 h-24 rounded-full object-cover flex-shrink-0">
+                        <?php else: ?>
+                            <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold flex-shrink-0">
+                                <?= htmlspecialchars(strtoupper(substr($usuario->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
+                            </div>
+                        <?php endif; ?>
                         <div class="flex-1">
                             <input 
                                 type="file" 
                                 id="foto_perfil" 
                                 name="foto_perfil" 
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/gif"
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
                             >
-                            <p class="text-xs text-gray-600 mt-2">Formatos suportados: JPG, PNG, GIF (máx 2MB)</p>
+                            <p class="text-xs text-gray-600 mt-2">Formatos aceitos: JPG, PNG ou GIF, até 2 MB</p>
                         </div>
                     </div>
                 </div>

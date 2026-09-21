@@ -122,6 +122,14 @@ class Usuario
         return $this->tipoPessoa === 'PJ';
     }
 
+    /**
+     * URL pública da foto, ou null quando o usuário não tem foto.
+     */
+    public function getFotoUrl(): ?string
+    {
+        return $this->fotoPerfil ? URL_BASE . '/' . $this->fotoPerfil : null;
+    }
+
     public function getFotoPerfil(): ?string
     {
         return $this->fotoPerfil;

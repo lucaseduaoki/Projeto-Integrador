@@ -1,0 +1,5 @@
+# Pasta de arquivos enviados por usuários: só serve arquivos, nunca executa nada
+Options -Indexes -ExecCGI
+<FilesMatch "\.(?i:php|phtml|phar|php[0-9])$">
+    Require all denied
+</FilesMatch>

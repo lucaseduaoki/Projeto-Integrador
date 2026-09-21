@@ -110,12 +110,27 @@ class UsuarioController extends Controller
             $usuario->setTelefone($telefone ?: null);
             $usuario->setDescricao($descricao ?: null);
             $usuario->setDocumento($documento);
+
+            // Foto de perfil (opcional): validada e gravada pelo service
+            $fotoAnterior = $usuario->getFotoPerfil();
+            $novaFoto = null;
+            $enviouFoto = isset($_FILES['foto_perfil']) && ($_FILES['foto_perfil']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+
+            if ($enviouFoto) {
+                $novaFoto = $this->service->salvarFotoPerfil($_FILES['foto_perfil']);
+                $usuario->setFotoPerfil($novaFoto);
+            }
             $usuario->setIsTrabalhador($trabalhadorFinal);
             $usuario->setIsContratante($contratanteFinal);
             $usuario->setNomeResponsavel(($usuario->isPessoaJuridica() && $trabalhadorFinal) ? $nomeResponsavel : null);
             error_log("Print Usuario antes de atualizar: " . print_r($usuario, true));
             $this->service->atualizarPerfil($usuario);
-            
+
+            // A foto antiga só é apagada depois que a nova foi gravada com sucesso
+            if ($novaFoto !== null) {
+                $this->service->removerArquivoFoto($fotoAnterior);
+            }
+
             // Atualizar sessão
             $_SESSION['usuario_logado'] = $usuario;
 
@@ -124,6 +139,12 @@ class UsuarioController extends Controller
                 'sucesso' => 'Perfil atualizado com sucesso!',
             ]);
         } catch (\Exception $e) {
+            // Falha depois de gravar a nova foto: não deixa arquivo órfão nem troca a foto do usuário
+            if (isset($novaFoto) && $novaFoto !== null) {
+                $this->service->removerArquivoFoto($novaFoto);
+                $usuario->setFotoPerfil($fotoAnterior);
+            }
+
             $this->view('usuario/perfil', [
                 'usuario' => $usuario,
                 'erro' => $e->getMessage(),

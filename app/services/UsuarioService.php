@@ -129,6 +129,83 @@ class UsuarioService
         return $this->repository->atualizarSenha($idUsuario, $senhaHash);
     }
 
+    // Foto de perfil: só estes tipos (detectados pelo conteúdo) e até 2 MB
+    private const FOTO_TIPOS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif'];
+    private const FOTO_TAMANHO_MAX = 2 * 1024 * 1024;
+    private const FOTO_PASTA = 'uploads/perfis/';
+
+    /**
+     * Valida e grava a foto enviada em $_FILES['foto_perfil'] e devolve o caminho relativo
+     * (ex.: uploads/perfis/ab12...jpg). O nome do arquivo é gerado aqui: o nome enviado pelo
+     * usuário nunca é usado, e a extensão vem do tipo detectado no conteúdo.
+     */
+    public function salvarFotoPerfil(array $arquivo): string
+    {
+        $erroUpload = $arquivo['error'] ?? UPLOAD_ERR_NO_FILE;
+
+        if ($erroUpload === UPLOAD_ERR_INI_SIZE || $erroUpload === UPLOAD_ERR_FORM_SIZE) {
+            throw new Exception('A foto deve ter no máximo 2 MB.');
+        }
+
+        if ($erroUpload !== UPLOAD_ERR_OK) {
+            throw new Exception('Não foi possível enviar a foto. Tente novamente.');
+        }
+
+        $temporario = $arquivo['tmp_name'] ?? '';
+
+        if (!is_uploaded_file($temporario)) {
+            throw new Exception('Arquivo de foto inválido.');
+        }
+
+        if (filesize($temporario) > self::FOTO_TAMANHO_MAX) {
+            throw new Exception('A foto deve ter no máximo 2 MB.');
+        }
+
+        $tipo = (new \finfo(FILEINFO_MIME_TYPE))->file($temporario);
+
+        if (!isset(self::FOTO_TIPOS[$tipo]) || @getimagesize($temporario) === false) {
+            throw new Exception('Formato inválido. Envie uma imagem JPG, PNG ou GIF.');
+        }
+
+        // Sem GD não dá para recodificar a imagem; barra o polyglot mais comum (imagem válida com PHP anexado).
+        // Só "<?php": "<?" sozinho aparece por acaso em dados binários de imagens legítimas.
+        if (stripos((string)file_get_contents($temporario), '<?php') !== false) {
+            throw new Exception('Formato inválido. Envie uma imagem JPG, PNG ou GIF.');
+        }
+
+        $pasta = dirname(__DIR__, 2) . '/public/' . self::FOTO_PASTA;
+
+        if (!is_dir($pasta) && !mkdir($pasta, 0755, true)) {
+            throw new Exception('Não foi possível salvar a foto. Tente novamente mais tarde.');
+        }
+
+        $nome = bin2hex(random_bytes(16)) . '.' . self::FOTO_TIPOS[$tipo];
+
+        if (!move_uploaded_file($temporario, $pasta . $nome)) {
+            throw new Exception('Não foi possível salvar a foto. Tente novamente mais tarde.');
+        }
+
+        chmod($pasta . $nome, 0644);
+
+        return self::FOTO_PASTA . $nome;
+    }
+
+    /**
+     * Apaga um arquivo de foto gerado pelo sistema. Ignora qualquer caminho fora da pasta de fotos.
+     */
+    public function removerArquivoFoto(?string $caminho): void
+    {
+        if ($caminho === null || !str_starts_with($caminho, self::FOTO_PASTA)) {
+            return;
+        }
+
+        $arquivo = dirname(__DIR__, 2) . '/public/' . self::FOTO_PASTA . basename($caminho);
+
+        if (is_file($arquivo)) {
+            @unlink($arquivo);
+        }
+    }
+
     /**
      * Atualizar foto de perfil
      */
