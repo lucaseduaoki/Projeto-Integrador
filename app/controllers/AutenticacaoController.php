@@ -112,6 +112,7 @@ class AutenticacaoController extends Controller
         $confirmaSenha = $_POST['confirma_senha'] ?? '';
         $tipoUsuario = htmlspecialchars(trim($_POST['tipo_usuario'] ?? ''), ENT_QUOTES, 'UTF-8');
         $tipoPessoa = trim($_POST['tipo_pessoa'] ?? '');
+        $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
 
@@ -131,6 +132,7 @@ class AutenticacaoController extends Controller
 
         // Documento coerente com o tipo de pessoa (CPF para PF, CNPJ para PJ)
         $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
+        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $tipoPessoa, $tipoUsuario === 'TRABALHADOR');
         $documento = preg_replace('/\D/', '', $documento);
 
         // Verificar se senhas coincidem
@@ -158,7 +160,8 @@ class AutenticacaoController extends Controller
                 $tipoUsuario,
                 $telefone ?: null,
                 $documento ?: null,
-                $tipoPessoa
+                $tipoPessoa,
+                ($tipoPessoa === 'PJ' && $tipoUsuario === 'TRABALHADOR') ? $nomeResponsavel : null
             );
 
             // Logar automaticamente após cadastro

@@ -19,6 +19,9 @@ CREATE TABLE usuario (
 
     documento VARCHAR(20),
 
+    -- indivíduo responsável pela execução (obrigatório para PJ que presta serviço)
+    nome_responsavel VARCHAR(100) NULL,
+
     tipo_usuario ENUM(
         'ADMIN',
         'TRABALHADOR',

@@ -137,6 +137,26 @@ class Validador {
             : $this->cpf($campo, $valor, 'CPF inválido. Pessoas físicas devem informar um CPF válido (11 dígitos).');
     }
 
+    /**
+     * Empresa (PJ) que presta serviço deve indicar o responsável pela execução.
+     */
+    public function responsavelPrestadora(string $campo, ?string $valor, string $tipoPessoa, bool $prestador): self
+    {
+        if ($tipoPessoa !== 'PJ' || !$prestador) {
+            return $this;
+        }
+
+        $valor = trim((string)$valor);
+
+        if ($valor === '') {
+            $this->erros[$campo] = 'Informe o nome do responsável pela execução do serviço.';
+        } elseif (mb_strlen($valor) < 3 || mb_strlen($valor) > 100) {
+            $this->erros[$campo] = 'O nome do responsável deve ter entre 3 e 100 caracteres.';
+        }
+
+        return $this;
+    }
+
     public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {

@@ -150,6 +150,23 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                         <?php endif; ?>
                     </div>
 
+                    <!-- Responsável (empresa prestadora de serviço) -->
+                    <div id="responsavelDiv" class="<?= ($tipoPessoa === 'PJ' && $tipoUsuario === 'TRABALHADOR') ? '' : 'hidden' ?>">
+                        <label for="nome_responsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável pela execução do serviço</label>
+                        <input
+                            type="text"
+                            id="nome_responsavel"
+                            name="nome_responsavel"
+                            maxlength="100"
+                            placeholder="Nome da pessoa que executará o serviço"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value="<?= htmlspecialchars($_POST['nome_responsavel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                        <?php if (isset($erros['nome_responsavel'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['nome_responsavel'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                    </div>
+
                     <!-- Senha -->
                     <div>
                         <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
@@ -214,14 +231,20 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
 </main>
 
 <script>
+// Responsável só aparece para empresa que presta serviço; a regra é validada no servidor.
 function atualizarFormulario() {
-    // mantido por compatibilidade com o select de papel; o documento agora depende do tipo de pessoa
+    const papel = document.getElementById('tipo_usuario').value;
+    const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
+    const mostrar = pj && papel === 'TRABALHADOR';
+    document.getElementById('responsavelDiv').classList.toggle('hidden', !mostrar);
+    document.getElementById('nome_responsavel').required = mostrar;
 }
 
 function atualizarDocumento() {
     const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
     document.getElementById('documentoLabel').textContent = pj ? 'CNPJ' : 'CPF';
     document.getElementById('documento').placeholder = pj ? '00.000.000/0000-00' : '000.000.000-00';
+    atualizarFormulario();
 }
 </script>
 

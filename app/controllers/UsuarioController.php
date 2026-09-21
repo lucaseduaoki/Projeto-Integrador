@@ -65,11 +65,13 @@ class UsuarioController extends Controller
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
         $descricao = htmlspecialchars(trim($_POST['descricao'] ?? ''), ENT_QUOTES, 'UTF-8');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
         $localizacao = htmlspecialchars(trim($_POST['localizacao'] ?? ''), ENT_QUOTES, 'UTF-8');
         
         // Validar
         $validador = new Validador();
         $validador->documentoPorTipoPessoa('documento', $documento, $usuario->getTipoPessoa());
+        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $usuario->getTipoPessoa(), $usuario->isTrabalhador());
         $documento = preg_replace('/\D/', '', $documento);
 
         $validador->obrigatorio('nome', $nome)
@@ -94,6 +96,7 @@ class UsuarioController extends Controller
             $usuario->setTelefone($telefone ?: null);
             $usuario->setDescricao($descricao ?: null);
             $usuario->setDocumento($documento);
+            $usuario->setNomeResponsavel(($usuario->isPessoaJuridica() && $usuario->isTrabalhador()) ? $nomeResponsavel : null);
             error_log("Print Usuario antes de atualizar: " . print_r($usuario, true));
             $this->service->atualizarPerfil($usuario);
             

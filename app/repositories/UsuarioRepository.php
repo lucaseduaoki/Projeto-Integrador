@@ -90,8 +90,8 @@ class UsuarioRepository
      */
     public function criar(Usuario $usuario): int
     {
-        $sql = "INSERT INTO usuario (nome, email, senha, telefone, tipo_usuario, tipo_pessoa, foto_perfil, descricao, documento, ativo) 
-                VALUES (:nome, :email, :senha, :telefone, :tipo_usuario, :tipo_pessoa, :foto_perfil, :descricao, :documento, :ativo)";
+        $sql = "INSERT INTO usuario (nome, email, senha, telefone, tipo_usuario, tipo_pessoa, foto_perfil, descricao, documento, nome_responsavel, ativo) 
+                VALUES (:nome, :email, :senha, :telefone, :tipo_usuario, :tipo_pessoa, :foto_perfil, :descricao, :documento, :nome_responsavel, :ativo)";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':nome', $usuario->getNome(), PDO::PARAM_STR);
@@ -103,6 +103,7 @@ class UsuarioRepository
         $stmt->bindValue(':foto_perfil', $usuario->getFotoPerfil(), PDO::PARAM_STR);
         $stmt->bindValue(':descricao', $usuario->getDescricao(), PDO::PARAM_STR);
         $stmt->bindValue(':documento', $usuario->getDocumento(), PDO::PARAM_STR);
+        $stmt->bindValue(':nome_responsavel', $usuario->getNomeResponsavel(), PDO::PARAM_STR);
         $stmt->bindValue(':ativo', $usuario->getAtivo(), PDO::PARAM_INT);
         
         $stmt->execute();
@@ -117,7 +118,8 @@ class UsuarioRepository
         $sql = "UPDATE usuario 
                 SET nome = :nome, email = :email, senha = :senha, telefone = :telefone, 
                     tipo_usuario = :tipo_usuario, tipo_pessoa = :tipo_pessoa, foto_perfil = :foto_perfil, 
-                    descricao = :descricao, documento = :documento, ativo = :ativo
+                    descricao = :descricao, documento = :documento,
+                    nome_responsavel = :nome_responsavel, ativo = :ativo
                 WHERE id_usuario = :id";
         
         $stmt = $this->conn->prepare($sql);
@@ -131,6 +133,7 @@ class UsuarioRepository
         $stmt->bindValue(':foto_perfil', $usuario->getFotoPerfil(), PDO::PARAM_STR);
         $stmt->bindValue(':descricao', $usuario->getDescricao(), PDO::PARAM_STR);
         $stmt->bindValue(':documento', $usuario->getDocumento(), PDO::PARAM_STR);
+        $stmt->bindValue(':nome_responsavel', $usuario->getNomeResponsavel(), PDO::PARAM_STR);
         $stmt->bindValue(':ativo', $usuario->getAtivo(), PDO::PARAM_INT);
         
         return $stmt->execute();

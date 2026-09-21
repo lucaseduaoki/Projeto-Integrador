@@ -67,6 +67,12 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
                             <strong><?= $usuario->isPessoaJuridica() ? 'CNPJ' : 'CPF' ?>:</strong> <?= htmlspecialchars($usuario->getDocumento() ?? 'Não informado', ENT_QUOTES, 'UTF-8') ?>
                         </div>
 
+                        <?php if ($usuario->isPessoaJuridica() && $usuario->getNomeResponsavel()): ?>
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <strong>Responsável:</strong> <?= htmlspecialchars($usuario->getNomeResponsavel(), ENT_QUOTES, 'UTF-8') ?>
+                        </div>
+                        <?php endif; ?>
+
                         <!-- Localização -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
                             <strong>Localização:</strong> <?= htmlspecialchars($localizacao, ENT_QUOTES, 'UTF-8') ?>

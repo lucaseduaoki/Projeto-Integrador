@@ -16,6 +16,7 @@ class Usuario
     private int $ativo;
     private string $dataCadastro;
     private string $tipoPessoa;
+    private ?string $nomeResponsavel;
 
     public function __construct(
         int $idUsuario,
@@ -29,7 +30,8 @@ class Usuario
         ?string $documento = null,
         int $ativo = 1,
         string $dataCadastro = '',
-        string $tipoPessoa = 'PF'
+        string $tipoPessoa = 'PF',
+        ?string $nomeResponsavel = null
     ) {
         $this->idUsuario = $idUsuario;
         $this->nome = $nome;
@@ -43,6 +45,7 @@ class Usuario
         $this->ativo = $ativo;
         $this->dataCadastro = $dataCadastro ?: date('Y-m-d H:i:s');
         $this->tipoPessoa = $tipoPessoa;
+        $this->nomeResponsavel = $nomeResponsavel;
     }
 
     // Getters
@@ -84,6 +87,17 @@ class Usuario
     public function getTipoPessoa(): string
     {
         return $this->tipoPessoa;
+    }
+
+    public function getNomeResponsavel(): ?string
+    {
+        return $this->nomeResponsavel;
+    }
+
+    public function setNomeResponsavel(?string $nomeResponsavel): self
+    {
+        $this->nomeResponsavel = $nomeResponsavel;
+        return $this;
     }
 
     public function isPessoaJuridica(): bool
@@ -218,7 +232,8 @@ class Usuario
             $data['documento'] ?? null,
             $data['ativo'] ?? 1,
             $data['data_cadastro'] ?? date('Y-m-d H:i:s'),
-            $data['tipo_pessoa'] ?? 'PF'
+            $data['tipo_pessoa'] ?? 'PF',
+            $data['nome_responsavel'] ?? null
         );
     }
 }
