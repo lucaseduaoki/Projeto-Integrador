@@ -66,12 +66,26 @@ class UsuarioController extends Controller
         $descricao = htmlspecialchars(trim($_POST['descricao'] ?? ''), ENT_QUOTES, 'UTF-8');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
         $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
+        $novosPapeis = array_values(array_intersect(
+            array_filter((array)($_POST['adicionar_papeis'] ?? []), 'is_string'),
+            ['TRABALHADOR', 'CONTRATANTE']
+        ));
         $localizacao = htmlspecialchars(trim($_POST['localizacao'] ?? ''), ENT_QUOTES, 'UTF-8');
         
-        // Validar
+        // Pessoa física pode passar a atuar também no outro papel (RN02); empresa não acumula,
+        // administrador não recebe papéis por aqui e ninguém remove papel pelo perfil.
         $validador = new Validador();
+        if (!empty($novosPapeis) && ($usuario->isPessoaJuridica() || $usuario->isAdmin())) {
+            $validador->erro('adicionar_papeis', 'Somente pessoa física pode acumular os papéis de trabalhador e contratante.');
+            $novosPapeis = [];
+        }
+
+        $trabalhadorFinal = $usuario->isTrabalhador() || in_array('TRABALHADOR', $novosPapeis, true);
+        $contratanteFinal = $usuario->isContratante() || in_array('CONTRATANTE', $novosPapeis, true);
+
+        // Validar
         $validador->documentoPorTipoPessoa('documento', $documento, $usuario->getTipoPessoa());
-        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $usuario->getTipoPessoa(), $usuario->isTrabalhador());
+        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $usuario->getTipoPessoa(), $trabalhadorFinal);
         $documento = preg_replace('/\D/', '', $documento);
 
         $validador->obrigatorio('nome', $nome)
@@ -96,7 +110,9 @@ class UsuarioController extends Controller
             $usuario->setTelefone($telefone ?: null);
             $usuario->setDescricao($descricao ?: null);
             $usuario->setDocumento($documento);
-            $usuario->setNomeResponsavel(($usuario->isPessoaJuridica() && $usuario->isTrabalhador()) ? $nomeResponsavel : null);
+            $usuario->setIsTrabalhador($trabalhadorFinal);
+            $usuario->setIsContratante($contratanteFinal);
+            $usuario->setNomeResponsavel(($usuario->isPessoaJuridica() && $trabalhadorFinal) ? $nomeResponsavel : null);
             error_log("Print Usuario antes de atualizar: " . print_r($usuario, true));
             $this->service->atualizarPerfil($usuario);
             

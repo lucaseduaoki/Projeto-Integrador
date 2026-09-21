@@ -157,6 +157,33 @@ class Validador {
         return $this;
     }
 
+    /**
+     * Papéis escolhidos no cadastro. Ao menos um; empresa (PJ) atua em um único papel (RN02).
+     */
+    public function papeis(string $campo, array $papeis, string $tipoPessoa): self
+    {
+        $validos = ['TRABALHADOR', 'CONTRATANTE'];
+
+        if (empty($papeis)) {
+            $this->erros[$campo] = 'Selecione ao menos um papel: trabalhador ou contratante.';
+        } elseif (array_diff($papeis, $validos)) {
+            $this->erros[$campo] = 'Papel inválido.';
+        } elseif ($tipoPessoa === 'PJ' && count($papeis) > 1) {
+            $this->erros[$campo] = 'Empresas atuam em um único papel. Só pessoa física pode ser trabalhador e contratante.';
+        }
+
+        return $this;
+    }
+
+    /**
+     * Registra um erro de regra de negócio já decidida pelo chamador.
+     */
+    public function erro(string $campo, string $mensagem): self
+    {
+        $this->erros[$campo] = $mensagem;
+        return $this;
+    }
+
     public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {

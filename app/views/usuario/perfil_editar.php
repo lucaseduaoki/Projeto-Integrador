@@ -22,7 +22,6 @@ $nomeUsuario = htmlspecialchars($usuario->getNome(), ENT_QUOTES, 'UTF-8');
 $email = htmlspecialchars($usuario->getEmail(), ENT_QUOTES, 'UTF-8');
 $telefone = htmlspecialchars($usuario->getTelefone() ?? '', ENT_QUOTES, 'UTF-8');
 $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8');
-$tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8');
 ?>
 
 <main class="flex-1">
@@ -123,6 +122,19 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                         </div>
+
+                        <?php if (!$usuario->isPessoaJuridica() && !$usuario->isAdmin() && !($usuario->isTrabalhador() && $usuario->isContratante())): ?>
+                        <!-- Pessoa física pode acumular os dois papéis -->
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="adicionar_papeis[]" value="<?= $usuario->isTrabalhador() ? 'CONTRATANTE' : 'TRABALHADOR' ?>">
+                                Também quero atuar como <?= $usuario->isTrabalhador() ? 'contratante (publicar vagas)' : 'trabalhador (me candidatar a vagas)' ?>
+                            </label>
+                            <?php if (isset($erros['adicionar_papeis'])): ?>
+                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['adicionar_papeis'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
 
                         <?php if ($usuario->isPessoaJuridica() && $usuario->isTrabalhador()): ?>
                         <!-- Responsável (empresa prestadora) -->

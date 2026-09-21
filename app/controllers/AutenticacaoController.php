@@ -110,7 +110,7 @@ class AutenticacaoController extends Controller
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
         $senha = $_POST['senha'] ?? '';
         $confirmaSenha = $_POST['confirma_senha'] ?? '';
-        $tipoUsuario = htmlspecialchars(trim($_POST['tipo_usuario'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $papeis = array_values(array_unique(array_filter((array)($_POST['papeis'] ?? []), 'is_string')));
         $tipoPessoa = trim($_POST['tipo_pessoa'] ?? '');
         $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
@@ -125,14 +125,13 @@ class AutenticacaoController extends Controller
                   ->obrigatorio('senha', $senha)
                   ->minimo('senha', $senha, 8)
                   ->obrigatorio('confirma_senha', $confirmaSenha)
-                  ->obrigatorio('tipo_usuario', $tipoUsuario)
-                  ->emLista('tipo_usuario', $tipoUsuario, ['TRABALHADOR', 'CONTRATANTE'])
                   ->obrigatorio('tipo_pessoa', $tipoPessoa, 'Informe se você é pessoa física ou empresa.')
                   ->emLista('tipo_pessoa', $tipoPessoa, ['PF', 'PJ'], 'Tipo de pessoa inválido.');
 
         // Documento coerente com o tipo de pessoa (CPF para PF, CNPJ para PJ)
+        $validador->papeis('papeis', $papeis, $tipoPessoa);
         $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
-        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $tipoPessoa, $tipoUsuario === 'TRABALHADOR');
+        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $tipoPessoa, in_array('TRABALHADOR', $papeis, true));
         $documento = preg_replace('/\D/', '', $documento);
 
         // Verificar se senhas coincidem
@@ -145,7 +144,7 @@ class AutenticacaoController extends Controller
                 'erros' => $validador->getErros(),
                 'nome' => $nome,
                 'email' => $email,
-                'tipo_usuario' => $tipoUsuario,
+                'papeis' => $papeis,
                 'tipo_pessoa' => $tipoPessoa
             ]);
             return;
@@ -157,11 +156,12 @@ class AutenticacaoController extends Controller
                 $nome,
                 $email,
                 $senha,
-                $tipoUsuario,
+                in_array('TRABALHADOR', $papeis, true),
+                in_array('CONTRATANTE', $papeis, true),
                 $telefone ?: null,
                 $documento ?: null,
                 $tipoPessoa,
-                ($tipoPessoa === 'PJ' && $tipoUsuario === 'TRABALHADOR') ? $nomeResponsavel : null
+                ($tipoPessoa === 'PJ' && in_array('TRABALHADOR', $papeis, true)) ? $nomeResponsavel : null
             );
 
             // Logar automaticamente após cadastro
@@ -174,7 +174,7 @@ class AutenticacaoController extends Controller
                 'erros' => ['geral' => $e->getMessage()],
                 'nome' => $nome,
                 'email' => $email,
-                'tipo_usuario' => $tipoUsuario,
+                'papeis' => $papeis,
                 'tipo_pessoa' => $tipoPessoa
             ]);
         }

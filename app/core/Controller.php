@@ -65,7 +65,7 @@ class Controller
         $this->autenticacaoRequired();
         
         $usuario = $_SESSION['usuario_logado'];
-        if ($usuario->getTipoUsuario() !== 'ADMIN') {
+        if (!$usuario->isAdmin()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }
@@ -79,7 +79,7 @@ class Controller
         $this->autenticacaoRequired();
         
         $usuario = $_SESSION['usuario_logado'];
-        if ($usuario->getTipoUsuario() !== 'CONTRATANTE' && $usuario->getTipoUsuario() !== 'ADMIN') {
+        if (!$usuario->isContratante() && !$usuario->isAdmin()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }
@@ -93,7 +93,7 @@ class Controller
         $this->autenticacaoRequired();
         
         $usuario = $_SESSION['usuario_logado'];
-        if ($usuario->getTipoUsuario() !== 'TRABALHADOR' && $usuario->getTipoUsuario() !== 'ADMIN') {
+        if (!$usuario->isTrabalhador() && !$usuario->isAdmin()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }

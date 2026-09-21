@@ -68,7 +68,7 @@ class VagaController extends Controller
 
         if (
             $usuario !== null &&
-            $usuario->getTipoUsuario() === 'TRABALHADOR'
+            $usuario->isTrabalhador()
         ) {
             $jaDemonstrouInteresse =
                 $this->interesseService->jaDemonstrouInteresse(

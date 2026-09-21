@@ -41,12 +41,12 @@ $statusBadge = $disponivel
 
 $isTrabalhador = 
     $usuarioLogado &&
-    $usuarioLogado->getTipoUsuario() === 'TRABALHADOR';
+    $usuarioLogado->isTrabalhador();
 
 
 $isContratante =
     $usuarioLogado &&
-    $usuarioLogado->getTipoUsuario() === 'CONTRATANTE';
+    $usuarioLogado->isContratante();
 
 
 $isProprietario =
@@ -150,7 +150,7 @@ $isProprietario =
                     </div>
 
                     <!-- Ação Principal -->
-                    <?php if ($isTrabalhador && $disponivel && !$jaDemonstrouInteresse): ?>
+                    <?php if ($isTrabalhador && !$isProprietario && $disponivel && !$jaDemonstrouInteresse): ?>
 
                         <form method="POST" action="<?= URL_BASE ?>/interesse/demonstrar" class="mb-4">
 
@@ -173,7 +173,7 @@ $isProprietario =
                         </div>
 
 
-                    <?php elseif ($isTrabalhador && !$disponivel): ?>
+                    <?php elseif ($isTrabalhador && !$isProprietario && !$disponivel): ?>
 
                         <div class="w-full bg-gray-100 border border-gray-200 text-gray-600 font-semibold py-2 px-4 rounded text-center mb-4">
                             <?= $vaga->isUserActive() ? 'Vaga encerrada' : 'Vaga indisponível' ?>

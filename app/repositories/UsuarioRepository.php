@@ -76,9 +76,16 @@ class UsuarioRepository
      */
     public function listarPorTipo(string $tipo): array
     {
-        $sql = "SELECT * FROM usuario WHERE tipo_usuario = :tipo AND ativo = 1 ORDER BY data_cadastro DESC";
+        // coluna escolhida de uma lista fixa (nunca interpolar entrada do usuário)
+        $coluna = match ($tipo) {
+            'ADMIN' => 'is_admin',
+            'TRABALHADOR' => 'is_trabalhador',
+            'CONTRATANTE' => 'is_contratante',
+            default => throw new \InvalidArgumentException('Tipo de usuário inválido.'),
+        };
+
+        $sql = "SELECT * FROM usuario WHERE {$coluna} = 1 AND ativo = 1 ORDER BY data_cadastro DESC";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':tipo', $tipo, PDO::PARAM_STR);
         $stmt->execute();
 
         $resultados = $stmt->fetchAll();
@@ -90,15 +97,17 @@ class UsuarioRepository
      */
     public function criar(Usuario $usuario): int
     {
-        $sql = "INSERT INTO usuario (nome, email, senha, telefone, tipo_usuario, tipo_pessoa, foto_perfil, descricao, documento, nome_responsavel, ativo) 
-                VALUES (:nome, :email, :senha, :telefone, :tipo_usuario, :tipo_pessoa, :foto_perfil, :descricao, :documento, :nome_responsavel, :ativo)";
+        $sql = "INSERT INTO usuario (nome, email, senha, telefone, is_admin, is_trabalhador, is_contratante, tipo_pessoa, foto_perfil, descricao, documento, nome_responsavel, ativo) 
+                VALUES (:nome, :email, :senha, :telefone, :is_admin, :is_trabalhador, :is_contratante, :tipo_pessoa, :foto_perfil, :descricao, :documento, :nome_responsavel, :ativo)";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':nome', $usuario->getNome(), PDO::PARAM_STR);
         $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
         $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->bindValue(':telefone', $usuario->getTelefone(), PDO::PARAM_STR);
-        $stmt->bindValue(':tipo_usuario', $usuario->getTipoUsuario(), PDO::PARAM_STR);
+        $stmt->bindValue(':is_admin', $usuario->isAdmin(), PDO::PARAM_BOOL);
+        $stmt->bindValue(':is_trabalhador', $usuario->isTrabalhador(), PDO::PARAM_BOOL);
+        $stmt->bindValue(':is_contratante', $usuario->isContratante(), PDO::PARAM_BOOL);
         $stmt->bindValue(':tipo_pessoa', $usuario->getTipoPessoa(), PDO::PARAM_STR);
         $stmt->bindValue(':foto_perfil', $usuario->getFotoPerfil(), PDO::PARAM_STR);
         $stmt->bindValue(':descricao', $usuario->getDescricao(), PDO::PARAM_STR);
@@ -117,7 +126,8 @@ class UsuarioRepository
     {
         $sql = "UPDATE usuario 
                 SET nome = :nome, email = :email, senha = :senha, telefone = :telefone, 
-                    tipo_usuario = :tipo_usuario, tipo_pessoa = :tipo_pessoa, foto_perfil = :foto_perfil, 
+                    is_admin = :is_admin, is_trabalhador = :is_trabalhador, is_contratante = :is_contratante,
+                    tipo_pessoa = :tipo_pessoa, foto_perfil = :foto_perfil, 
                     descricao = :descricao, documento = :documento,
                     nome_responsavel = :nome_responsavel, ativo = :ativo
                 WHERE id_usuario = :id";
@@ -128,7 +138,9 @@ class UsuarioRepository
         $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
         $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->bindValue(':telefone', $usuario->getTelefone(), PDO::PARAM_STR);
-        $stmt->bindValue(':tipo_usuario', $usuario->getTipoUsuario(), PDO::PARAM_STR);
+        $stmt->bindValue(':is_admin', $usuario->isAdmin(), PDO::PARAM_BOOL);
+        $stmt->bindValue(':is_trabalhador', $usuario->isTrabalhador(), PDO::PARAM_BOOL);
+        $stmt->bindValue(':is_contratante', $usuario->isContratante(), PDO::PARAM_BOOL);
         $stmt->bindValue(':tipo_pessoa', $usuario->getTipoPessoa(), PDO::PARAM_STR);
         $stmt->bindValue(':foto_perfil', $usuario->getFotoPerfil(), PDO::PARAM_STR);
         $stmt->bindValue(':descricao', $usuario->getDescricao(), PDO::PARAM_STR);

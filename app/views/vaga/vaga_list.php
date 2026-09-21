@@ -8,7 +8,7 @@ $vagas = $vagas ?? [];
 $usuarioLogado = $usuario ?? null;
 
 $isContratante = $usuarioLogado &&
-    $usuarioLogado->getTipoUsuario() === 'CONTRATANTE';
+    $usuarioLogado->isContratante();
 
 
 if (!empty($vagas)) {

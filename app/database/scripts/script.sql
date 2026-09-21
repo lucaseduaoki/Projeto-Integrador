@@ -22,18 +22,24 @@ CREATE TABLE usuario (
     -- indivíduo responsável pela execução (obrigatório para PJ que presta serviço)
     nome_responsavel VARCHAR(100) NULL,
 
-    tipo_usuario ENUM(
-        'ADMIN',
-        'TRABALHADOR',
-        'CONTRATANTE'
-    ) NOT NULL,
+    -- papéis (uma pessoa física pode ser trabalhador e contratante ao mesmo tempo)
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    is_trabalhador BOOLEAN NOT NULL DEFAULT FALSE,
+    is_contratante BOOLEAN NOT NULL DEFAULT FALSE,
 
     -- PF usa CPF e PJ usa CNPJ no campo documento
     tipo_pessoa ENUM('PF','PJ') NOT NULL DEFAULT 'PF',
 
     ativo BOOLEAN DEFAULT TRUE,
 
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT chk_usuario_tem_papel
+        CHECK (is_admin + is_trabalhador + is_contratante >= 1),
+
+    -- empresa (PJ) atua em um único papel, só PF acumula (RN02)
+    CONSTRAINT chk_usuario_pj_papel_unico
+        CHECK (NOT (tipo_pessoa = 'PJ' AND is_trabalhador = 1 AND is_contratante = 1))
 );
 
 CREATE TABLE categoria (
@@ -243,7 +249,7 @@ INSERT INTO habilidade (nome) VALUES
 -- ============================================================================
 
 INSERT INTO usuario (
-    nome, email, senha, telefone, cidade, tipo_usuario
+    nome, email, senha, telefone, cidade, is_admin, is_trabalhador, is_contratante
 )
 VALUES
 -- Admin
@@ -253,7 +259,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0001',
     'Dois Vizinhos',
-    'ADMIN'
+    1, 0, 0
 ),
 -- Trabalhadores (id 2 a 6)
 (
@@ -262,7 +268,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0002',
     'Dois Vizinhos',
-    'TRABALHADOR'
+    0, 1, 0
 ),
 (
     'Maria Souza',
@@ -270,7 +276,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0004',
     'Dois Vizinhos',
-    'TRABALHADOR'
+    0, 1, 0
 ),
 (
     'Carlos Mendes',
@@ -278,7 +284,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0005',
     'Pato Branco',
-    'TRABALHADOR'
+    0, 1, 0
 ),
 (
     'Fernanda Lima',
@@ -286,7 +292,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0006',
     'Dois Vizinhos',
-    'TRABALHADOR'
+    0, 1, 0
 ),
 (
     'Ricardo Alves',
@@ -294,7 +300,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0007',
     'Dois Vizinhos',
-    'TRABALHADOR'
+    0, 1, 0
 ),
 -- Contratantes (id 7 a 9)
 (
@@ -303,7 +309,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0003',
     'Dois Vizinhos',
-    'CONTRATANTE'
+    0, 0, 1
 ),
 (
     'Restaurante Sabor Real',
@@ -311,7 +317,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0008',
     'Dois Vizinhos',
-    'CONTRATANTE'
+    0, 0, 1
 ),
 (
     'Condomínio Jardim das Flores',
@@ -319,7 +325,7 @@ VALUES
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0009',
     'Dois Vizinhos',
-    'CONTRATANTE'
+    0, 0, 1
 );
 
 -- ============================================================================

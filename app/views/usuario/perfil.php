@@ -14,7 +14,6 @@ $erros = $erros ?? [];
 $localizacao = $usuario->getLocalizacao() ?? 'Não informado';
 
 $nomeUsuario = htmlspecialchars($usuario->getNome(), ENT_QUOTES, 'UTF-8');
-$tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8');
 $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8');
 $email = htmlspecialchars($usuario->getEmail(), ENT_QUOTES, 'UTF-8');
 $telefone = htmlspecialchars($usuario->getTelefone() ?? 'Não informado', ENT_QUOTES, 'UTF-8');
@@ -43,7 +42,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
                         <!-- Nome e Tipo -->
                         <h2 class="text-xl font-bold text-gray-900"><?= $nomeUsuario ?></h2>
                         <span class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            <?= $tipoUsuario === 'TRABALHADOR' ? 'Trabalhador' : ($tipoUsuario === 'CONTRATANTE' ? 'Contratante' : 'Admin') ?>
+                            <?= htmlspecialchars($usuario->getRotuloPapeis(), ENT_QUOTES, 'UTF-8') ?>
                         </span>
                         
                         <!-- Informações de Contato -->
