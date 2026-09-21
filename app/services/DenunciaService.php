@@ -24,7 +24,7 @@ class DenunciaService
      */
     public function criar(
         int $idDenunciante,
-        int $idDenunciado,
+        ?int $idDenunciado,
         string $motivo,
         ?string $descricao = null,
         ?int $idVaga = null
@@ -33,8 +33,15 @@ class DenunciaService
             throw new Exception('Motivo da denúncia é obrigatório.');
         }
 
-        // RN13: o motivo precisa pertencer à lista do tipo de alvo (anúncio ou usuário)
-        $tipo = $idVaga !== null ? Denuncia::TIPO_ANUNCIO : Denuncia::TIPO_USUARIO;
+        // RN13: o motivo precisa pertencer à lista do tipo de alvo. Anúncio: só a vaga;
+        // usuário: só a pessoa. Qualquer outra combinação de alvo é inválida.
+        if ($idVaga !== null && $idDenunciado === null) {
+            $tipo = Denuncia::TIPO_ANUNCIO;
+        } elseif ($idDenunciado !== null && $idVaga === null) {
+            $tipo = Denuncia::TIPO_USUARIO;
+        } else {
+            throw new Exception('Alvo da denúncia inválido.');
+        }
         if (!array_key_exists($motivo, Denuncia::motivosPara($tipo))) {
             throw new Exception('Motivo inválido para este tipo de denúncia.');
         }

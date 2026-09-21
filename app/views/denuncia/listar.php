@@ -71,7 +71,7 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 text-sm text-gray-700">#<?= $denuncia->getIdDenuncia() ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-700">Usuário #<?= $denuncia->getIdDenunciante() ?></td>
-                                    <td class="px-6 py-4 text-sm text-gray-700">Usuário #<?= $denuncia->getIdUsuarioDenunciado() ?></td>
+                                    <td class="px-6 py-4 text-sm text-gray-700"><?= $denuncia->getIdVagaDenunciada() !== null && $denuncia->getIdUsuarioDenunciado() === null ? 'Anúncio #' . $denuncia->getIdVagaDenunciada() : 'Usuário #' . $denuncia->getIdUsuarioDenunciado() ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars(\app\models\Denuncia::rotuloMotivo($denuncia->getMotivo()), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($denuncia->getDataDenuncia())), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="px-6 py-4">

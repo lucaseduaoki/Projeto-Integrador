@@ -204,7 +204,10 @@ $isProprietario =
 
                     <?php if ($usuarioLogado && !$isProprietario): ?>
                         <div class="pt-4 border-t border-gray-200 mt-4">
-                            <a href="<?= URL_BASE ?>/denuncia/criar?id=<?= $vaga->getIdContratante() ?>" class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
+                            <a href="<?= URL_BASE ?>/denuncia/criar?vaga=<?= $vaga->getIdVaga() ?>" class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
+                                Denunciar anúncio
+                            </a>
+                            <a href="<?= URL_BASE ?>/denuncia/criar?id=<?= $vaga->getIdContratante() ?>" class="w-full mt-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
                                 Denunciar contratante
                             </a>
                         </div>

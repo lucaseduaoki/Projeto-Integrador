@@ -1,5 +1,8 @@
 <?php
 $motivos = $motivos ?? [];
+$vaga = $vaga ?? null;
+$denunciado = $denunciado ?? null;
+$denunciandoAnuncio = $vaga !== null;
 $erros = $erros ?? [];
 $tituloPagina = 'Realizar Denúncia';
 include __DIR__ . '/../shared/header.php';
@@ -16,18 +19,25 @@ include __DIR__ . '/../shared/navbar.php';
                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
                 <div>
-                    <h1 class="text-2xl font-bold text-red-900">Realizar Denúncia</h1>
+                    <h1 class="text-2xl font-bold text-red-900"><?= $denunciandoAnuncio ? 'Denunciar anúncio' : 'Realizar Denúncia' ?></h1>
                     <p class="text-red-800 text-sm mt-1">Denúncias falsas podem resultar em suspensão da sua conta</p>
                 </div>
             </div>
 
-            <!-- Avatar e Nome do Denunciado -->
-            <div class="text-center mb-8 pb-8 border-b border-red-200">
-                <div class="w-20 h-20 rounded-full bg-red-600 text-white flex items-center justify-center text-3xl font-bold mx-auto mb-3">
-                    <?= htmlspecialchars(strtoupper(substr($denunciado->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
+            <!-- Alvo da denúncia: anúncio ou usuário -->
+            <?php if ($denunciandoAnuncio): ?>
+                <div class="mb-8 pb-8 border-b border-red-200">
+                    <p class="text-xs uppercase font-semibold text-red-800 mb-1">Anúncio denunciado</p>
+                    <h2 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') ?></h2>
                 </div>
-                <h2 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($denunciado->getNome(), ENT_QUOTES, 'UTF-8') ?></h2>
-            </div>
+            <?php else: ?>
+                <div class="text-center mb-8 pb-8 border-b border-red-200">
+                    <div class="w-20 h-20 rounded-full bg-red-600 text-white flex items-center justify-center text-3xl font-bold mx-auto mb-3">
+                        <?= htmlspecialchars(strtoupper(substr($denunciado->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($denunciado->getNome(), ENT_QUOTES, 'UTF-8') ?></h2>
+                </div>
+            <?php endif; ?>
 
             <!-- Erro Geral -->
             <?php if (isset($erros['geral'])): ?>
@@ -38,7 +48,11 @@ include __DIR__ . '/../shared/navbar.php';
 
             <form method="POST" action="<?= URL_BASE ?>/denuncia/criar/submit" class="space-y-6">
                 
-                <input type="hidden" name="id_usuario_denunciado" value="<?= $denunciado->getIdUsuario() ?>">
+                <?php if ($denunciandoAnuncio): ?>
+                    <input type="hidden" name="id_vaga" value="<?= $vaga->getIdVaga() ?>">
+                <?php else: ?>
+                    <input type="hidden" name="id_usuario_denunciado" value="<?= $denunciado->getIdUsuario() ?>">
+                <?php endif; ?>
 
                 <!-- Motivo -->
                 <div>
