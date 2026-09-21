@@ -147,7 +147,11 @@ $erros = $erros ?? [];
                         required
                         rows="5"
                         class="w-full border border-gray-300 rounded px-3 py-2"
-                    ><?= $vaga ? htmlspecialchars($vaga->getDescricao(), ENT_QUOTES, 'UTF-8') : '' ?></textarea>
+                    ><?= htmlspecialchars($_POST['descricao'] ?? ($vaga ? $vaga->getDescricao() : ''), ENT_QUOTES, 'UTF-8') ?></textarea>
+
+                    <?php if (isset($erros['descricao'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
 
                 </div>
 
