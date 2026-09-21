@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\database\ConnectionFactory;
 use app\models\Usuario;
 use app\repositories\UsuarioRepository;
 use Exception;
@@ -282,6 +283,49 @@ class UsuarioService
     public function buscarHabilidades(int $idUsuario): array
     {
         return $this->repository->buscarHabilidades($idUsuario);
+    }
+
+    /**
+     * Regrava o conjunto de habilidades do prestador. Só vale para quem atua como trabalhador
+     * (RN: habilidades só para prestadores) e só aceita ids de habilidades que existem.
+     * A troca é atômica: ou grava todas ou mantém as anteriores.
+     */
+    public function definirHabilidades(Usuario $usuario, array $ids): void
+    {
+        if (!$usuario->isTrabalhador()) {
+            throw new Exception('Somente prestadores de serviço têm habilidades.');
+        }
+
+        // Só inteiros positivos em forma de dígitos: "1;DROP" ou "abc" são recusados, não convertidos
+        foreach ($ids as $id) {
+            if (!ctype_digit((string)$id) || (int)$id <= 0) {
+                throw new Exception('Habilidade inválida.');
+            }
+        }
+
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        $existentes = array_map(fn($h) => $h->getIdHabilidade(), $this->repository->listarHabilidades());
+
+        if (array_diff($ids, $existentes)) {
+            throw new Exception('Habilidade inválida.');
+        }
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->repository->limparHabilidades($usuario->getIdUsuario());
+
+            foreach ($ids as $id) {
+                $this->repository->adicionarHabilidade($usuario->getIdUsuario(), $id);
+            }
+
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function listarHabilidades(): array

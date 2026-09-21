@@ -126,6 +126,14 @@ class UsuarioController extends Controller
             error_log("Print Usuario antes de atualizar: " . print_r($usuario, true));
             $this->service->atualizarPerfil($usuario);
 
+            // Habilidades só para prestadores de serviço; ids validados no service
+            if ($usuario->isTrabalhador()) {
+                $this->service->definirHabilidades(
+                    $usuario,
+                    array_filter((array)($_POST['habilidades'] ?? []), 'is_scalar')
+                );
+            }
+
             // A foto antiga só é apagada depois que a nova foi gravada com sucesso
             if ($novaFoto !== null) {
                 $this->service->removerArquivoFoto($fotoAnterior);
@@ -136,6 +144,7 @@ class UsuarioController extends Controller
 
             $this->view('usuario/perfil', [
                 'usuario' => $usuario,
+                'habilidades' => $this->service->buscarHabilidades($usuario->getIdUsuario()),
                 'sucesso' => 'Perfil atualizado com sucesso!',
             ]);
         } catch (\Exception $e) {
