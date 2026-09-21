@@ -3,6 +3,9 @@
 namespace app\core;
 
 use app\models\Usuario;
+use app\models\Vaga;
+use app\services\AdvertenciaService;
+use app\services\UsuarioService;
 
 class Controller
 {
@@ -11,6 +14,12 @@ class Controller
      */
     public function view(string $view, ?array $data = null)
     {
+        // Advertências ainda não dispensadas do usuário logado, exibidas no topo (navbar)
+        $usuarioSessao = $_SESSION['usuario_logado'] ?? null;
+        $advertenciasPendentes = $usuarioSessao instanceof Usuario
+            ? (new AdvertenciaService())->listarNaoVisualizadas($usuarioSessao->getIdUsuario())
+            : [];
+
         if ($data) {
             // Controllers enviam 'erro' (mensagem única); as views leem $erros['geral']
             if (isset($data['erro'])) {
@@ -27,6 +36,21 @@ class Controller
         } else {
             print 'A view solicitada não foi encontrada: ' . $view;
         }
+    }
+
+    /**
+     * Mensagem segura para mostrar ao usuário. Erro de banco (PDOException) nunca chega à tela:
+     * o detalhe vai só para o log e a pessoa recebe $padrao. Exceções de regra de negócio, que já
+     * têm texto próprio para o usuário, passam como estão.
+     */
+    protected function mensagemAmigavel(\Throwable $e, string $padrao = 'Não foi possível concluir a operação agora. Tente novamente em instantes.'): string
+    {
+        if ($e instanceof \PDOException) {
+            error_log('[DB] ' . $e->getMessage());
+            return $padrao;
+        }
+
+        return $e->getMessage();
     }
 
     /**
@@ -55,6 +79,31 @@ class Controller
             $this->redirect(URL_BASE . '/login');
             exit;
         }
+
+        // RN04: a conta é conferida no banco a cada requisição. Bloqueada, desativada ou removida
+        // depois do login, a sessão é encerrada. O usuário da sessão também é atualizado, então
+        // papéis alterados passam a valer sem novo login.
+        $atual = (new UsuarioService())->buscarPorId($_SESSION['usuario_logado']->getIdUsuario());
+
+        if ($atual === null || !$atual->isAtivo()) {
+            $_SESSION = [];
+            session_destroy();
+            $this->redirect(URL_BASE . '/login?motivo=conta_inativa');
+            exit;
+        }
+
+        $_SESSION['usuario_logado'] = $atual;
+    }
+
+    /**
+     * Dono da vaga ou administrador (RN15: o admin gerencia as vagas de qualquer contratante).
+     */
+    protected function podeGerenciarVaga(Vaga $vaga): bool
+    {
+        $usuario = $this->usuarioLogado();
+
+        return $usuario !== null
+            && ($usuario->isAdmin() || $vaga->getIdContratante() === $usuario->getIdUsuario());
     }
 
     /**
@@ -65,7 +114,7 @@ class Controller
         $this->autenticacaoRequired();
         
         $usuario = $_SESSION['usuario_logado'];
-        if ($usuario->getTipoUsuario() !== 'ADMIN') {
+        if (!$usuario->isAdmin()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }
@@ -79,7 +128,7 @@ class Controller
         $this->autenticacaoRequired();
         
         $usuario = $_SESSION['usuario_logado'];
-        if ($usuario->getTipoUsuario() !== 'CONTRATANTE' && $usuario->getTipoUsuario() !== 'ADMIN') {
+        if (!$usuario->isContratante() && !$usuario->isAdmin()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }
@@ -93,7 +142,7 @@ class Controller
         $this->autenticacaoRequired();
         
         $usuario = $_SESSION['usuario_logado'];
-        if ($usuario->getTipoUsuario() !== 'TRABALHADOR' && $usuario->getTipoUsuario() !== 'ADMIN') {
+        if (!$usuario->isTrabalhador() && !$usuario->isAdmin()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }

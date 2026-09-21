@@ -41,17 +41,20 @@ $statusBadge = $disponivel
 
 $isTrabalhador = 
     $usuarioLogado &&
-    $usuarioLogado->getTipoUsuario() === 'TRABALHADOR';
+    $usuarioLogado->isTrabalhador();
 
 
 $isContratante =
     $usuarioLogado &&
-    $usuarioLogado->getTipoUsuario() === 'CONTRATANTE';
+    $usuarioLogado->isContratante();
 
 
 $isProprietario =
     $isContratante &&
     $usuarioLogado->getIdUsuario() === $vaga->getIdContratante();
+
+// Dono ou admin gerenciam a vaga (editar, excluir, ver interessados)
+$podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin());
 
 ?>
 
@@ -75,9 +78,20 @@ $isProprietario =
                 <!-- Status -->
                 <div class="flex flex-wrap gap-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $statusBadge ?>">
-                        <?= $disponivel ? 'Aberta' : ($vaga->isUserActive() ? 'Encerrada' : 'Indisponível') ?>
+                        <?php
+                        if ($disponivel) {
+                            echo 'Aberta';
+                        } elseif (!$vaga->estaVisivel()) {
+                            echo $vaga->foiRemovidaPelaModeracao() ? 'Removida pela moderação' : 'Oculta pela moderação';
+                        } else {
+                            echo $vaga->isUserActive() ? 'Encerrada' : 'Indisponível';
+                        }
+                        ?>
                     </span>
                 </div>
+                <?php if ($vaga->getCategoriaNome()): ?>
+                    <p class="text-sm font-medium text-blue-700"><?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?></p>
+                <?php endif; ?>
                 <!-- Título -->
                 <h1 class="text-3xl font-bold text-gray-900"><?= $titulo ?></h1>
 
@@ -85,6 +99,11 @@ $isProprietario =
                 <div class="bg-white rounded-md border border-gray-100 p-6">
                     <h2 class="text-lg font-bold text-gray-900 mb-4">Sobre a vaga</h2>
                     <p class="text-gray-700 whitespace-pre-wrap"><?= $descricao ?></p>
+
+                    <?php if ($vaga->getObservacoes()): ?>
+                        <h3 class="text-sm font-bold text-gray-900 mt-5 mb-1">Observações</h3>
+                        <p class="text-gray-700 whitespace-pre-wrap"><?= htmlspecialchars($vaga->getObservacoes(), ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Detalhes -->
@@ -97,6 +116,26 @@ $isProprietario =
                         <div>
                             <p class="text-xs text-gray-600 uppercase font-semibold">Remuneração</p>
                             <p class="text-gray-900 font-semibold">R$ <?= $remuneracao ?></p>
+                        </div>
+                        <?php if ($vaga->getDataServico()): ?>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase font-semibold">Data do serviço</p>
+                            <p class="text-gray-900 font-medium"><?= date('d/m/Y', strtotime($vaga->getDataServico())) ?></p>
+                        </div>
+                        <?php endif; ?>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase font-semibold">Tipo de serviço</p>
+                            <p class="text-gray-900 font-medium"><?= $vaga->isTemporario() ? 'Temporário' : 'Fixo' ?></p>
+                        </div>
+                        <?php if ($vaga->isTemporario() && $vaga->getDuracao()): ?>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase font-semibold">Duração</p>
+                            <p class="text-gray-900 font-medium"><?= htmlspecialchars($vaga->getDuracao(), ENT_QUOTES, 'UTF-8') ?></p>
+                        </div>
+                        <?php endif; ?>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase font-semibold">Horário</p>
+                            <p class="text-gray-900 font-medium"><?= $vaga->getHorario() ? htmlspecialchars($vaga->getHorario(), ENT_QUOTES, 'UTF-8') : 'Não informado' ?></p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-600 uppercase font-semibold">Vagas preenchidas</p>
@@ -131,7 +170,7 @@ $isProprietario =
                     </div>
 
                     <!-- Ação Principal -->
-                    <?php if ($isTrabalhador && $disponivel && !$jaDemonstrouInteresse): ?>
+                    <?php if ($isTrabalhador && !$isProprietario && $disponivel && !$jaDemonstrouInteresse): ?>
 
                         <form method="POST" action="<?= URL_BASE ?>/interesse/demonstrar" class="mb-4">
 
@@ -154,16 +193,16 @@ $isProprietario =
                         </div>
 
 
-                    <?php elseif ($isTrabalhador && !$disponivel): ?>
+                    <?php elseif ($isTrabalhador && !$isProprietario && !$disponivel): ?>
 
                         <div class="w-full bg-gray-100 border border-gray-200 text-gray-600 font-semibold py-2 px-4 rounded text-center mb-4">
-                            <?= $vaga->isUserActive() ? 'Vaga encerrada' : 'Vaga indisponível' ?>
+                            <?= !$vaga->isUserActive() || !$vaga->estaVisivel() ? 'Vaga indisponível' : 'Vaga encerrada' ?>
                         </div>
 
                     <?php endif; ?>
 
                     <!-- Botões Contratante/Admin -->
-                    <?php if ($isProprietario): ?>
+                    <?php if ($podeGerenciar): ?>
                         <div class="space-y-2">
                             <a href="<?= URL_BASE ?>/vagas/editar?id=<?= $vaga->getIdVaga() ?>" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
                                 Editar
@@ -179,14 +218,17 @@ $isProprietario =
 
                     <?php if ($usuarioLogado && !$isProprietario): ?>
                         <div class="pt-4 border-t border-gray-200 mt-4">
-                            <a href="<?= URL_BASE ?>/denuncia/criar?id=<?= $vaga->getIdContratante() ?>" class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
+                            <a href="<?= URL_BASE ?>/denuncia/criar?vaga=<?= $vaga->getIdVaga() ?>" class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
+                                Denunciar anúncio
+                            </a>
+                            <a href="<?= URL_BASE ?>/denuncia/criar?id=<?= $vaga->getIdContratante() ?>" class="w-full mt-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
                                 Denunciar contratante
                             </a>
                         </div>
                     <?php endif; ?>
 
                     <!-- Link Ver Interessados -->
-                    <?php if ($isProprietario): ?>
+                    <?php if ($podeGerenciar): ?>
 
                         <div class="pt-4 border-t border-gray-200 mt-4">
 

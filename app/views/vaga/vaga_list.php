@@ -8,7 +8,7 @@ $vagas = $vagas ?? [];
 $usuarioLogado = $usuario ?? null;
 
 $isContratante = $usuarioLogado &&
-    $usuarioLogado->getTipoUsuario() === 'CONTRATANTE';
+    $usuarioLogado->isContratante();
 
 
 if (!empty($vagas)) {
@@ -111,6 +111,12 @@ if (!empty($vagas)) {
                             <span class="px-2 py-1 rounded-full text-xs font-semibold <?= $statusBadge ?>">
                                 <?= $status === 'ATIVA' ? 'Ativa' : 'Encerrada' ?>
                             </span>
+
+                            <?php if ($vaga->getCategoriaNome()): ?>
+                                <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    <?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?>
+                                </span>
+                            <?php endif; ?>
 
                         </div>
 

@@ -23,7 +23,7 @@ class Validador {
             return $this;
         }
 
-        $tamanho = strlen(trim($valor));
+        $tamanho = mb_strlen(trim($valor));
         if ($tamanho < $min || $tamanho > $max) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter entre {$min} e {$max} caracteres";
         }
@@ -38,7 +38,7 @@ class Validador {
             return $this;
         }
 
-        $tamanho = strlen(trim($valor));
+        $tamanho = mb_strlen(trim($valor));
         if ($tamanho > $max) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter no maximo {$max} caracteres";
         }
@@ -120,6 +120,141 @@ class Validador {
         if (strlen(trim($valor)) > $max) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter no máximo {$max} caracteres";
         }
+        return $this;
+    }
+
+    /**
+     * Documento coerente com o tipo de pessoa: CPF para PF, CNPJ para PJ.
+     */
+    public function documentoPorTipoPessoa(string $campo, ?string $valor, string $tipoPessoa): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        return $tipoPessoa === 'PJ'
+            ? $this->cnpj($campo, $valor, 'CNPJ inválido. Empresas devem informar um CNPJ válido (14 dígitos).')
+            : $this->cpf($campo, $valor, 'CPF inválido. Pessoas físicas devem informar um CPF válido (11 dígitos).');
+    }
+
+    /**
+     * Empresa (PJ) que presta serviço deve indicar o responsável pela execução.
+     */
+    public function responsavelPrestadora(string $campo, ?string $valor, string $tipoPessoa, bool $prestador): self
+    {
+        if ($tipoPessoa !== 'PJ' || !$prestador) {
+            return $this;
+        }
+
+        $valor = trim((string)$valor);
+
+        if ($valor === '') {
+            $this->erros[$campo] = 'Informe o nome do responsável pela execução do serviço.';
+        } elseif (mb_strlen($valor) < 3 || mb_strlen($valor) > 100) {
+            $this->erros[$campo] = 'O nome do responsável deve ter entre 3 e 100 caracteres.';
+        }
+
+        return $this;
+    }
+
+    /**
+     * Papéis escolhidos no cadastro. Ao menos um; empresa (PJ) atua em um único papel (RN02).
+     */
+    public function papeis(string $campo, array $papeis, string $tipoPessoa): self
+    {
+        $validos = ['TRABALHADOR', 'CONTRATANTE'];
+
+        if (empty($papeis)) {
+            $this->erros[$campo] = 'Selecione ao menos um papel: trabalhador ou contratante.';
+        } elseif (array_diff($papeis, $validos)) {
+            $this->erros[$campo] = 'Papel inválido.';
+        } elseif ($tipoPessoa === 'PJ' && count($papeis) > 1) {
+            $this->erros[$campo] = 'Empresas atuam em um único papel. Só pessoa física pode ser trabalhador e contratante.';
+        }
+
+        return $this;
+    }
+
+    /**
+     * Registra um erro de regra de negócio já decidida pelo chamador.
+     */
+    public function erro(string $campo, string $mensagem): self
+    {
+        $this->erros[$campo] = $mensagem;
+        return $this;
+    }
+
+    /**
+     * Telefone brasileiro com DDD: 10 (fixo) ou 11 (celular) dígitos.
+     */
+    public function telefone(string $campo, ?string $valor, ?string $mensagem = null): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        $digitos = preg_replace('/\D/', '', $valor);
+
+        if (!preg_match('/^\d{10,11}$/', $digitos)) {
+            $this->erros[$campo] = $mensagem ?? 'Telefone inválido. Informe DDD e número, ex.: (46) 99999-0000.';
+        }
+
+        return $this;
+    }
+
+    /**
+     * Data (aaaa-mm-dd) não anterior a hoje. $permitida é uma data anterior que continua aceita
+     * (ex.: a data já gravada numa vaga em edição, para não travar a edição de outros campos).
+     * Deve ser chamada depois de dataValida: valor em formato inválido é ignorado aqui.
+     */
+    public function dataNaoAnterior(string $campo, ?string $valor, ?string $mensagem = null, ?string $permitida = null): self
+    {
+        if ($valor === null || $valor === '' || isset($this->erros[$campo])) {
+            return $this;
+        }
+
+        if ($valor === $permitida) {
+            return $this;
+        }
+
+        if ($valor < date('Y-m-d')) {
+            $this->erros[$campo] = $mensagem ?? "O campo {$campo} não pode ser anterior à data de hoje";
+        }
+
+        return $this;
+    }
+
+    /**
+     * Valor monetário: dígitos com até 2 casas decimais (ponto), maior que zero e dentro de
+     * DECIMAL(10,2). Recusa notação científica (1e3), hexadecimal, sinais e separador de milhar,
+     * que o cast (float) aceitaria ou converteria em silêncio.
+     * Espera o valor já sem espaços e com o ponto como separador decimal.
+     */
+    public function monetario(string $campo, ?string $valor, ?string $mensagem = null): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        if (!preg_match('/^\d{1,8}(\.\d{1,2})?$/', $valor)) {
+            $this->erros[$campo] = $mensagem ?? 'Informe um valor numérico válido, ex.: 150 ou 150,50.';
+        } elseif ((float)$valor <= 0) {
+            $this->erros[$campo] = 'A remuneração deve ser maior que zero.';
+        }
+
+        return $this;
+    }
+
+    public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $valor)) {
+            $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve estar no formato hh:mm";
+        }
+
         return $this;
     }
 

@@ -31,7 +31,7 @@ class InteresseService
             throw new Exception("Vaga não encontrada.");
         }
         error_log("Vaga encontrada: " . print_r($vaga, true)); // Log the vaga object
-        if (!$vaga->isUserActive()) {
+        if (!$vaga->isUserActive() || !$vaga->estaVisivel()) {
             throw new Exception("Esta vaga não está mais disponível.");
         }
         if ($vaga->getStatus() !== 'ATIVA') {
@@ -67,6 +67,11 @@ class InteresseService
 
         );
         return $this->repository->criar($interesse);
+    }
+
+    public function buscarPorId(int $idInteresse): ?Interesse
+    {
+        return $this->repository->buscarPorId($idInteresse);
     }
 
     /**
@@ -113,6 +118,10 @@ public function aceitarInteressado(
 
     if ($vaga->getStatus() !== 'ATIVA') {
         throw new Exception("A vaga está encerrada.");
+    }
+
+    if (!$vaga->estaVisivel()) {
+        throw new Exception("O anúncio está oculto ou foi removido pela moderação.");
     }
 
     // Impede aceitar o mesmo trabalhador duas vezes

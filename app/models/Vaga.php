@@ -17,6 +17,13 @@ class Vaga
     private string $status;
     private int $totalAceitos = 0;
     private bool $isUserActive = true;
+    private ?string $horario = null;
+    private string $tipoServico = 'FIXO';
+    private ?string $duracao = null;
+    private ?string $observacoes = null;
+    private ?string $dataServico = null;
+    private string $visibilidade = 'VISIVEL';
+    private ?string $categoriaNome = null;
 
 public function __construct(
     int $idVaga,
@@ -31,7 +38,14 @@ public function __construct(
     ?int $trabalhadoresLimite = null,
     string $status = 'ATIVA',
     int $totalAceitos = 0,
-    bool $isUserActive = true
+    bool $isUserActive = true,
+    ?string $horario = null,
+    string $tipoServico = 'FIXO',
+    ?string $duracao = null,
+    ?string $observacoes = null,
+    ?string $dataServico = null,
+    string $visibilidade = 'VISIVEL',
+    ?string $categoriaNome = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -46,6 +60,13 @@ public function __construct(
         $this->status = $status;
         $this->totalAceitos = $totalAceitos;
         $this->isUserActive = $isUserActive;
+        $this->horario = $horario;
+        $this->tipoServico = $tipoServico;
+        $this->duracao = $duracao;
+        $this->observacoes = $observacoes;
+        $this->dataServico = $dataServico;
+        $this->visibilidade = $visibilidade;
+        $this->categoriaNome = $categoriaNome;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -63,7 +84,14 @@ public function __construct(
             isset($dados['trabalhadores_limite']) ? (int)$dados['trabalhadores_limite'] : null,
             $dados['status'] ?? 'ATIVA',
             isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0,
-            (bool)($dados['is_user_active'] ?? true)
+            (bool)($dados['is_user_active'] ?? true),
+            isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null,
+            $dados['tipo_servico'] ?? 'FIXO',
+            $dados['duracao'] ?? null,
+            $dados['observacoes'] ?? null,
+            $dados['data_servico'] ?? null,
+            $dados['visibilidade'] ?? 'VISIVEL',
+            $dados['categoria_nome'] ?? null
         );
     }
 
@@ -76,11 +104,11 @@ public function __construct(
     }
 
     /**
-     * Vaga realmente disponível: status ATIVA e contratante ativo.
+     * Vaga realmente disponível: status ATIVA, contratante ativo e não oculta/removida pela moderação.
      */
     public function estaDisponivel(): bool
     {
-        return $this->status === 'ATIVA' && $this->isUserActive;
+        return $this->status === 'ATIVA' && $this->isUserActive && $this->estaVisivel();
     }
 
     public function getTotalAceitos(): int
@@ -131,6 +159,84 @@ public function __construct(
     public function getDataPublicacao(): ?string
     {
         return $this->dataPublicacao;
+    }
+
+    public function getTipoServico(): string
+    {
+        return $this->tipoServico;
+    }
+
+    public function setTipoServico(string $tipoServico): void
+    {
+        $this->tipoServico = $tipoServico;
+    }
+
+    public function getDuracao(): ?string
+    {
+        return $this->duracao;
+    }
+
+    public function setDuracao(?string $duracao): void
+    {
+        $this->duracao = $duracao;
+    }
+
+    /**
+     * Nome da categoria, quando a consulta o traz junto (JOIN com categoria).
+     */
+    public function getCategoriaNome(): ?string
+    {
+        return $this->categoriaNome;
+    }
+
+    public function getVisibilidade(): string
+    {
+        return $this->visibilidade;
+    }
+
+    public function estaVisivel(): bool
+    {
+        return $this->visibilidade === 'VISIVEL';
+    }
+
+    public function foiRemovidaPelaModeracao(): bool
+    {
+        return $this->visibilidade === 'REMOVIDA';
+    }
+
+    public function getDataServico(): ?string
+    {
+        return $this->dataServico;
+    }
+
+    public function setDataServico(?string $dataServico): void
+    {
+        $this->dataServico = $dataServico;
+    }
+
+    public function getObservacoes(): ?string
+    {
+        return $this->observacoes;
+    }
+
+    public function setObservacoes(?string $observacoes): void
+    {
+        $this->observacoes = $observacoes;
+    }
+
+    public function isTemporario(): bool
+    {
+        return $this->tipoServico === 'TEMPORARIO';
+    }
+
+    public function getHorario(): ?string
+    {
+        return $this->horario;
+    }
+
+    public function setHorario(?string $horario): void
+    {
+        $this->horario = $horario;
     }
 
     public function getDataLimite(): ?string
@@ -202,7 +308,14 @@ public function __construct(
             'dataLimite' => $this->dataLimite,
             'trabalhadoresLimite' => $this->trabalhadoresLimite,
             'status' => $this->status,
-            'isUserActive' => $this->isUserActive
+            'isUserActive' => $this->isUserActive,
+            'horario' => $this->horario,
+            'tipoServico' => $this->tipoServico,
+            'duracao' => $this->duracao,
+            'observacoes' => $this->observacoes,
+            'dataServico' => $this->dataServico,
+            'visibilidade' => $this->visibilidade,
+            'categoriaNome' => $this->categoriaNome
         ];
     }
 

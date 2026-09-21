@@ -9,6 +9,7 @@ class Interesse
     private int $idTrabalhador;
     private string $status;
     private ?string $dataInteresse;
+    private ?string $nomeTrabalhador = null;
 
     public function __construct(
         int $idVaga,
@@ -22,6 +23,19 @@ class Interesse
         $this->idTrabalhador = $idTrabalhador;
         $this->status = $status;
         $this->dataInteresse = $dataInteresse;
+    }
+
+    /**
+     * Nome do trabalhador, quando a consulta o traz junto (nunca inclui contato).
+     */
+    public function getNomeTrabalhador(): ?string
+    {
+        return $this->nomeTrabalhador;
+    }
+
+    public function setNomeTrabalhador(?string $nomeTrabalhador): void
+    {
+        $this->nomeTrabalhador = $nomeTrabalhador;
     }
 
     public function getIdInteresse(): ?int
@@ -92,12 +106,16 @@ class Interesse
 
     public static function arrayParaObjeto(array $dados): self
     {
-        return new self(
+        $interesse = new self(
             $dados['id_vaga'],
             $dados['id_trabalhador'],
             $dados['status'],
             $dados['data_interesse'],
             $dados['id_interesse']
         );
+
+        $interesse->setNomeTrabalhador($dados['nome_trabalhador'] ?? null);
+
+        return $interesse;
     }
 }

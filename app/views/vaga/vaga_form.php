@@ -1,5 +1,7 @@
 <?php
 $modoEdicao = $modoEdicao ?? (($acao ?? '') === 'editar');
+// RN18: com candidaturas, título e tipo de serviço ficam travados (o servidor também recusa a mudança)
+$travado = $modoEdicao && ($temCandidaturas ?? false);
 $tituloPagina = $modoEdicao ? 'Editar Vaga' : 'Publicar Nova Vaga';
 
 include __DIR__ . '/../shared/header.php';
@@ -110,14 +112,23 @@ $erros = $erros ?? [];
                         Título da vaga
                     </label>
 
+                    <?php if ($travado): ?>
+                        <p class="text-amber-700 text-xs mb-1">Esta vaga já tem candidaturas: o título e o tipo de serviço não podem ser alterados.</p>
+                    <?php endif; ?>
+
                     <input
                         type="text"
                         id="titulo"
                         name="titulo"
                         required
-                        value="<?= $vaga ? htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') : '' ?>"
+                        <?= $travado ? 'readonly' : '' ?>
+                        value="<?= htmlspecialchars($_POST['titulo'] ?? ($vaga ? $vaga->getTitulo() : ''), ENT_QUOTES, 'UTF-8') ?>"
                         class="w-full border border-gray-300 rounded px-3 py-2"
                     >
+
+                    <?php if (isset($erros['titulo'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['titulo'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
 
                 </div>
 
@@ -136,7 +147,68 @@ $erros = $erros ?? [];
                         required
                         rows="5"
                         class="w-full border border-gray-300 rounded px-3 py-2"
-                    ><?= $vaga ? htmlspecialchars($vaga->getDescricao(), ENT_QUOTES, 'UTF-8') : '' ?></textarea>
+                    ><?= htmlspecialchars($_POST['descricao'] ?? ($vaga ? $vaga->getDescricao() : ''), ENT_QUOTES, 'UTF-8') ?></textarea>
+
+                    <?php if (isset($erros['descricao'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
+                </div>
+
+
+
+                <!-- Tipo de serviço -->
+                <fieldset>
+
+                    <legend class="block text-sm font-medium text-gray-700 mb-1">
+                        Tipo de serviço
+                    </legend>
+
+                    <?php $tipoAtual = $vaga ? $vaga->getTipoServico() : ($_POST['tipo_servico'] ?? ''); ?>
+
+                    <?php if ($travado): ?>
+                        <!-- radios desabilitados não são enviados: mantém o valor atual -->
+                        <input type="hidden" name="tipo_servico" value="<?= htmlspecialchars($tipoAtual, ENT_QUOTES, 'UTF-8') ?>">
+                    <?php endif; ?>
+
+                    <div class="flex gap-6">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="tipo_servico" value="FIXO" required <?= $tipoAtual === 'FIXO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
+                            Fixo
+                        </label>
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="tipo_servico" value="TEMPORARIO" <?= $tipoAtual === 'TEMPORARIO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
+                            Temporário
+                        </label>
+                    </div>
+
+                    <?php if (isset($erros['tipo_servico'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['tipo_servico'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
+                </fieldset>
+
+
+                <!-- Duração (só para serviço temporário) -->
+                <div id="bloco_duracao" class="<?= $tipoAtual === 'TEMPORARIO' ? '' : 'hidden' ?>">
+
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Duração
+                    </label>
+
+                    <input
+                        type="text"
+                        id="duracao"
+                        name="duracao"
+                        maxlength="50"
+                        placeholder="Ex.: 3 dias, 2 semanas"
+                        value="<?= $vaga ? htmlspecialchars($vaga->getDuracao() ?? '', ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['duracao'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        class="w-full border border-gray-300 rounded px-3 py-2"
+                    >
+
+                    <?php if (isset($erros['duracao'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['duracao'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
 
                 </div>
 
@@ -157,9 +229,14 @@ $erros = $erros ?? [];
                             id="localizacao"
                             name="localizacao"
                             required
-                            value="<?= $vaga ? htmlspecialchars($vaga->getLocalizacao(), ENT_QUOTES, 'UTF-8') : '' ?>"
+                            maxlength="150"
+                            value="<?= htmlspecialchars($_POST['localizacao'] ?? ($vaga ? ($vaga->getLocalizacao() ?? '') : ''), ENT_QUOTES, 'UTF-8') ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2"
                         >
+
+                        <?php if (isset($erros['localizacao'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['localizacao'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
 
                     </div>
 
@@ -179,9 +256,37 @@ $erros = $erros ?? [];
                             required
                             step="0.01"
                             min="0"
-                            value="<?= $vaga ? number_format($vaga->getRemuneracao(),2,'.','') : '' ?>"
+                            value="<?= htmlspecialchars($_POST['remuneracao'] ?? ($vaga && $vaga->getRemuneracao() !== null ? number_format($vaga->getRemuneracao(), 2, '.', '') : ''), ENT_QUOTES, 'UTF-8') ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2"
                         >
+
+                        <?php if (isset($erros['remuneracao'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['remuneracao'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+
+                    </div>
+
+
+
+                    <!-- Data do serviço -->
+                    <div>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Data do serviço
+                        </label>
+
+                        <input
+                            type="date"
+                            id="data_servico"
+                            name="data_servico"
+                            required
+                            value="<?= $vaga ? htmlspecialchars($vaga->getDataServico() ?? '', ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['data_servico'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
+                        >
+
+                        <?php if (isset($erros['data_servico'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['data_servico'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
 
                     </div>
 
@@ -198,9 +303,37 @@ $erros = $erros ?? [];
                             type="date"
                             id="data_limite"
                             name="data_limite"
-                            value="<?= $vaga ? htmlspecialchars($vaga->getDataLimite(), ENT_QUOTES, 'UTF-8') : '' ?>"
+                            value="<?= htmlspecialchars($_POST['data_limite'] ?? ($vaga ? ($vaga->getDataLimite() ?? '') : ''), ENT_QUOTES, 'UTF-8') ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2"
                         >
+
+                        <?php if (isset($erros['data_limite'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['data_limite'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+
+                    </div>
+
+
+
+                    <!-- Horário -->
+                    <div>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Horário
+                        </label>
+
+                        <input
+                            type="time"
+                            id="horario"
+                            name="horario"
+                            required
+                            value="<?= $vaga ? htmlspecialchars($vaga->getHorario() ?? '', ENT_QUOTES, 'UTF-8') : '' ?>"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
+                        >
+
+                        <?php if (isset($erros['horario'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['horario'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
 
                     </div>
 
@@ -224,6 +357,29 @@ $erros = $erros ?? [];
 
                     </div>
 
+
+                </div>
+
+
+
+                <!-- Observações -->
+                <div>
+
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Observações adicionais <span class="text-gray-500 font-normal">(opcional, até 500 caracteres)</span>
+                    </label>
+
+                    <textarea
+                        id="observacoes"
+                        name="observacoes"
+                        rows="3"
+                        maxlength="500"
+                        class="w-full border border-gray-300 rounded px-3 py-2"
+                    ><?= $vaga ? htmlspecialchars($vaga->getObservacoes() ?? '', ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['observacoes'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+
+                    <?php if (isset($erros['observacoes'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['observacoes'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
 
                 </div>
 
@@ -272,6 +428,16 @@ $erros = $erros ?? [];
 
 <script>
 
+// Duração só aparece (e só é exigida no HTML) quando o serviço é temporário.
+// A regra de verdade é validada no servidor.
+document.querySelectorAll('input[name=tipo_servico]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+        var temporario = document.querySelector('input[name=tipo_servico]:checked').value === 'TEMPORARIO';
+        document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
+        document.getElementById('duracao').required = temporario;
+    });
+});
+
 function preencherFormularioTeste() {
 
     document.getElementById('id_categoria').value = '2';
@@ -288,8 +454,14 @@ function preencherFormularioTeste() {
     document.getElementById('remuneracao').value =
         '250.00';
 
+    document.getElementById('data_servico').value = '2027-01-10';
+
     document.getElementById('data_limite').value =
         '2026-08-15';
+
+    document.getElementById('horario').value = '08:00';
+
+    document.querySelector('input[name=tipo_servico][value=FIXO]').checked = true;
 
     document.getElementById('trabalhadores_limite').value =
         '2';

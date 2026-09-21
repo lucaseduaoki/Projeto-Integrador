@@ -22,7 +22,6 @@ $nomeUsuario = htmlspecialchars($usuario->getNome(), ENT_QUOTES, 'UTF-8');
 $email = htmlspecialchars($usuario->getEmail(), ENT_QUOTES, 'UTF-8');
 $telefone = htmlspecialchars($usuario->getTelefone() ?? '', ENT_QUOTES, 'UTF-8');
 $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8');
-$tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8');
 ?>
 
 <main class="flex-1">
@@ -51,18 +50,22 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                 <div class="bg-gray-50 rounded p-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Foto de Perfil</h3>
                     <div class="flex flex-col sm:flex-row gap-6 items-start">
-                        <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold flex-shrink-0">
-                            <?= htmlspecialchars(strtoupper(substr($usuario->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
-                        </div>
+                        <?php if ($usuario->getFotoUrl()): ?>
+                            <img src="<?= htmlspecialchars($usuario->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="Foto atual" class="w-24 h-24 rounded-full object-cover flex-shrink-0">
+                        <?php else: ?>
+                            <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold flex-shrink-0">
+                                <?= htmlspecialchars(strtoupper(substr($usuario->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
+                            </div>
+                        <?php endif; ?>
                         <div class="flex-1">
                             <input 
                                 type="file" 
                                 id="foto_perfil" 
                                 name="foto_perfil" 
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/gif"
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
                             >
-                            <p class="text-xs text-gray-600 mt-2">Formatos suportados: JPG, PNG, GIF (máx 2MB)</p>
+                            <p class="text-xs text-gray-600 mt-2">Formatos aceitos: JPG, PNG ou GIF, até 2 MB</p>
                         </div>
                     </div>
                 </div>
@@ -113,16 +116,48 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
 
                         <!-- Documento -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <label for="documento" class="block text-sm font-medium text-gray-700 mb-1">Documento</label>
+                            <label for="documento" class="block text-sm font-medium text-gray-700 mb-1"><?= $usuario->isPessoaJuridica() ? 'CNPJ' : 'CPF' ?></label>
                             <input 
                                 type="text" 
                                 id="documento" 
                                 name="documento" 
                                 value="<?= $documento ?>"
-                                placeholder="000.000.000-00"
+                                placeholder="<?= $usuario->isPessoaJuridica() ? '00.000.000/0000-00' : '000.000.000-00' ?>"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                         </div>
+
+                        <?php if (!$usuario->isPessoaJuridica() && !$usuario->isAdmin() && !($usuario->isTrabalhador() && $usuario->isContratante())): ?>
+                        <!-- Pessoa física pode acumular os dois papéis -->
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="adicionar_papeis[]" value="<?= $usuario->isTrabalhador() ? 'CONTRATANTE' : 'TRABALHADOR' ?>">
+                                Também quero atuar como <?= $usuario->isTrabalhador() ? 'contratante (publicar vagas)' : 'trabalhador (me candidatar a vagas)' ?>
+                            </label>
+                            <?php if (isset($erros['adicionar_papeis'])): ?>
+                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['adicionar_papeis'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ($usuario->isPessoaJuridica() && $usuario->isTrabalhador()): ?>
+                        <!-- Responsável (empresa prestadora) -->
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <label for="nome_responsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável pela execução do serviço</label>
+                            <input
+                                type="text"
+                                id="nome_responsavel"
+                                name="nome_responsavel"
+                                maxlength="100"
+                                required
+                                value="<?= htmlspecialchars($usuario->getNomeResponsavel() ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                            <?php if (isset($erros['nome_responsavel'])): ?>
+                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['nome_responsavel'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
 
                     </div>
                 </div>

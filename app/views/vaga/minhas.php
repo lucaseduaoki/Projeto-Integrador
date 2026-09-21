@@ -71,7 +71,13 @@ $status = $vaga->getStatus();
 <?= htmlspecialchars($vaga->getTitulo()) ?>
 </h2>
 
-<?php if($status === 'ATIVA'): ?>
+<?php if(!$vaga->estaVisivel()): ?>
+
+<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs">
+<?= $vaga->foiRemovidaPelaModeracao() ? 'REMOVIDA PELA MODERAÇÃO' : 'OCULTA PELA MODERAÇÃO' ?>
+</span>
+
+<?php elseif($status === 'ATIVA'): ?>
 
 <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">
 ATIVA

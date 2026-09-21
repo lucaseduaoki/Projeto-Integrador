@@ -30,7 +30,12 @@ class VagaService
         ?string $localizacao = null,
         ?float $remuneracao = null,
         ?string $dataLimite = null,
-        ?string $trabalhadoresLimite = null
+        ?string $trabalhadoresLimite = null,
+        ?string $horario = null,
+        string $tipoServico = 'FIXO',
+        ?string $duracao = null,
+        ?string $observacoes = null,
+        ?string $dataServico = null
     ): int {
 
         $vaga = new Vaga(
@@ -43,7 +48,12 @@ class VagaService
             $remuneracao,
             null,
             $dataLimite,
-            $trabalhadoresLimite
+            $trabalhadoresLimite,
+            horario: $horario,
+            tipoServico: $tipoServico,
+            duracao: $duracao,
+            observacoes: $observacoes,
+            dataServico: $dataServico
         );
 
         return $this->repository->criar($vaga);
@@ -78,15 +88,14 @@ class VagaService
     /**
      * Buscar vagas
      */
-    public function buscar(
-        string $titulo = '',
-        string $localizacao = ''
-    ): array {
+    public function buscar(array $filtros = []): array
+    {
+        return $this->repository->buscar($filtros);
+    }
 
-        return $this->repository->buscar(
-            $titulo,
-            $localizacao
-        );
+    public function possuiCandidaturas(int $idVaga): bool
+    {
+        return $this->repository->possuiCandidaturas($idVaga);
     }
 
     public function buscarContratantePorVaga(int $idVaga): ?object
@@ -105,6 +114,21 @@ class VagaService
             throw new Exception("Vaga não encontrada.");
         }
 
+        if ($vagaExistente->foiRemovidaPelaModeracao()) {
+            throw new Exception("Este anúncio foi removido pela moderação e não pode ser editado.");
+        }
+
+        // RN18: com candidaturas, a função (título) e o tipo de serviço não podem mudar
+        if ($this->repository->possuiCandidaturas($vaga->getIdVaga())) {
+            if ($vaga->getTitulo() !== $vagaExistente->getTitulo()) {
+                throw new Exception("Esta vaga já tem candidaturas: a função (título) não pode ser alterada.");
+            }
+
+            if ($vaga->getTipoServico() !== $vagaExistente->getTipoServico()) {
+                throw new Exception("Esta vaga já tem candidaturas: o tipo de serviço não pode ser alterado.");
+            }
+        }
+
         return $this->repository->atualizar($vaga);
     }
 
@@ -117,6 +141,11 @@ class VagaService
 
         if (!$vagaExistente) {
             throw new Exception("Vaga não encontrada.");
+        }
+
+        // Anúncio moderado fica preservado (evidência da denúncia): o dono não o apaga
+        if (!$vagaExistente->estaVisivel()) {
+            throw new Exception("Anúncios ocultos ou removidos pela moderação não podem ser excluídos.");
         }
 
         return $this->repository->deletar($idVaga);

@@ -14,7 +14,6 @@ $erros = $erros ?? [];
 $localizacao = $usuario->getLocalizacao() ?? 'Não informado';
 
 $nomeUsuario = htmlspecialchars($usuario->getNome(), ENT_QUOTES, 'UTF-8');
-$tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8');
 $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8');
 $email = htmlspecialchars($usuario->getEmail(), ENT_QUOTES, 'UTF-8');
 $telefone = htmlspecialchars($usuario->getTelefone() ?? 'Não informado', ENT_QUOTES, 'UTF-8');
@@ -36,14 +35,18 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
                     
                     <!-- Avatar -->
                     <div class="flex flex-col items-center">
-                        <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold mb-4">
-                            <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
-                        </div>
+                        <?php if ($usuario->getFotoUrl()): ?>
+                            <img src="<?= htmlspecialchars($usuario->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="Foto de <?= $nomeUsuario ?>" class="w-24 h-24 rounded-full object-cover mb-4">
+                        <?php else: ?>
+                            <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold mb-4">
+                                <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
+                            </div>
+                        <?php endif; ?>
                         
                         <!-- Nome e Tipo -->
                         <h2 class="text-xl font-bold text-gray-900"><?= $nomeUsuario ?></h2>
                         <span class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            <?= $tipoUsuario === 'TRABALHADOR' ? 'Trabalhador' : ($tipoUsuario === 'CONTRATANTE' ? 'Contratante' : 'Admin') ?>
+                            <?= htmlspecialchars($usuario->getRotuloPapeis(), ENT_QUOTES, 'UTF-8') ?>
                         </span>
                         
                         <!-- Informações de Contato -->
@@ -64,8 +67,14 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
                         <!-- Documento -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <strong>Documento:</strong> <?= htmlspecialchars($usuario->getDocumento() ?? 'Não informado', ENT_QUOTES, 'UTF-8') ?>
+                            <strong><?= $usuario->isPessoaJuridica() ? 'CNPJ' : 'CPF' ?>:</strong> <?= htmlspecialchars($usuario->getDocumento() ?? 'Não informado', ENT_QUOTES, 'UTF-8') ?>
                         </div>
+
+                        <?php if ($usuario->isPessoaJuridica() && $usuario->getNomeResponsavel()): ?>
+                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
+                            <strong>Responsável:</strong> <?= htmlspecialchars($usuario->getNomeResponsavel(), ENT_QUOTES, 'UTF-8') ?>
+                        </div>
+                        <?php endif; ?>
 
                         <!-- Localização -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">

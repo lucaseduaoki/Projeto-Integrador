@@ -64,11 +64,20 @@ class VagaController extends Controller
 
         $usuario = $this->usuarioLogado();
 
+        // Anúncio oculto/removido pela moderação só é visto pelo dono e pelo admin
+        if (
+            !$vaga->estaVisivel() &&
+            !$usuario->isAdmin() &&
+            $vaga->getIdContratante() !== $usuario->getIdUsuario()
+        ) {
+            $this->redirect(URL_BASE . '/vagas');
+        }
+
         $jaDemonstrouInteresse = false;
 
         if (
             $usuario !== null &&
-            $usuario->getTipoUsuario() === 'TRABALHADOR'
+            $usuario->isTrabalhador()
         ) {
             $jaDemonstrouInteresse =
                 $this->interesseService->jaDemonstrouInteresse(
@@ -95,15 +104,65 @@ class VagaController extends Controller
     {
         $this->autenticacaoRequired();
 
-        $titulo = trim($_GET['keywords'] ?? '');
-        $localizacao = trim($_GET['localizacao'] ?? '');
+        $filtros = [
+            'titulo' => trim((string)($_GET['keywords'] ?? '')),
+            'localizacao' => trim((string)($_GET['localizacao'] ?? '')),
+        ];
 
-        $vagas = $this->vagaService->buscar($titulo, $localizacao);
+        // Tipo de serviço: só aceita os valores do domínio, qualquer outro é ignorado
+        $tipoServico = trim((string)($_GET['tipo_servico'] ?? ''));
+        if (in_array($tipoServico, ['FIXO', 'TEMPORARIO'], true)) {
+            $filtros['tipo_servico'] = $tipoServico;
+        }
+
+        // Data a partir de: formato válido ou ignorada, com aviso
+        $erros = [];
+        $dataFrom = trim((string)($_GET['data_from'] ?? ''));
+        if ($dataFrom !== '') {
+            $validador = new Validador();
+            $validador->dataValida('data_from', $dataFrom, false, 'A data do filtro é inválida e foi ignorada.');
+            if ($validador->temErros()) {
+                $erros = $validador->getErros();
+            } else {
+                $filtros['data_from'] = $dataFrom;
+            }
+        }
+
+        // Faixa de remuneração: numérica, não negativa e com mínimo <= máximo
+        $validador = new Validador();
+        $faixa = [];
+        foreach (['remuneracao_min' => 'mínima', 'remuneracao_max' => 'máxima'] as $campo => $rotulo) {
+            $valor = trim((string)($_GET[$campo] ?? ''));
+            if ($valor === '') {
+                continue;
+            }
+
+            $validador->numerico($campo, $valor, "A remuneração {$rotulo} deve ser um número e foi ignorada.");
+            if (!isset($validador->getErros()[$campo]) && (float)$valor < 0) {
+                $validador->erro($campo, "A remuneração {$rotulo} não pode ser negativa e foi ignorada.");
+            }
+
+            if (!isset($validador->getErros()[$campo])) {
+                $faixa[$campo] = (string)(float)$valor;
+            }
+        }
+
+        if (isset($faixa['remuneracao_min'], $faixa['remuneracao_max'])
+            && (float)$faixa['remuneracao_min'] > (float)$faixa['remuneracao_max']) {
+            $validador->erro('remuneracao_min', 'A remuneração mínima é maior que a máxima: a faixa foi ignorada.');
+            $faixa = [];
+        }
+
+        $erros += $validador->getErros();
+        $filtros += $faixa;
+
+        $vagas = $this->vagaService->buscar($filtros);
 
         $this->view('vaga/vaga_busca', [
             'vagas' => $vagas,
             'usuario' => $this->usuarioLogado(),
             'filtros' => $_GET,
+            'erros' => $erros,
             'totalResultados' => count($vagas)
         ]);
     }
@@ -135,16 +194,25 @@ public function criar(): void
     $titulo = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
-    $remuneracao = $_POST['remuneracao'] ?? null;
-    $dataLimite = $_POST['data_limite'] ?? null;
+    // Aceita vírgula ou ponto como separador decimal; a validação é feita sobre o valor normalizado
+    $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
+    $dataLimite = trim($_POST['data_limite'] ?? '');
+    $dataServico = trim($_POST['data_servico'] ?? '');
+    $horario = trim($_POST['horario'] ?? '');
+    $tipoServico = trim($_POST['tipo_servico'] ?? '');
+    $duracao = trim($_POST['duracao'] ?? '');
+    $observacoes = trim($_POST['observacoes'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
-    $validador = new Validador();
+    $validador = $this->validarDadosVaga(compact(
+        'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
+        'dataServico', 'horario', 'tipoServico', 'duracao', 'observacoes'
+    ));
 
-    $validador
-        ->obrigatorio('titulo', $titulo)
-        ->obrigatorio('descricao', $descricao)
-        ->obrigatorio('id_categoria', $idCategoria);
+    // Serviço fixo não tem duração
+    if ($tipoServico !== 'TEMPORARIO') {
+        $duracao = '';
+    }
 
     if ($validador->temErros()) {
         $this->view('vaga/vaga_form', [
@@ -163,7 +231,12 @@ public function criar(): void
             $localizacao ?: null,
             $remuneracao !== '' ? (float)$remuneracao : null,
             $dataLimite ?: null,
-            (int)$trabalhadoresLimite
+            (int)$trabalhadoresLimite,
+            $horario,
+            $tipoServico,
+            $duracao ?: null,
+            $observacoes ?: null,
+            $dataServico ?: null
         );
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $id);
@@ -171,10 +244,58 @@ public function criar(): void
     } catch (\Exception $e) {
 
         $this->view('vaga/vaga_form', [
-            'erro' => $e->getMessage(),
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar o anúncio agora. Tente novamente em instantes.'),
             'acao' => 'criar'
         ]);
     }
+}
+
+/**
+ * Valida os campos do formulário de vaga. Criação e edição compartilham as mesmas regras
+ * (UC04.1), sempre no servidor; o HTML só ajuda a pessoa a preencher.
+ */
+private function validarDadosVaga(array $d): Validador
+{
+    $validador = new Validador();
+
+    $validador
+        ->obrigatorio('titulo', $d['titulo'], 'Informe a função (título) da vaga.')
+        ->obrigatorio('descricao', $d['descricao'], 'Informe a descrição da vaga.')
+        ->obrigatorio('localizacao', $d['localizacao'], 'Informe o local do serviço.')
+        ->obrigatorio('id_categoria', $d['idCategoria'], 'Selecione a categoria.')
+        ->obrigatorio('remuneracao', $d['remuneracao'], 'Informe a remuneração.')
+        ->monetario('remuneracao', $d['remuneracao'])
+        ->obrigatorio('data_servico', $d['dataServico'], 'Informe a data do serviço.')
+        ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
+        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.', $d['dataServicoAtual'] ?? null)
+        ->dataValida('data_limite', $d['dataLimite'], false, 'O prazo para candidatura deve ser uma data válida (aaaa-mm-dd).')
+        ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
+        ->horaValida('horario', $d['horario'], 'O horário deve estar no formato hh:mm.')
+        ->obrigatorio('tipo_servico', $d['tipoServico'], 'Selecione o tipo de serviço (fixo ou temporário).')
+        ->emLista('tipo_servico', $d['tipoServico'], ['FIXO', 'TEMPORARIO'], 'Tipo de serviço inválido: escolha fixo ou temporário.')
+        ->tamanhoMax('duracao', $d['duracao'], 50, 'A duração deve ter no máximo 50 caracteres.')
+        ->tamanhoMax('observacoes', $d['observacoes'], 500, 'As observações devem ter no máximo 500 caracteres.');
+
+    // Função (título): 2 a 100 caracteres
+    if ($d['titulo'] !== '') {
+        $validador->tamanhoMinMax('titulo', $d['titulo'], 2, 100, 'A função (título) deve ter entre 2 e 100 caracteres.');
+    }
+
+    // Local: 2 a 150 caracteres
+    if ($d['localizacao'] !== '') {
+        $validador->tamanhoMinMax('localizacao', $d['localizacao'], 2, 150, 'O local deve ter entre 2 e 150 caracteres.');
+    }
+
+    // Descrição: 10 a 1000 caracteres
+    if ($d['descricao'] !== '') {
+        $validador->tamanhoMinMax('descricao', $d['descricao'], 10, 1000, 'A descrição deve ter entre 10 e 1000 caracteres.');
+    }
+
+    if ($d['tipoServico'] === 'TEMPORARIO') {
+        $validador->obrigatorio('duracao', $d['duracao'], 'Informe a duração do serviço temporário (ex.: 3 dias).');
+    }
+
+    return $validador;
 }
 
 public function minhas(): void
@@ -209,13 +330,18 @@ public function exibirFormEditar(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $this->usuarioLogado()->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
+    }
+
+    if ($vaga->foiRemovidaPelaModeracao()) {
+        $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
     }
 
     $this->view('vaga/vaga_form', [
         'vaga' => $vaga,
-        'acao' => 'editar'
+        'acao' => 'editar',
+        'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
     ]);
 }
 
@@ -232,7 +358,7 @@ public function editar(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -240,23 +366,36 @@ public function editar(): void
     $titulo = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
-    $remuneracao = $_POST['remuneracao'] ?? null;
-    $dataLimite = $_POST['data_limite'] ?? null;
+    // Aceita vírgula ou ponto como separador decimal; a validação é feita sobre o valor normalizado
+    $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
+    $dataLimite = trim($_POST['data_limite'] ?? '');
+    $dataServico = trim($_POST['data_servico'] ?? '');
+    $horario = trim($_POST['horario'] ?? '');
+    $tipoServico = trim($_POST['tipo_servico'] ?? '');
+    $duracao = trim($_POST['duracao'] ?? '');
+    $observacoes = trim($_POST['observacoes'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
-    $validador = new Validador();
+    // A data do serviço já gravada continua aceita mesmo que hoje esteja no passado
+    $dataServicoAtual = $vaga->getDataServico();
 
-    $validador
-        ->obrigatorio('titulo', $titulo)
-        ->obrigatorio('descricao', $descricao)
-        ->obrigatorio('id_categoria', $idCategoria);
+    $validador = $this->validarDadosVaga(compact(
+        'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
+        'dataServico', 'dataServicoAtual', 'horario', 'tipoServico', 'duracao', 'observacoes'
+    ));
+
+    // Serviço fixo não tem duração
+    if ($tipoServico !== 'TEMPORARIO') {
+        $duracao = '';
+    }
 
     if ($validador->temErros()) {
 
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
             'erros' => $validador->getErros(),
-            'acao' => 'editar'
+            'acao' => 'editar',
+            'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);
 
         return;
@@ -270,6 +409,11 @@ public function editar(): void
         $vaga->setRemuneracao($remuneracao !== '' ? (float)$remuneracao : null);
         $vaga->setDataLimite($dataLimite ?: null);
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
+        $vaga->setHorario($horario);
+        $vaga->setTipoServico($tipoServico);
+        $vaga->setDuracao($duracao ?: null);
+        $vaga->setObservacoes($observacoes ?: null);
+        $vaga->setDataServico($dataServico ?: null);
 
         $vaga->setIdCategoria($idCategoria);
 
@@ -281,8 +425,9 @@ public function editar(): void
 
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
-            'erro' => $e->getMessage(),
-            'acao' => 'editar'
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar as alterações agora. Tente novamente em instantes.'),
+            'acao' => 'editar',
+            'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);
     }
     }
@@ -299,7 +444,7 @@ public function excluir(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -328,7 +473,7 @@ public function encerrar(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -356,7 +501,7 @@ public function reabrir(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 

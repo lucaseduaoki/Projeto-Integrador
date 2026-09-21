@@ -9,37 +9,49 @@ class Usuario
     private string $email;
     private string $senha;
     private ?string $telefone;
-    private string $tipoUsuario;
+    private bool $isAdmin = false;
+    private bool $isTrabalhador = false;
+    private bool $isContratante = false;
     private ?string $fotoPerfil;
     private ?string $descricao;
     private ?string $documento;
     private int $ativo;
     private string $dataCadastro;
+    private string $tipoPessoa;
+    private ?string $nomeResponsavel;
 
     public function __construct(
         int $idUsuario,
         string $nome,
         string $email,
         string $senha,
-        string $tipoUsuario,
+        bool $isAdmin,
+        bool $isTrabalhador,
+        bool $isContratante,
         ?string $telefone = null,
         ?string $fotoPerfil = null,
         ?string $descricao = null,
         ?string $documento = null,
         int $ativo = 1,
-        string $dataCadastro = ''
+        string $dataCadastro = '',
+        string $tipoPessoa = 'PF',
+        ?string $nomeResponsavel = null
     ) {
         $this->idUsuario = $idUsuario;
         $this->nome = $nome;
         $this->email = $email;
         $this->senha = $senha;
-        $this->tipoUsuario = $tipoUsuario;
+        $this->isAdmin = $isAdmin;
+        $this->isTrabalhador = $isTrabalhador;
+        $this->isContratante = $isContratante;
         $this->telefone = $telefone;
         $this->fotoPerfil = $fotoPerfil;
         $this->descricao = $descricao;
         $this->documento = $documento;
         $this->ativo = $ativo;
         $this->dataCadastro = $dataCadastro ?: date('Y-m-d H:i:s');
+        $this->tipoPessoa = $tipoPessoa;
+        $this->nomeResponsavel = $nomeResponsavel;
     }
 
     // Getters
@@ -73,9 +85,49 @@ class Usuario
         return $this->telefone;
     }
 
-    public function getTipoUsuario(): string
+    /**
+     * Rótulo dos papéis para exibição (ex.: "Trabalhador e contratante").
+     */
+    public function getRotuloPapeis(): string
     {
-        return $this->tipoUsuario;
+        if ($this->isAdmin) {
+            return 'Admin';
+        }
+
+        if ($this->isTrabalhador && $this->isContratante) {
+            return 'Trabalhador e contratante';
+        }
+
+        return $this->isContratante ? 'Contratante' : 'Trabalhador';
+    }
+
+    public function getTipoPessoa(): string
+    {
+        return $this->tipoPessoa;
+    }
+
+    public function getNomeResponsavel(): ?string
+    {
+        return $this->nomeResponsavel;
+    }
+
+    public function setNomeResponsavel(?string $nomeResponsavel): self
+    {
+        $this->nomeResponsavel = $nomeResponsavel;
+        return $this;
+    }
+
+    public function isPessoaJuridica(): bool
+    {
+        return $this->tipoPessoa === 'PJ';
+    }
+
+    /**
+     * URL pública da foto, ou null quando o usuário não tem foto.
+     */
+    public function getFotoUrl(): ?string
+    {
+        return $this->fotoPerfil ? URL_BASE . '/' . $this->fotoPerfil : null;
     }
 
     public function getFotoPerfil(): ?string
@@ -133,9 +185,15 @@ class Usuario
         return $this;
     }
 
-    public function setTipoUsuario(string $tipoUsuario): self
+    public function setIsTrabalhador(bool $valor): self
     {
-        $this->tipoUsuario = $tipoUsuario;
+        $this->isTrabalhador = $valor;
+        return $this;
+    }
+
+    public function setIsContratante(bool $valor): self
+    {
+        $this->isContratante = $valor;
         return $this;
     }
 
@@ -177,17 +235,17 @@ class Usuario
 
     public function isAdmin(): bool
     {
-        return $this->tipoUsuario === 'ADMIN';
+        return $this->isAdmin;
     }
 
     public function isTrabalhador(): bool
     {
-        return $this->tipoUsuario === 'TRABALHADOR';
+        return $this->isTrabalhador;
     }
 
     public function isContratante(): bool
     {
-        return $this->tipoUsuario === 'CONTRATANTE';
+        return $this->isContratante;
     }
 
     // Método estático para converter array em objeto
@@ -198,13 +256,17 @@ class Usuario
             $data['nome'],
             $data['email'],
             $data['senha'],
-            $data['tipo_usuario'],
+            (bool)$data['is_admin'],
+            (bool)$data['is_trabalhador'],
+            (bool)$data['is_contratante'],
             $data['telefone'] ?? null,
             $data['foto_perfil'] ?? null,
             $data['descricao'] ?? null,
             $data['documento'] ?? null,
             $data['ativo'] ?? 1,
-            $data['data_cadastro'] ?? date('Y-m-d H:i:s')
+            $data['data_cadastro'] ?? date('Y-m-d H:i:s'),
+            $data['tipo_pessoa'] ?? 'PF',
+            $data['nome_responsavel'] ?? null
         );
     }
 }

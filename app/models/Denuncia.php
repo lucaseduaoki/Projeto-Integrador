@@ -4,6 +4,49 @@ namespace app\models;
 
 class Denuncia
 {
+    // Motivos padronizados (RN13): listas distintas para anúncio e para usuário.
+    // A chave é o valor gravado em denuncia.motivo; o texto é o que a pessoa vê.
+    public const MOTIVOS_ANUNCIO = [
+        'CONTEUDO_IMPROPRIO' => 'Conteúdo impróprio',
+        'VAGA_SUSPEITA' => 'Vaga suspeita',
+        'DISCRIMINACAO' => 'Discriminação',
+        'SPAM' => 'Spam',
+    ];
+
+    public const MOTIVOS_USUARIO = [
+        'COMPORTAMENTO_INADEQUADO' => 'Comportamento inadequado',
+        'FRAUDE' => 'Fraude',
+        'ASSEDIO' => 'Assédio',
+        'OUTRAS_CONDUTAS' => 'Outras condutas',
+    ];
+
+    // RN17: não comparecimento do trabalhador selecionado, registrado pelo contratante da vaga.
+    // Fluxo próprio (alvo = usuário + vaga), fora das listas de motivos acima.
+    public const MOTIVO_NAO_COMPARECIMENTO = 'NAO_COMPARECIMENTO';
+
+    public const TIPO_ANUNCIO = 'ANUNCIO';
+    public const TIPO_USUARIO = 'USUARIO';
+
+    /**
+     * Motivos válidos para o tipo de alvo da denúncia (ANUNCIO ou USUARIO).
+     */
+    public static function motivosPara(string $tipo): array
+    {
+        return $tipo === self::TIPO_ANUNCIO ? self::MOTIVOS_ANUNCIO : self::MOTIVOS_USUARIO;
+    }
+
+    /**
+     * Texto legível do motivo. Denúncias antigas guardam texto livre: nesse caso é devolvido como está.
+     */
+    public static function rotuloMotivo(string $motivo): string
+    {
+        if ($motivo === self::MOTIVO_NAO_COMPARECIMENTO) {
+            return 'Não comparecimento';
+        }
+
+        return self::MOTIVOS_ANUNCIO[$motivo] ?? self::MOTIVOS_USUARIO[$motivo] ?? $motivo;
+    }
+
     private int $idDenuncia;
     private int $idDenunciante;
     private ?int $idUsuarioDenunciado;
@@ -12,6 +55,7 @@ class Denuncia
     private ?string $descricao;
     private string $status;
     private ?string $dataDenuncia;
+    private ?string $acaoModeracao;
 
     public function __construct(
         int $idDenuncia,
@@ -21,7 +65,8 @@ class Denuncia
         string $motivo,
         ?string $descricao = null,
         string $status = 'PENDENTE',
-        ?string $dataDenuncia = null
+        ?string $dataDenuncia = null,
+        ?string $acaoModeracao = null
     ) {
         $this->idDenuncia = $idDenuncia;
         $this->idDenunciante = $idDenunciante;
@@ -31,6 +76,7 @@ class Denuncia
         $this->descricao = $descricao;
         $this->status = $status;
         $this->dataDenuncia = $dataDenuncia;
+        $this->acaoModeracao = $acaoModeracao;
     }
 
     public static function arrayParaObjeto(array $dados): Denuncia
@@ -47,7 +93,8 @@ class Denuncia
             $dados['motivo'],
             $dados['descricao'] ?? null,
             $dados['status'] ?? 'PENDENTE',
-            $dados['data_denuncia'] ?? null
+            $dados['data_denuncia'] ?? null,
+            $dados['acao_moderacao'] ?? null
         );
     }
 
@@ -79,6 +126,11 @@ class Denuncia
     public function getDescricao(): ?string
     {
         return $this->descricao;
+    }
+
+    public function getAcaoModeracao(): ?string
+    {
+        return $this->acaoModeracao;
     }
 
     public function getStatus(): string

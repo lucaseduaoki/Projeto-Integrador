@@ -108,6 +108,39 @@ class DenunciaRepository
         return $stmt->execute();
     }
 
+    /**
+     * Fecha a denúncia registrando a decisão da moderação. Só age em denúncia ainda pendente.
+     */
+    public function registrarModeracao(int $idDenuncia, string $acao): bool
+    {
+        $sql = "UPDATE denuncia SET status = 'ANALISADA', acao_moderacao = :acao
+                WHERE id_denuncia = :id AND status = 'PENDENTE'";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id', $idDenuncia, PDO::PARAM_INT);
+        $stmt->bindValue(':acao', $acao, PDO::PARAM_STR);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Já existe registro de não comparecimento deste trabalhador nesta vaga?
+     */
+    public function existeNaoComparecimento(int $idTrabalhador, int $idVaga): bool
+    {
+        $sql = "SELECT COUNT(*) FROM denuncia
+                WHERE id_usuario_denunciado = :usuario
+                  AND id_vaga_denunciada = :vaga
+                  AND motivo = :motivo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':usuario', $idTrabalhador, PDO::PARAM_INT);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->bindValue(':motivo', Denuncia::MOTIVO_NAO_COMPARECIMENTO, PDO::PARAM_STR);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
     public function contarDenunciasAoPorUsuario(int $idUsuario): int
     {
         $sql = "SELECT COUNT(*) as total FROM denuncia WHERE id_usuario_denunciado = :id";

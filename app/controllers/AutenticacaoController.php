@@ -40,7 +40,14 @@ class AutenticacaoController extends Controller
      */
     public function exibirLogin(): void
     {
+        $erros = [];
+
+        if (($_GET['motivo'] ?? '') === 'conta_inativa') {
+            $erros['geral'] = 'Sua conta está desativada ou foi bloqueada. Entre em contato com o suporte.';
+        }
+
         $this->view('autenticacao/login', [
+            'erros' => $erros,
         ]);
     }
 
@@ -85,7 +92,7 @@ class AutenticacaoController extends Controller
         } catch (\Exception $e) {
             error_log('[LOGIN] Falha no login: ' . $e->getMessage());
             $this->view('autenticacao/login', [
-                'erros' => ['geral' => $e->getMessage()],
+                'erros' => ['geral' => $this->mensagemAmigavel($e, 'Não foi possível concluir agora. Tente novamente em instantes.')],
             ]);
         }
     }
@@ -110,7 +117,9 @@ class AutenticacaoController extends Controller
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
         $senha = $_POST['senha'] ?? '';
         $confirmaSenha = $_POST['confirma_senha'] ?? '';
-        $tipoUsuario = htmlspecialchars(trim($_POST['tipo_usuario'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $papeis = array_values(array_unique(array_filter((array)($_POST['papeis'] ?? []), 'is_string')));
+        $tipoPessoa = trim($_POST['tipo_pessoa'] ?? '');
+        $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
 
@@ -123,19 +132,19 @@ class AutenticacaoController extends Controller
                   ->obrigatorio('senha', $senha)
                   ->minimo('senha', $senha, 8)
                   ->obrigatorio('confirma_senha', $confirmaSenha)
-                  ->obrigatorio('tipo_usuario', $tipoUsuario)
-                  ->emLista('tipo_usuario', $tipoUsuario, ['TRABALHADOR', 'CONTRATANTE']);
+                  ->obrigatorio('tipo_pessoa', $tipoPessoa, 'Informe se você é pessoa física ou empresa.')
+                  ->emLista('tipo_pessoa', $tipoPessoa, ['PF', 'PJ'], 'Tipo de pessoa inválido.');
 
-        // Validar CPF/CNPJ se informado
-        if (!empty($documento)) {
-            if (strlen(preg_replace('/\D/', '', $documento)) === 11) {
-                $validador->cpf('documento', $documento);
-            } elseif (strlen(preg_replace('/\D/', '', $documento)) === 14) {
-                $validador->cnpj('documento', $documento);
-            } else {
-                $validador->obrigatorio('documento', 'inválido');
-            }
-        }
+        // Telefone e documento são obrigatórios (RN03)
+        $validador->obrigatorio('telefone', $telefone, 'Informe o telefone.')
+                  ->telefone('telefone', $telefone)
+                  ->obrigatorio('documento', $documento, $tipoPessoa === 'PJ' ? 'Informe o CNPJ da empresa.' : 'Informe o CPF.');
+
+        // Documento coerente com o tipo de pessoa (CPF para PF, CNPJ para PJ)
+        $validador->papeis('papeis', $papeis, $tipoPessoa);
+        $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
+        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $tipoPessoa, in_array('TRABALHADOR', $papeis, true));
+        $documento = preg_replace('/\D/', '', $documento);
 
         // Verificar se senhas coincidem
         if ($senha !== $confirmaSenha) {
@@ -147,7 +156,8 @@ class AutenticacaoController extends Controller
                 'erros' => $validador->getErros(),
                 'nome' => $nome,
                 'email' => $email,
-                'tipo_usuario' => $tipoUsuario
+                'papeis' => $papeis,
+                'tipo_pessoa' => $tipoPessoa
             ]);
             return;
         }
@@ -158,9 +168,12 @@ class AutenticacaoController extends Controller
                 $nome,
                 $email,
                 $senha,
-                $tipoUsuario,
+                in_array('TRABALHADOR', $papeis, true),
+                in_array('CONTRATANTE', $papeis, true),
                 $telefone ?: null,
-                $documento ?: null
+                $documento ?: null,
+                $tipoPessoa,
+                ($tipoPessoa === 'PJ' && in_array('TRABALHADOR', $papeis, true)) ? $nomeResponsavel : null
             );
 
             // Logar automaticamente após cadastro
@@ -170,10 +183,11 @@ class AutenticacaoController extends Controller
             $this->redirect(URL_BASE . '/perfil');
         } catch (\Exception $e) {
             $this->view('autenticacao/cadastro', [
-                'erros' => ['geral' => $e->getMessage()],
+                'erros' => ['geral' => $this->mensagemAmigavel($e, 'Não foi possível concluir agora. Tente novamente em instantes.')],
                 'nome' => $nome,
                 'email' => $email,
-                'tipo_usuario' => $tipoUsuario
+                'papeis' => $papeis,
+                'tipo_pessoa' => $tipoPessoa
             ]);
         }
     }

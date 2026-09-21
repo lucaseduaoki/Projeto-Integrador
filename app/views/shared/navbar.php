@@ -48,8 +48,12 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
                 <?php else: ?>
                     <!-- User Dropdown -->
                     <div class="relative group">
-                        <button class="flex items-center justify-center w-10 h-10 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-                            <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
+                        <button class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors overflow-hidden">
+                            <?php if ($usuarioLogado->getFotoUrl()): ?>
+                                <img src="<?= htmlspecialchars($usuarioLogado->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="" class="w-10 h-10 object-cover">
+                            <?php else: ?>
+                                <?= htmlspecialchars($inicialNome, ENT_QUOTES, 'UTF-8') ?>
+                            <?php endif; ?>
                         </button>
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                             <a href="<?= URL_BASE ?>/perfil" class="block px-4 py-2 text-gray-700 hover:bg-gray-50 border-b border-gray-100 first:rounded-t-lg">
@@ -106,6 +110,21 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
 
 <!-- Espaço para compensar navbar fixa -->
 <div class="h-16"></div>
+
+<?php foreach (($advertenciasPendentes ?? []) as $advertencia): ?>
+    <div class="bg-amber-50 border-b border-amber-300 text-amber-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p class="text-sm">
+                <strong>Advertência da moderação:</strong>
+                <?= htmlspecialchars($advertencia->getMensagem(), ENT_QUOTES, 'UTF-8') ?>
+            </p>
+            <form method="POST" action="<?= URL_BASE ?>/advertencias/dispensar" class="shrink-0">
+                <input type="hidden" name="id" value="<?= $advertencia->getIdAdvertencia() ?>">
+                <button type="submit" class="text-sm font-semibold underline">Entendi</button>
+            </form>
+        </div>
+    </div>
+<?php endforeach; ?>
 
 <script>
     document.getElementById('mobileMenuBtn').addEventListener('click', function() {

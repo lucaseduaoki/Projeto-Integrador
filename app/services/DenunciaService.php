@@ -3,19 +3,29 @@
 namespace app\services;
 
 use app\models\Denuncia;
+use app\database\ConnectionFactory;
+use app\repositories\AdvertenciaRepository;
 use app\repositories\DenunciaRepository;
+use app\repositories\InteresseRepository;
 use app\repositories\UsuarioRepository;
+use app\repositories\VagaRepository;
 use Exception;
 
 class DenunciaService
 {
     private DenunciaRepository $repository;
     private UsuarioRepository $usuarioRepository;
+    private VagaRepository $vagaRepository;
+    private AdvertenciaRepository $advertenciaRepository;
+    private InteresseRepository $interesseRepository;
 
     public function __construct()
     {
         $this->repository = new DenunciaRepository();
         $this->usuarioRepository = new UsuarioRepository();
+        $this->vagaRepository = new VagaRepository();
+        $this->advertenciaRepository = new AdvertenciaRepository();
+        $this->interesseRepository = new InteresseRepository();
     }
 
     /**
@@ -24,14 +34,26 @@ class DenunciaService
      */
     public function criar(
         int $idDenunciante,
-        int $idDenunciado,
+        ?int $idDenunciado,
         string $motivo,
         ?string $descricao = null,
         ?int $idVaga = null
     ): int {
-        error_log("motivo recebido: " . $motivo); // Log the received motivo
         if (empty($motivo)) {
             throw new Exception('Motivo da denúncia é obrigatório.');
+        }
+
+        // RN13: o motivo precisa pertencer à lista do tipo de alvo. Anúncio: só a vaga;
+        // usuário: só a pessoa. Qualquer outra combinação de alvo é inválida.
+        if ($idVaga !== null && $idDenunciado === null) {
+            $tipo = Denuncia::TIPO_ANUNCIO;
+        } elseif ($idDenunciado !== null && $idVaga === null) {
+            $tipo = Denuncia::TIPO_USUARIO;
+        } else {
+            throw new Exception('Alvo da denúncia inválido.');
+        }
+        if (!array_key_exists($motivo, Denuncia::motivosPara($tipo))) {
+            throw new Exception('Motivo inválido para este tipo de denúncia.');
         }
 
 
@@ -45,7 +67,60 @@ class DenunciaService
             'PENDENTE',
             date('Y-m-d H:i:s')
         );
-        error_log("Denúncia criada: " . print_r($denuncia, true)); // Log the created Denuncia object
+        return $this->repository->criar($denuncia);
+    }
+
+    /**
+     * Valida o registro de não comparecimento (RN17) e devolve a candidatura selecionada.
+     * Regras: quem registra é o contratante dono da vaga; o trabalhador precisa ter sido
+     * selecionado (ACEITO); só depois da data do serviço; e um único registro por trabalhador/vaga.
+     */
+    public function validarNaoComparecimento(int $idInteresse, int $idContratante): \app\models\Interesse
+    {
+        $interesse = $this->interesseRepository->buscarPorId($idInteresse);
+        $vaga = $interesse ? $this->vagaRepository->buscarPorId($interesse->getIdVaga()) : null;
+
+        if (!$interesse || !$vaga) {
+            throw new Exception('Candidatura não encontrada.');
+        }
+
+        if ($vaga->getIdContratante() !== $idContratante) {
+            throw new Exception('Você só pode registrar não comparecimento nas suas próprias vagas.');
+        }
+
+        if ($interesse->getStatus() !== 'ACEITO') {
+            throw new Exception('Só é possível registrar não comparecimento de um trabalhador selecionado.');
+        }
+
+        if ($vaga->getDataServico() !== null && $vaga->getDataServico() > date('Y-m-d')) {
+            throw new Exception('O não comparecimento só pode ser registrado a partir da data do serviço.');
+        }
+
+        if ($this->repository->existeNaoComparecimento($interesse->getIdTrabalhador(), $vaga->getIdVaga())) {
+            throw new Exception('O não comparecimento deste trabalhador nesta vaga já foi registrado.');
+        }
+
+        return $interesse;
+    }
+
+    /**
+     * Registra, via denúncia, o não comparecimento do trabalhador selecionado (RN17).
+     */
+    public function registrarNaoComparecimento(int $idContratante, int $idInteresse, ?string $descricao = null): int
+    {
+        $interesse = $this->validarNaoComparecimento($idInteresse, $idContratante);
+
+        $denuncia = new Denuncia(
+            0,
+            $idContratante,
+            $interesse->getIdTrabalhador(),
+            $interesse->getIdVaga(),
+            Denuncia::MOTIVO_NAO_COMPARECIMENTO,
+            $descricao,
+            'PENDENTE',
+            date('Y-m-d H:i:s')
+        );
+
         return $this->repository->criar($denuncia);
     }
 
@@ -90,33 +165,140 @@ class DenunciaService
     }
 
     /**
-     * Moderar denúncia (admin) - bloquear usuário
+     * Denúncia ainda pendente, ou exceção: a moderação decide uma única vez.
      */
-    public function bloquearPorDenuncia(int $idDenuncia): bool
+    private function denunciaPendente(int $idDenuncia): Denuncia
     {
         $denuncia = $this->repository->buscarPorId($idDenuncia);
+
         if (!$denuncia) {
             throw new Exception('Denúncia não encontrada.');
         }
 
-        // Bloquear usuário denunciado
-        $this->usuarioRepository->bloquear($denuncia->getIdUsuarioDenunciado());
+        if (!$denuncia->isPendente()) {
+            throw new Exception('Esta denúncia já foi analisada.');
+        }
 
-        // Marcar denúncia como analisada
-        return $this->repository->mudarStatus($idDenuncia, 'ANALISADO');
+        return $denuncia;
     }
 
     /**
-     * Moderar denúncia (admin) - apenas marcar como analisada
+     * Usuário atingido pela denúncia: o denunciado, ou o dono do anúncio denunciado.
+     */
+    private function usuarioAlvo(Denuncia $denuncia): int
+    {
+        if ($denuncia->getIdUsuarioDenunciado() !== null) {
+            return $denuncia->getIdUsuarioDenunciado();
+        }
+
+        $vaga = $denuncia->getIdVagaDenunciada() !== null
+            ? $this->vagaRepository->buscarPorId($denuncia->getIdVagaDenunciada())
+            : null;
+
+        if ($vaga === null) {
+            throw new Exception('O alvo da denúncia não existe mais.');
+        }
+
+        return $vaga->getIdContratante();
+    }
+
+    /**
+     * Moderar denúncia (admin) - bloquear a conta do usuário atingido
+     */
+    public function bloquearPorDenuncia(int $idDenuncia): bool
+    {
+        $denuncia = $this->denunciaPendente($idDenuncia);
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->usuarioRepository->bloquear($this->usuarioAlvo($denuncia));
+            $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO');
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /**
+     * Moderar denúncia (admin) - advertir o usuário atingido (RN14).
+     * A advertência fica registrada e é mostrada ao advertido até ele dispensá-la.
+     */
+    public function advertir(int $idDenuncia, string $mensagem, int $idModerador): bool
+    {
+        $mensagem = trim($mensagem);
+
+        if (mb_strlen($mensagem) < 5 || mb_strlen($mensagem) > 500) {
+            throw new Exception('A mensagem da advertência deve ter entre 5 e 500 caracteres.');
+        }
+
+        $denuncia = $this->denunciaPendente($idDenuncia);
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->advertenciaRepository->criar(
+                $this->usuarioAlvo($denuncia),
+                $idDenuncia,
+                $idModerador,
+                $mensagem
+            );
+            $this->repository->registrarModeracao($idDenuncia, 'ADVERTENCIA');
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /**
+     * Moderar denúncia de anúncio (admin): oculta ou remove o anúncio, sem apagá-lo (RN14).
+     * $visibilidade: 'OCULTA' ou 'REMOVIDA'.
+     */
+    public function moderarAnuncio(int $idDenuncia, string $visibilidade): bool
+    {
+        $acoes = ['OCULTA' => 'ANUNCIO_OCULTO', 'REMOVIDA' => 'ANUNCIO_REMOVIDO'];
+
+        if (!isset($acoes[$visibilidade])) {
+            throw new Exception('Ação de moderação inválida.');
+        }
+
+        $denuncia = $this->denunciaPendente($idDenuncia);
+
+        if ($denuncia->getIdVagaDenunciada() === null || $denuncia->getIdUsuarioDenunciado() !== null) {
+            throw new Exception('Esta denúncia não é de um anúncio.');
+        }
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), $visibilidade);
+            $this->repository->registrarModeracao($idDenuncia, $acoes[$visibilidade]);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /**
+     * Moderar denúncia (admin) - apenas marcar como analisada, sem sanção
      */
     public function analisar(int $idDenuncia): bool
     {
-        $denuncia = $this->repository->buscarPorId($idDenuncia);
-        if (!$denuncia) {
-            throw new Exception('Denúncia não encontrada.');
-        }
+        $this->denunciaPendente($idDenuncia);
 
-        return $this->repository->mudarStatus($idDenuncia, 'ANALISADO');
+        return $this->repository->registrarModeracao($idDenuncia, 'NENHUMA');
     }
 
     /**

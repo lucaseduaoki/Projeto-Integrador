@@ -4,15 +4,18 @@ namespace app\controllers;
 
 use app\core\Controller;
 use app\services\InteresseService;
+use app\services\UsuarioService;
 use app\services\VagaService;
 
 class InteresseController extends Controller
 {
     private InteresseService $service;
     private VagaService $vagaService;
+    private UsuarioService $usuarioService;
 
     public function __construct()
     {
+        $this->usuarioService = new UsuarioService();
         $this->service = new InteresseService();
         $this->vagaService = new VagaService();
     }
@@ -80,8 +83,9 @@ class InteresseController extends Controller
         }
 
 
-        // Garante que somente o dono da vaga veja os interessados
-        if ($vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+        // Só o dono da vaga (ou o admin, em leitura) vê os interessados. Contatos aceitos seguem
+        // restritos ao dono: ver listarAceitos e a RN12.
+        if (!$this->podeGerenciarVaga($vaga)) {
             $this->redirect(URL_BASE . '/403');
             return;
         }
@@ -175,10 +179,41 @@ public function listarAceitos(): void
         http_response_code(403);
 
         echo json_encode([
-            'erro' => $e->getMessage()
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível carregar os contatos agora. Tente novamente em instantes.')
         ]);
     }
 }
+    /**
+     * Perfil de um candidato (?id=<interesse>) para o contratante da vaga decidir a seleção.
+     * Traz nome, sobre, localização e habilidades. Nunca traz contato: e-mail e telefone só
+     * aparecem depois da seleção, no modal de contatos aprovados (RN10/RN12).
+     */
+    public function visualizarCandidato(): void
+    {
+        $this->contratanteRequired();
+
+        $interesse = $this->service->buscarPorId((int)($_GET['id'] ?? 0));
+        $vaga = $interesse ? $this->vagaService->buscarPorId($interesse->getIdVaga()) : null;
+
+        if (!$interesse || !$vaga) {
+            $this->redirect(URL_BASE . '/vagas/minhas');
+        }
+
+        // Só o contratante daquela vaga (ou o admin) vê o perfil do candidato
+        if (!$this->podeGerenciarVaga($vaga)) {
+            $this->redirect(URL_BASE . '/403');
+        }
+
+        $trabalhador = $this->usuarioService->buscarPorId($interesse->getIdTrabalhador());
+
+        $this->view('usuario/perfil_candidato', [
+            'trabalhador' => $trabalhador,
+            'habilidades' => $this->usuarioService->buscarHabilidades($interesse->getIdTrabalhador()),
+            'interesse' => $interesse,
+            'vaga' => $vaga,
+        ]);
+    }
+
     public function visualizarHistorico(): void
     {
         $this->trabalhadorRequired();

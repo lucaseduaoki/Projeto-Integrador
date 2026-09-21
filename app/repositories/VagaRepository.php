@@ -33,7 +33,14 @@ return new Vaga(
     $row['trabalhadores_limite'],
     $row['status'],
     isset($row['total_aceitos']) ? (int)$row['total_aceitos'] : 0,
-    (bool)($row['is_user_active'] ?? true)
+    (bool)($row['is_user_active'] ?? true),
+    isset($row['horario']) ? substr($row['horario'], 0, 5) : null,
+    $row['tipo_servico'] ?? 'FIXO',
+    $row['duracao'] ?? null,
+    $row['observacoes'] ?? null,
+    $row['data_servico'] ?? null,
+    $row['visibilidade'] ?? 'VISIVEL',
+    $row['categoria_nome'] ?? null
 );
     }
 
@@ -42,8 +49,10 @@ return new Vaga(
         $sql = "
             SELECT
                 v.*,
+                c.nome AS categoria_nome,
                 COUNT(i.id_interesse) AS total_aceitos
             FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
             LEFT JOIN interesse i
                 ON i.id_vaga = v.id_vaga
             AND i.status = 'ACEITO'
@@ -62,10 +71,12 @@ return new Vaga(
     public function listar(int $limit = 50, int $offset = 0): array
     {
         $sql = "
-            SELECT *
-            FROM vaga
+            SELECT v.*, c.nome AS categoria_nome
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
             WHERE status = 'ATIVA'
               AND is_user_active = 1
+              AND visibilidade = 'VISIVEL'
             ORDER BY data_publicacao DESC
             LIMIT :limit OFFSET :offset
         ";
@@ -89,8 +100,10 @@ return new Vaga(
 $sql = "
     SELECT
         v.*,
+        c.nome AS categoria_nome,
         COUNT(i.id_interesse) AS total_aceitos
     FROM vaga v
+    INNER JOIN categoria c ON c.id_categoria = v.id_categoria
     LEFT JOIN interesse i
         ON i.id_vaga = v.id_vaga
        AND i.status = 'ACEITO'
@@ -112,25 +125,51 @@ $sql = "
         return $resultado;
     }
 
-    public function buscar(string $titulo = '', string $localizacao = ''): array
+    /**
+     * Busca vagas ativas. Filtros aceitos (todos opcionais): titulo, localizacao, tipo_servico,
+     * data_from, remuneracao_min, remuneracao_max. Vagas sem remuneração ficam fora quando há filtro de valor.
+     */
+    public function buscar(array $filtros = []): array
     {
         $sql = "
-            SELECT *
-            FROM vaga
+            SELECT v.*, c.nome AS categoria_nome
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
             WHERE status = 'ATIVA'
               AND is_user_active = 1
+              AND visibilidade = 'VISIVEL'
         ";
 
         $params = [];
 
-        if ($titulo !== '') {
+        if (($filtros['titulo'] ?? '') !== '') {
             $sql .= " AND (titulo LIKE :titulo OR descricao LIKE :titulo)";
-            $params['titulo'] = "%{$titulo}%";
+            $params['titulo'] = "%{$filtros['titulo']}%";
         }
 
-        if ($localizacao !== '') {
+        if (($filtros['localizacao'] ?? '') !== '') {
             $sql .= " AND localizacao LIKE :localizacao";
-            $params['localizacao'] = "%{$localizacao}%";
+            $params['localizacao'] = "%{$filtros['localizacao']}%";
+        }
+
+        if (($filtros['data_from'] ?? '') !== '') {
+            $sql .= " AND data_servico >= :data_from";
+            $params['data_from'] = $filtros['data_from'];
+        }
+
+        if (isset($filtros['remuneracao_min'])) {
+            $sql .= " AND remuneracao >= :remuneracao_min";
+            $params['remuneracao_min'] = $filtros['remuneracao_min'];
+        }
+
+        if (isset($filtros['remuneracao_max'])) {
+            $sql .= " AND remuneracao <= :remuneracao_max";
+            $params['remuneracao_max'] = $filtros['remuneracao_max'];
+        }
+
+        if (($filtros['tipo_servico'] ?? '') !== '') {
+            $sql .= " AND tipo_servico = :tipo_servico";
+            $params['tipo_servico'] = $filtros['tipo_servico'];
         }
 
         $sql .= " ORDER BY data_publicacao DESC";
@@ -164,6 +203,11 @@ $sql = "
                 localizacao,
                 remuneracao,
                 data_limite,
+                data_servico,
+                horario,
+                tipo_servico,
+                duracao,
+                observacoes,
                 trabalhadores_limite,
                 status
             )
@@ -176,6 +220,11 @@ $sql = "
                 :localizacao,
                 :remuneracao,
                 :data_limite,
+                :data_servico,
+                :horario,
+                :tipo_servico,
+                :duracao,
+                :observacoes,
                 :trabalhadores_limite,
                 'ATIVA'
             )
@@ -190,6 +239,11 @@ $sql = "
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
+        $stmt->bindValue(':data_servico', $vaga->getDataServico());
+        $stmt->bindValue(':horario', $vaga->getHorario());
+        $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
+        $stmt->bindValue(':duracao', $vaga->getDuracao());
+        $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
 
         $stmt->execute();
@@ -208,6 +262,11 @@ $sql = "
                 localizacao = :localizacao,
                 remuneracao = :remuneracao,
                 data_limite = :data_limite,
+                data_servico = :data_servico,
+                horario = :horario,
+                tipo_servico = :tipo_servico,
+                duracao = :duracao,
+                observacoes = :observacoes,
                 trabalhadores_limite = :trabalhadores_limite
             WHERE id_vaga = :id
         ";
@@ -221,6 +280,11 @@ $sql = "
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
+        $stmt->bindValue(':data_servico', $vaga->getDataServico());
+        $stmt->bindValue(':horario', $vaga->getHorario());
+        $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
+        $stmt->bindValue(':duracao', $vaga->getDuracao());
+        $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
 
         return $stmt->execute();
@@ -235,6 +299,36 @@ $sql = "
         $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);
 
         return $stmt->execute();
+    }
+
+    /**
+     * Aplica a decisão da moderação sobre o anúncio (VISIVEL, OCULTA ou REMOVIDA).
+     */
+    public function mudarVisibilidade(int $idVaga, string $visibilidade): bool
+    {
+        $stmt = $this->conn->prepare(
+            "UPDATE vaga SET visibilidade = :visibilidade WHERE id_vaga = :id"
+        );
+
+        $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);
+        $stmt->bindValue(':visibilidade', $visibilidade);
+
+        return $stmt->execute();
+    }
+
+    /**
+     * A vaga já recebeu alguma candidatura (pendente ou aceita)?
+     */
+    public function possuiCandidaturas(int $idVaga): bool
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT COUNT(*) FROM interesse WHERE id_vaga = :id"
+        );
+
+        $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn() > 0;
     }
 
     public function mudarStatus(int $idVaga, string $status): bool

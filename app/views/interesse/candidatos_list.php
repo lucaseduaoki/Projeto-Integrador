@@ -4,6 +4,9 @@ $tituloPagina = 'Candidatos da Vaga';
 $vaga = $vaga ?? null;
 $interessados = $interessados ?? [];
 
+// Aceitar e registrar não comparecimento são do dono da vaga; o admin só consulta
+$ehDono = isset($usuario, $vaga) && $usuario->getIdUsuario() === $vaga->getIdContratante();
+
 $tituloVaga = $vaga && method_exists($vaga, 'getTitulo')
     ? $vaga->getTitulo()
     : 'Vaga selecionada';
@@ -127,7 +130,7 @@ include __DIR__ . '/../shared/navbar.php';
 
                                     <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
 
-                                        <?= $interesse->getIdTrabalhador() ?>
+                                        <?= htmlspecialchars(strtoupper(mb_substr($interesse->getNomeTrabalhador() ?? '?', 0, 1)), ENT_QUOTES, 'UTF-8') ?>
 
                                     </div>
 
@@ -136,17 +139,18 @@ include __DIR__ . '/../shared/navbar.php';
 
                                         <p class="font-semibold text-gray-900">
 
-                                            Trabalhador #<?= $interesse->getIdTrabalhador() ?>
+                                            <?= htmlspecialchars($interesse->getNomeTrabalhador() ?? 'Trabalhador #' . $interesse->getIdTrabalhador(), ENT_QUOTES, 'UTF-8') ?>
 
                                         </p>
 
 
-                                        <p class="text-sm text-gray-500">
+                                        <a
+                                            href="<?= URL_BASE ?>/interesse/candidato?id=<?= $interesse->getIdInteresse() ?>"
+                                            class="text-sm text-blue-600 hover:text-blue-800">
 
-                                            ID interesse:
-                                            <?= $interesse->getIdInteresse() ?>
+                                            Ver perfil
 
-                                        </p>
+                                        </a>
 
                                     </div>
 
@@ -187,7 +191,7 @@ include __DIR__ . '/../shared/navbar.php';
                             <td class="px-6 py-4">
 
 
-                                <?php if($status === 'PENDENTE'): ?>
+                                <?php if($ehDono && $status === 'PENDENTE'): ?>
 
 
                                     <form method="POST" action="<?= URL_BASE ?>/interesse/aceitar">
@@ -209,6 +213,18 @@ include __DIR__ . '/../shared/navbar.php';
 
                                     </form>
 
+
+                                <?php endif; ?>
+
+                                <?php if($ehDono && $status === 'ACEITO'): ?>
+
+                                    <a
+                                        href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdInteresse() ?>"
+                                        class="text-red-600 hover:text-red-800 font-medium text-sm">
+
+                                        Registrar não comparecimento
+
+                                    </a>
 
                                 <?php endif; ?>
 
