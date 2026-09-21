@@ -1,5 +1,7 @@
 <?php
 $modoEdicao = $modoEdicao ?? (($acao ?? '') === 'editar');
+// RN18: com candidaturas, título e tipo de serviço ficam travados (o servidor também recusa a mudança)
+$travado = $modoEdicao && ($temCandidaturas ?? false);
 $tituloPagina = $modoEdicao ? 'Editar Vaga' : 'Publicar Nova Vaga';
 
 include __DIR__ . '/../shared/header.php';
@@ -110,11 +112,16 @@ $erros = $erros ?? [];
                         Título da vaga
                     </label>
 
+                    <?php if ($travado): ?>
+                        <p class="text-amber-700 text-xs mb-1">Esta vaga já tem candidaturas: o título e o tipo de serviço não podem ser alterados.</p>
+                    <?php endif; ?>
+
                     <input
                         type="text"
                         id="titulo"
                         name="titulo"
                         required
+                        <?= $travado ? 'readonly' : '' ?>
                         value="<?= $vaga ? htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') : '' ?>"
                         class="w-full border border-gray-300 rounded px-3 py-2"
                     >
@@ -151,13 +158,18 @@ $erros = $erros ?? [];
 
                     <?php $tipoAtual = $vaga ? $vaga->getTipoServico() : ($_POST['tipo_servico'] ?? ''); ?>
 
+                    <?php if ($travado): ?>
+                        <!-- radios desabilitados não são enviados: mantém o valor atual -->
+                        <input type="hidden" name="tipo_servico" value="<?= htmlspecialchars($tipoAtual, ENT_QUOTES, 'UTF-8') ?>">
+                    <?php endif; ?>
+
                     <div class="flex gap-6">
                         <label class="inline-flex items-center gap-2">
-                            <input type="radio" name="tipo_servico" value="FIXO" required <?= $tipoAtual === 'FIXO' ? 'checked' : '' ?>>
+                            <input type="radio" name="tipo_servico" value="FIXO" required <?= $tipoAtual === 'FIXO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
                             Fixo
                         </label>
                         <label class="inline-flex items-center gap-2">
-                            <input type="radio" name="tipo_servico" value="TEMPORARIO" <?= $tipoAtual === 'TEMPORARIO' ? 'checked' : '' ?>>
+                            <input type="radio" name="tipo_servico" value="TEMPORARIO" <?= $tipoAtual === 'TEMPORARIO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
                             Temporário
                         </label>
                     </div>

@@ -309,6 +309,21 @@ $sql = "
         return $stmt->execute();
     }
 
+    /**
+     * A vaga já recebeu alguma candidatura (pendente ou aceita)?
+     */
+    public function possuiCandidaturas(int $idVaga): bool
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT COUNT(*) FROM interesse WHERE id_vaga = :id"
+        );
+
+        $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
     public function mudarStatus(int $idVaga, string $status): bool
     {
         $stmt = $this->conn->prepare(

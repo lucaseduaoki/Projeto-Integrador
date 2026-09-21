@@ -301,7 +301,8 @@ public function exibirFormEditar(): void
 
     $this->view('vaga/vaga_form', [
         'vaga' => $vaga,
-        'acao' => 'editar'
+        'acao' => 'editar',
+        'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
     ]);
 }
 
@@ -360,7 +361,8 @@ public function editar(): void
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
             'erros' => $validador->getErros(),
-            'acao' => 'editar'
+            'acao' => 'editar',
+            'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);
 
         return;
@@ -391,7 +393,8 @@ public function editar(): void
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
             'erro' => $e->getMessage(),
-            'acao' => 'editar'
+            'acao' => 'editar',
+            'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);
     }
     }

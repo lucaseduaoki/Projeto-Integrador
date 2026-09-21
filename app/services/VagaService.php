@@ -93,6 +93,11 @@ class VagaService
         return $this->repository->buscar($filtros);
     }
 
+    public function possuiCandidaturas(int $idVaga): bool
+    {
+        return $this->repository->possuiCandidaturas($idVaga);
+    }
+
     public function buscarContratantePorVaga(int $idVaga): ?object
     {
         return $this->usuarioRepository->buscarContratantePorVaga($idVaga);
@@ -111,6 +116,17 @@ class VagaService
 
         if ($vagaExistente->foiRemovidaPelaModeracao()) {
             throw new Exception("Este anúncio foi removido pela moderação e não pode ser editado.");
+        }
+
+        // RN18: com candidaturas, a função (título) e o tipo de serviço não podem mudar
+        if ($this->repository->possuiCandidaturas($vaga->getIdVaga())) {
+            if ($vaga->getTitulo() !== $vagaExistente->getTitulo()) {
+                throw new Exception("Esta vaga já tem candidaturas: a função (título) não pode ser alterada.");
+            }
+
+            if ($vaga->getTipoServico() !== $vagaExistente->getTipoServico()) {
+                throw new Exception("Esta vaga já tem candidaturas: o tipo de serviço não pode ser alterado.");
+            }
         }
 
         return $this->repository->atualizar($vaga);
