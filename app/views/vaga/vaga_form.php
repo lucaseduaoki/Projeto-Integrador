@@ -169,6 +169,30 @@ $erros = $erros ?? [];
                 </fieldset>
 
 
+                <!-- Duração (só para serviço temporário) -->
+                <div id="bloco_duracao" class="<?= $tipoAtual === 'TEMPORARIO' ? '' : 'hidden' ?>">
+
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Duração
+                    </label>
+
+                    <input
+                        type="text"
+                        id="duracao"
+                        name="duracao"
+                        maxlength="50"
+                        placeholder="Ex.: 3 dias, 2 semanas"
+                        value="<?= $vaga ? htmlspecialchars($vaga->getDuracao() ?? '', ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['duracao'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        class="w-full border border-gray-300 rounded px-3 py-2"
+                    >
+
+                    <?php if (isset($erros['duracao'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['duracao'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
+                </div>
+
+
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
@@ -323,6 +347,16 @@ $erros = $erros ?? [];
 
 
 <script>
+
+// Duração só aparece (e só é exigida no HTML) quando o serviço é temporário.
+// A regra de verdade é validada no servidor.
+document.querySelectorAll('input[name=tipo_servico]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+        var temporario = document.querySelector('input[name=tipo_servico]:checked').value === 'TEMPORARIO';
+        document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
+        document.getElementById('duracao').required = temporario;
+    });
+});
 
 function preencherFormularioTeste() {
 

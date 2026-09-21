@@ -139,6 +139,7 @@ public function criar(): void
     $dataLimite = $_POST['data_limite'] ?? null;
     $horario = trim($_POST['horario'] ?? '');
     $tipoServico = trim($_POST['tipo_servico'] ?? '');
+    $duracao = trim($_POST['duracao'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = new Validador();
@@ -150,7 +151,14 @@ public function criar(): void
         ->obrigatorio('horario', $horario, 'Informe o horário (hh:mm).')
         ->horaValida('horario', $horario, 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('tipo_servico', $tipoServico, 'Selecione o tipo de serviço (fixo ou temporário).')
-        ->emLista('tipo_servico', $tipoServico, ['FIXO', 'TEMPORARIO'], 'Tipo de serviço inválido: escolha fixo ou temporário.');
+        ->emLista('tipo_servico', $tipoServico, ['FIXO', 'TEMPORARIO'], 'Tipo de serviço inválido: escolha fixo ou temporário.')
+        ->tamanhoMax('duracao', $duracao, 50, 'A duração deve ter no máximo 50 caracteres.');
+
+    if ($tipoServico === 'TEMPORARIO') {
+        $validador->obrigatorio('duracao', $duracao, 'Informe a duração do serviço temporário (ex.: 3 dias).');
+    } else {
+        $duracao = '';
+    }
 
     if ($validador->temErros()) {
         $this->view('vaga/vaga_form', [
@@ -171,7 +179,8 @@ public function criar(): void
             $dataLimite ?: null,
             (int)$trabalhadoresLimite,
             $horario,
-            $tipoServico
+            $tipoServico,
+            $duracao ?: null
         );
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $id);
@@ -252,6 +261,7 @@ public function editar(): void
     $dataLimite = $_POST['data_limite'] ?? null;
     $horario = trim($_POST['horario'] ?? '');
     $tipoServico = trim($_POST['tipo_servico'] ?? '');
+    $duracao = trim($_POST['duracao'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = new Validador();
@@ -263,7 +273,14 @@ public function editar(): void
         ->obrigatorio('horario', $horario, 'Informe o horário (hh:mm).')
         ->horaValida('horario', $horario, 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('tipo_servico', $tipoServico, 'Selecione o tipo de serviço (fixo ou temporário).')
-        ->emLista('tipo_servico', $tipoServico, ['FIXO', 'TEMPORARIO'], 'Tipo de serviço inválido: escolha fixo ou temporário.');
+        ->emLista('tipo_servico', $tipoServico, ['FIXO', 'TEMPORARIO'], 'Tipo de serviço inválido: escolha fixo ou temporário.')
+        ->tamanhoMax('duracao', $duracao, 50, 'A duração deve ter no máximo 50 caracteres.');
+
+    if ($tipoServico === 'TEMPORARIO') {
+        $validador->obrigatorio('duracao', $duracao, 'Informe a duração do serviço temporário (ex.: 3 dias).');
+    } else {
+        $duracao = '';
+    }
 
     if ($validador->temErros()) {
 
@@ -286,6 +303,7 @@ public function editar(): void
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
         $vaga->setHorario($horario);
         $vaga->setTipoServico($tipoServico);
+        $vaga->setDuracao($duracao ?: null);
 
         $vaga->setIdCategoria($idCategoria);
 

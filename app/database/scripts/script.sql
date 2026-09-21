@@ -80,6 +80,8 @@ CREATE TABLE vaga (
 
     tipo_servico ENUM('FIXO','TEMPORARIO') NOT NULL DEFAULT 'FIXO',
 
+    duracao VARCHAR(50) NULL,
+
     trabalhadores_limite INT NOT NULL DEFAULT 1,
 
     status ENUM(
