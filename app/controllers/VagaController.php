@@ -95,10 +95,18 @@ class VagaController extends Controller
     {
         $this->autenticacaoRequired();
 
-        $titulo = trim($_GET['keywords'] ?? '');
-        $localizacao = trim($_GET['localizacao'] ?? '');
+        $filtros = [
+            'titulo' => trim((string)($_GET['keywords'] ?? '')),
+            'localizacao' => trim((string)($_GET['localizacao'] ?? '')),
+        ];
 
-        $vagas = $this->vagaService->buscar($titulo, $localizacao);
+        // Tipo de serviço: só aceita os valores do domínio, qualquer outro é ignorado
+        $tipoServico = trim((string)($_GET['tipo_servico'] ?? ''));
+        if (in_array($tipoServico, ['FIXO', 'TEMPORARIO'], true)) {
+            $filtros['tipo_servico'] = $tipoServico;
+        }
+
+        $vagas = $this->vagaService->buscar($filtros);
 
         $this->view('vaga/vaga_busca', [
             'vagas' => $vagas,

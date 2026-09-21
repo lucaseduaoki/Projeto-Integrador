@@ -86,15 +86,9 @@ class VagaService
     /**
      * Buscar vagas
      */
-    public function buscar(
-        string $titulo = '',
-        string $localizacao = ''
-    ): array {
-
-        return $this->repository->buscar(
-            $titulo,
-            $localizacao
-        );
+    public function buscar(array $filtros = []): array
+    {
+        return $this->repository->buscar($filtros);
     }
 
     public function buscarContratantePorVaga(int $idVaga): ?object

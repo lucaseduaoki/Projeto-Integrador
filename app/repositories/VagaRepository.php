@@ -116,7 +116,10 @@ $sql = "
         return $resultado;
     }
 
-    public function buscar(string $titulo = '', string $localizacao = ''): array
+    /**
+     * Busca vagas ativas. Filtros aceitos (todos opcionais): titulo, localizacao, tipo_servico.
+     */
+    public function buscar(array $filtros = []): array
     {
         $sql = "
             SELECT *
@@ -127,14 +130,19 @@ $sql = "
 
         $params = [];
 
-        if ($titulo !== '') {
+        if (($filtros['titulo'] ?? '') !== '') {
             $sql .= " AND (titulo LIKE :titulo OR descricao LIKE :titulo)";
-            $params['titulo'] = "%{$titulo}%";
+            $params['titulo'] = "%{$filtros['titulo']}%";
         }
 
-        if ($localizacao !== '') {
+        if (($filtros['localizacao'] ?? '') !== '') {
             $sql .= " AND localizacao LIKE :localizacao";
-            $params['localizacao'] = "%{$localizacao}%";
+            $params['localizacao'] = "%{$filtros['localizacao']}%";
+        }
+
+        if (($filtros['tipo_servico'] ?? '') !== '') {
+            $sql .= " AND tipo_servico = :tipo_servico";
+            $params['tipo_servico'] = $filtros['tipo_servico'];
         }
 
         $sql .= " ORDER BY data_publicacao DESC";
