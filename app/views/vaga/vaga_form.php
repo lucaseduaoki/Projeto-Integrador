@@ -305,6 +305,29 @@ $erros = $erros ?? [];
 
 
 
+                <!-- Observações -->
+                <div>
+
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Observações adicionais <span class="text-gray-500 font-normal">(opcional, até 500 caracteres)</span>
+                    </label>
+
+                    <textarea
+                        id="observacoes"
+                        name="observacoes"
+                        rows="3"
+                        maxlength="500"
+                        class="w-full border border-gray-300 rounded px-3 py-2"
+                    ><?= $vaga ? htmlspecialchars($vaga->getObservacoes() ?? '', ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['observacoes'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+
+                    <?php if (isset($erros['observacoes'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['observacoes'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
+                </div>
+
+
+
                 <div class="flex gap-4 pt-6 border-t border-gray-200">
 
 

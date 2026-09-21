@@ -36,7 +36,8 @@ return new Vaga(
     (bool)($row['is_user_active'] ?? true),
     isset($row['horario']) ? substr($row['horario'], 0, 5) : null,
     $row['tipo_servico'] ?? 'FIXO',
-    $row['duracao'] ?? null
+    $row['duracao'] ?? null,
+    $row['observacoes'] ?? null
 );
     }
 
@@ -170,6 +171,7 @@ $sql = "
                 horario,
                 tipo_servico,
                 duracao,
+                observacoes,
                 trabalhadores_limite,
                 status
             )
@@ -185,6 +187,7 @@ $sql = "
                 :horario,
                 :tipo_servico,
                 :duracao,
+                :observacoes,
                 :trabalhadores_limite,
                 'ATIVA'
             )
@@ -202,6 +205,7 @@ $sql = "
         $stmt->bindValue(':horario', $vaga->getHorario());
         $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
+        $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
 
         $stmt->execute();
@@ -223,6 +227,7 @@ $sql = "
                 horario = :horario,
                 tipo_servico = :tipo_servico,
                 duracao = :duracao,
+                observacoes = :observacoes,
                 trabalhadores_limite = :trabalhadores_limite
             WHERE id_vaga = :id
         ";
@@ -239,6 +244,7 @@ $sql = "
         $stmt->bindValue(':horario', $vaga->getHorario());
         $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
+        $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
 
         return $stmt->execute();

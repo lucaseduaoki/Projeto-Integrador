@@ -23,7 +23,7 @@ class Validador {
             return $this;
         }
 
-        $tamanho = strlen(trim($valor));
+        $tamanho = mb_strlen(trim($valor));
         if ($tamanho < $min || $tamanho > $max) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter entre {$min} e {$max} caracteres";
         }
@@ -38,7 +38,7 @@ class Validador {
             return $this;
         }
 
-        $tamanho = strlen(trim($valor));
+        $tamanho = mb_strlen(trim($valor));
         if ($tamanho > $max) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter no maximo {$max} caracteres";
         }

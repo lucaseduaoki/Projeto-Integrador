@@ -20,6 +20,7 @@ class Vaga
     private ?string $horario = null;
     private string $tipoServico = 'FIXO';
     private ?string $duracao = null;
+    private ?string $observacoes = null;
 
 public function __construct(
     int $idVaga,
@@ -37,7 +38,8 @@ public function __construct(
     bool $isUserActive = true,
     ?string $horario = null,
     string $tipoServico = 'FIXO',
-    ?string $duracao = null
+    ?string $duracao = null,
+    ?string $observacoes = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -55,6 +57,7 @@ public function __construct(
         $this->horario = $horario;
         $this->tipoServico = $tipoServico;
         $this->duracao = $duracao;
+        $this->observacoes = $observacoes;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -75,7 +78,8 @@ public function __construct(
             (bool)($dados['is_user_active'] ?? true),
             isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null,
             $dados['tipo_servico'] ?? 'FIXO',
-            $dados['duracao'] ?? null
+            $dados['duracao'] ?? null,
+            $dados['observacoes'] ?? null
         );
     }
 
@@ -165,6 +169,16 @@ public function __construct(
         $this->duracao = $duracao;
     }
 
+    public function getObservacoes(): ?string
+    {
+        return $this->observacoes;
+    }
+
+    public function setObservacoes(?string $observacoes): void
+    {
+        $this->observacoes = $observacoes;
+    }
+
     public function isTemporario(): bool
     {
         return $this->tipoServico === 'TEMPORARIO';
@@ -252,7 +266,8 @@ public function __construct(
             'isUserActive' => $this->isUserActive,
             'horario' => $this->horario,
             'tipoServico' => $this->tipoServico,
-            'duracao' => $this->duracao
+            'duracao' => $this->duracao,
+            'observacoes' => $this->observacoes
         ];
     }
 

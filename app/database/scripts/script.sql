@@ -82,6 +82,8 @@ CREATE TABLE vaga (
 
     duracao VARCHAR(50) NULL,
 
+    observacoes TEXT NULL,
+
     trabalhadores_limite INT NOT NULL DEFAULT 1,
 
     status ENUM(

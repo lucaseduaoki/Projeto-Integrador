@@ -85,6 +85,11 @@ $isProprietario =
                 <div class="bg-white rounded-md border border-gray-100 p-6">
                     <h2 class="text-lg font-bold text-gray-900 mb-4">Sobre a vaga</h2>
                     <p class="text-gray-700 whitespace-pre-wrap"><?= $descricao ?></p>
+
+                    <?php if ($vaga->getObservacoes()): ?>
+                        <h3 class="text-sm font-bold text-gray-900 mt-5 mb-1">Observações</h3>
+                        <p class="text-gray-700 whitespace-pre-wrap"><?= htmlspecialchars($vaga->getObservacoes(), ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Detalhes -->
