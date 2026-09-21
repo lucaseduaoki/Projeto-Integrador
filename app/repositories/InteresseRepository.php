@@ -109,10 +109,12 @@ class InteresseRepository
 
     public function listarPorVaga(int $idVaga): array
     {
-        $sql = "SELECT *
-                FROM interesse
-                WHERE id_vaga = :vaga
-                ORDER BY data_interesse ASC";
+        // Traz só o nome do trabalhador: e-mail e telefone ficam ocultos até a seleção (RN10)
+        $sql = "SELECT i.*, u.nome AS nome_trabalhador
+                FROM interesse i
+                INNER JOIN usuario u ON u.id_usuario = i.id_trabalhador
+                WHERE i.id_vaga = :vaga
+                ORDER BY i.data_interesse ASC";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);

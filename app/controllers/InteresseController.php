@@ -4,15 +4,18 @@ namespace app\controllers;
 
 use app\core\Controller;
 use app\services\InteresseService;
+use app\services\UsuarioService;
 use app\services\VagaService;
 
 class InteresseController extends Controller
 {
     private InteresseService $service;
     private VagaService $vagaService;
+    private UsuarioService $usuarioService;
 
     public function __construct()
     {
+        $this->usuarioService = new UsuarioService();
         $this->service = new InteresseService();
         $this->vagaService = new VagaService();
     }
@@ -180,6 +183,37 @@ public function listarAceitos(): void
         ]);
     }
 }
+    /**
+     * Perfil de um candidato (?id=<interesse>) para o contratante da vaga decidir a seleção.
+     * Traz nome, sobre, localização e habilidades. Nunca traz contato: e-mail e telefone só
+     * aparecem depois da seleção, no modal de contatos aprovados (RN10/RN12).
+     */
+    public function visualizarCandidato(): void
+    {
+        $this->contratanteRequired();
+
+        $interesse = $this->service->buscarPorId((int)($_GET['id'] ?? 0));
+        $vaga = $interesse ? $this->vagaService->buscarPorId($interesse->getIdVaga()) : null;
+
+        if (!$interesse || !$vaga) {
+            $this->redirect(URL_BASE . '/vagas/minhas');
+        }
+
+        // Só o contratante daquela vaga (ou o admin) vê o perfil do candidato
+        if (!$this->podeGerenciarVaga($vaga)) {
+            $this->redirect(URL_BASE . '/403');
+        }
+
+        $trabalhador = $this->usuarioService->buscarPorId($interesse->getIdTrabalhador());
+
+        $this->view('usuario/perfil_candidato', [
+            'trabalhador' => $trabalhador,
+            'habilidades' => $this->usuarioService->buscarHabilidades($interesse->getIdTrabalhador()),
+            'interesse' => $interesse,
+            'vaga' => $vaga,
+        ]);
+    }
+
     public function visualizarHistorico(): void
     {
         $this->trabalhadorRequired();

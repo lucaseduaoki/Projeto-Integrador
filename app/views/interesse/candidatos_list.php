@@ -130,7 +130,7 @@ include __DIR__ . '/../shared/navbar.php';
 
                                     <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
 
-                                        <?= $interesse->getIdTrabalhador() ?>
+                                        <?= htmlspecialchars(strtoupper(mb_substr($interesse->getNomeTrabalhador() ?? '?', 0, 1)), ENT_QUOTES, 'UTF-8') ?>
 
                                     </div>
 
@@ -139,17 +139,18 @@ include __DIR__ . '/../shared/navbar.php';
 
                                         <p class="font-semibold text-gray-900">
 
-                                            Trabalhador #<?= $interesse->getIdTrabalhador() ?>
+                                            <?= htmlspecialchars($interesse->getNomeTrabalhador() ?? 'Trabalhador #' . $interesse->getIdTrabalhador(), ENT_QUOTES, 'UTF-8') ?>
 
                                         </p>
 
 
-                                        <p class="text-sm text-gray-500">
+                                        <a
+                                            href="<?= URL_BASE ?>/interesse/candidato?id=<?= $interesse->getIdInteresse() ?>"
+                                            class="text-sm text-blue-600 hover:text-blue-800">
 
-                                            ID interesse:
-                                            <?= $interesse->getIdInteresse() ?>
+                                            Ver perfil
 
-                                        </p>
+                                        </a>
 
                                     </div>
 

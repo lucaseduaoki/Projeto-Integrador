@@ -69,6 +69,11 @@ class InteresseService
         return $this->repository->criar($interesse);
     }
 
+    public function buscarPorId(int $idInteresse): ?Interesse
+    {
+        return $this->repository->buscarPorId($idInteresse);
+    }
+
     /**
      * Lista interessados de uma vaga.
      */

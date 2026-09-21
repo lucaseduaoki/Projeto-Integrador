@@ -45,6 +45,7 @@ $router->get('/vagas/minhas',        'VagaController@minhas');
 // INTERESSES
 // ============================================================================
 $router->post('/interesse/demonstrar',      'InteresseController@demonstrar');
+$router->get('/interesse/candidato',        'InteresseController@visualizarCandidato');
 $router->get('/interesse/interessados',     'InteresseController@listarInteressados');
 $router->get('/interesse/historico',     'InteresseController@historico');
 $router->get('/interesse/historico/visualizar',     'InteresseController@visualizarHistorico');
