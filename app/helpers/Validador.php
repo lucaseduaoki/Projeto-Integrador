@@ -202,6 +202,28 @@ class Validador {
         return $this;
     }
 
+    /**
+     * Data (aaaa-mm-dd) não anterior a hoje. $permitida é uma data anterior que continua aceita
+     * (ex.: a data já gravada numa vaga em edição, para não travar a edição de outros campos).
+     * Deve ser chamada depois de dataValida: valor em formato inválido é ignorado aqui.
+     */
+    public function dataNaoAnterior(string $campo, ?string $valor, ?string $mensagem = null, ?string $permitida = null): self
+    {
+        if ($valor === null || $valor === '' || isset($this->erros[$campo])) {
+            return $this;
+        }
+
+        if ($valor === $permitida) {
+            return $this;
+        }
+
+        if ($valor < date('Y-m-d')) {
+            $this->erros[$campo] = $mensagem ?? "O campo {$campo} não pode ser anterior à data de hoje";
+        }
+
+        return $this;
+    }
+
     public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {

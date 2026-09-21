@@ -195,7 +195,7 @@ public function criar(): void
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
     $remuneracao = $_POST['remuneracao'] ?? null;
-    $dataLimite = $_POST['data_limite'] ?? null;
+    $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
     $tipoServico = trim($_POST['tipo_servico'] ?? '');
@@ -262,7 +262,10 @@ private function validarDadosVaga(array $d): Validador
         ->obrigatorio('descricao', $d['descricao'], 'Informe a descrição da vaga.')
         ->obrigatorio('localizacao', $d['localizacao'], 'Informe o local do serviço.')
         ->obrigatorio('id_categoria', $d['idCategoria'], 'Selecione a categoria.')
+        ->obrigatorio('data_servico', $d['dataServico'], 'Informe a data do serviço.')
         ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
+        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.', $d['dataServicoAtual'] ?? null)
+        ->dataValida('data_limite', $d['dataLimite'], false, 'O prazo para candidatura deve ser uma data válida (aaaa-mm-dd).')
         ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
         ->horaValida('horario', $d['horario'], 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('tipo_servico', $d['tipoServico'], 'Selecione o tipo de serviço (fixo ou temporário).')
@@ -361,7 +364,7 @@ public function editar(): void
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
     $remuneracao = $_POST['remuneracao'] ?? null;
-    $dataLimite = $_POST['data_limite'] ?? null;
+    $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
     $tipoServico = trim($_POST['tipo_servico'] ?? '');
@@ -369,9 +372,12 @@ public function editar(): void
     $observacoes = trim($_POST['observacoes'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
+    // A data do serviço já gravada continua aceita mesmo que hoje esteja no passado
+    $dataServicoAtual = $vaga->getDataServico();
+
     $validador = $this->validarDadosVaga(compact(
         'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
-        'dataServico', 'horario', 'tipoServico', 'duracao', 'observacoes'
+        'dataServico', 'dataServicoAtual', 'horario', 'tipoServico', 'duracao', 'observacoes'
     ));
 
     // Serviço fixo não tem duração

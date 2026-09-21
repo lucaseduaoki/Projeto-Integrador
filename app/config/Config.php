@@ -6,6 +6,10 @@
 
 define('DEV_ENVIRONMENT', true);
 
+// Fuso do sistema (Brasil). Sem isto o PHP usa UTC e "hoje" vira amanhã à noite,
+// o que quebra regras como "a data não pode ser anterior a hoje".
+date_default_timezone_set('America/Sao_Paulo');
+
 if (DEV_ENVIRONMENT == true) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
