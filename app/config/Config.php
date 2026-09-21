@@ -21,7 +21,8 @@ if (DEV_ENVIRONMENT == true) {
 
 // Configurar sessão ANTES de session_start()
 ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1);  // Use 0 em desenvolvimento sem HTTPS
+// Cookie "secure" só é enviado em HTTPS; em http://localhost ele seria descartado
+ini_set('session.cookie_secure', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 1 : 0);
 ini_set('session.use_strict_mode', 1);
 
 if (session_status() === PHP_SESSION_NONE) {
