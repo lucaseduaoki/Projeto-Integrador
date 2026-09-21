@@ -164,6 +164,9 @@ $totalResultados = $totalResultados ?? count($vagas);
                             <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>" class="bg-white rounded border border-gray-100 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div class="flex-1">
                                     <h3 class="text-lg font-semibold text-gray-900"><?= $titulo ?></h3>
+                                    <?php if ($vaga->getCategoriaNome()): ?>
+                                        <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"><?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?></span>
+                                    <?php endif; ?>
                                     <p class="text-sm text-gray-600 mt-1"><?= $descricao ?></p>
                                     <div class="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
                                         <span class="flex items-center gap-1">

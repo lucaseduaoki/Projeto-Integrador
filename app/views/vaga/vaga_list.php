@@ -112,6 +112,12 @@ if (!empty($vagas)) {
                                 <?= $status === 'ATIVA' ? 'Ativa' : 'Encerrada' ?>
                             </span>
 
+                            <?php if ($vaga->getCategoriaNome()): ?>
+                                <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    <?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?>
+                                </span>
+                            <?php endif; ?>
+
                         </div>
 
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">

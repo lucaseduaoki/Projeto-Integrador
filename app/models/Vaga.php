@@ -23,6 +23,7 @@ class Vaga
     private ?string $observacoes = null;
     private ?string $dataServico = null;
     private string $visibilidade = 'VISIVEL';
+    private ?string $categoriaNome = null;
 
 public function __construct(
     int $idVaga,
@@ -43,7 +44,8 @@ public function __construct(
     ?string $duracao = null,
     ?string $observacoes = null,
     ?string $dataServico = null,
-    string $visibilidade = 'VISIVEL'
+    string $visibilidade = 'VISIVEL',
+    ?string $categoriaNome = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -64,6 +66,7 @@ public function __construct(
         $this->observacoes = $observacoes;
         $this->dataServico = $dataServico;
         $this->visibilidade = $visibilidade;
+        $this->categoriaNome = $categoriaNome;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -87,7 +90,8 @@ public function __construct(
             $dados['duracao'] ?? null,
             $dados['observacoes'] ?? null,
             $dados['data_servico'] ?? null,
-            $dados['visibilidade'] ?? 'VISIVEL'
+            $dados['visibilidade'] ?? 'VISIVEL',
+            $dados['categoria_nome'] ?? null
         );
     }
 
@@ -175,6 +179,14 @@ public function __construct(
     public function setDuracao(?string $duracao): void
     {
         $this->duracao = $duracao;
+    }
+
+    /**
+     * Nome da categoria, quando a consulta o traz junto (JOIN com categoria).
+     */
+    public function getCategoriaNome(): ?string
+    {
+        return $this->categoriaNome;
     }
 
     public function getVisibilidade(): string
@@ -302,7 +314,8 @@ public function __construct(
             'duracao' => $this->duracao,
             'observacoes' => $this->observacoes,
             'dataServico' => $this->dataServico,
-            'visibilidade' => $this->visibilidade
+            'visibilidade' => $this->visibilidade,
+            'categoriaNome' => $this->categoriaNome
         ];
     }
 

@@ -89,6 +89,9 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                         ?>
                     </span>
                 </div>
+                <?php if ($vaga->getCategoriaNome()): ?>
+                    <p class="text-sm font-medium text-blue-700"><?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?></p>
+                <?php endif; ?>
                 <!-- Título -->
                 <h1 class="text-3xl font-bold text-gray-900"><?= $titulo ?></h1>
 

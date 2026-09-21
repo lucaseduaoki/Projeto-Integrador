@@ -39,7 +39,8 @@ return new Vaga(
     $row['duracao'] ?? null,
     $row['observacoes'] ?? null,
     $row['data_servico'] ?? null,
-    $row['visibilidade'] ?? 'VISIVEL'
+    $row['visibilidade'] ?? 'VISIVEL',
+    $row['categoria_nome'] ?? null
 );
     }
 
@@ -48,8 +49,10 @@ return new Vaga(
         $sql = "
             SELECT
                 v.*,
+                c.nome AS categoria_nome,
                 COUNT(i.id_interesse) AS total_aceitos
             FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
             LEFT JOIN interesse i
                 ON i.id_vaga = v.id_vaga
             AND i.status = 'ACEITO'
@@ -68,8 +71,9 @@ return new Vaga(
     public function listar(int $limit = 50, int $offset = 0): array
     {
         $sql = "
-            SELECT *
-            FROM vaga
+            SELECT v.*, c.nome AS categoria_nome
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
             WHERE status = 'ATIVA'
               AND is_user_active = 1
               AND visibilidade = 'VISIVEL'
@@ -96,8 +100,10 @@ return new Vaga(
 $sql = "
     SELECT
         v.*,
+        c.nome AS categoria_nome,
         COUNT(i.id_interesse) AS total_aceitos
     FROM vaga v
+    INNER JOIN categoria c ON c.id_categoria = v.id_categoria
     LEFT JOIN interesse i
         ON i.id_vaga = v.id_vaga
        AND i.status = 'ACEITO'
@@ -126,8 +132,9 @@ $sql = "
     public function buscar(array $filtros = []): array
     {
         $sql = "
-            SELECT *
-            FROM vaga
+            SELECT v.*, c.nome AS categoria_nome
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
             WHERE status = 'ATIVA'
               AND is_user_active = 1
               AND visibilidade = 'VISIVEL'
