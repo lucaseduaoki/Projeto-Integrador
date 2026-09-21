@@ -83,6 +83,10 @@ CREATE TABLE vaga (
         'ENCERRADA'
     ) DEFAULT 'ATIVA',
 
+    -- Espelha usuario.ativo do contratante (mantido pelos triggers abaixo).
+    -- Vaga cujo dono está desativado não deve aparecer nem receber candidaturas.
+    is_user_active BOOLEAN NOT NULL DEFAULT TRUE,
+
     CONSTRAINT fk_vaga_contratante
         FOREIGN KEY (id_contratante)
         REFERENCES usuario(id_usuario)
@@ -168,6 +172,27 @@ ON interesse(id_vaga);
 
 CREATE INDEX idx_interesse_trabalhador
 ON interesse(id_trabalhador);
+
+-- ============================================================================
+-- TRIGGERS: vaga.is_user_active acompanha usuario.ativo
+-- (uma instrução por trigger, pois o DatabaseInitializer separa por ponto e vírgula)
+-- ============================================================================
+
+CREATE TRIGGER trg_usuario_ativo_atualiza_vagas
+AFTER UPDATE ON usuario
+FOR EACH ROW
+UPDATE vaga
+SET is_user_active = COALESCE(NEW.ativo, 1)
+WHERE id_contratante = NEW.id_usuario
+  AND NOT (COALESCE(NEW.ativo, 1) <=> COALESCE(OLD.ativo, 1));
+
+CREATE TRIGGER trg_vaga_define_is_user_active
+BEFORE INSERT ON vaga
+FOR EACH ROW
+SET NEW.is_user_active = COALESCE(
+    (SELECT ativo FROM usuario WHERE id_usuario = NEW.id_contratante),
+    1
+);
 
 -- ============================================================================
 -- DADOS DE APOIO

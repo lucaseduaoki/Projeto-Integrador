@@ -32,7 +32,8 @@ return new Vaga(
     $row['data_limite'],
     $row['trabalhadores_limite'],
     $row['status'],
-    isset($row['total_aceitos']) ? (int)$row['total_aceitos'] : 0
+    isset($row['total_aceitos']) ? (int)$row['total_aceitos'] : 0,
+    (bool)($row['is_user_active'] ?? true)
 );
     }
 
@@ -64,6 +65,7 @@ return new Vaga(
             SELECT *
             FROM vaga
             WHERE status = 'ATIVA'
+              AND is_user_active = 1
             ORDER BY data_publicacao DESC
             LIMIT :limit OFFSET :offset
         ";
@@ -116,6 +118,7 @@ $sql = "
             SELECT *
             FROM vaga
             WHERE status = 'ATIVA'
+              AND is_user_active = 1
         ";
 
         $params = [];

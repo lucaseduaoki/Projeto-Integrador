@@ -32,7 +32,9 @@ $status = htmlspecialchars(
 );
 
 
-$statusBadge = $status === 'ATIVA'
+$disponivel = $vaga->estaDisponivel();
+
+$statusBadge = $disponivel
     ? 'bg-green-100 text-green-800'
     : 'bg-gray-100 text-gray-800';
 
@@ -73,7 +75,7 @@ $isProprietario =
                 <!-- Status -->
                 <div class="flex flex-wrap gap-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $statusBadge ?>">
-                        <?= $status === 'ATIVA' ? 'Aberta' : 'Encerrada' ?>
+                        <?= $disponivel ? 'Aberta' : ($vaga->isUserActive() ? 'Encerrada' : 'Indisponível') ?>
                     </span>
                 </div>
                 <!-- Título -->
@@ -129,7 +131,7 @@ $isProprietario =
                     </div>
 
                     <!-- Ação Principal -->
-                    <?php if ($isTrabalhador && $status === 'ATIVA' && !$jaDemonstrouInteresse): ?>
+                    <?php if ($isTrabalhador && $disponivel && !$jaDemonstrouInteresse): ?>
 
                         <form method="POST" action="<?= URL_BASE ?>/interesse/demonstrar" class="mb-4">
 
@@ -152,10 +154,10 @@ $isProprietario =
                         </div>
 
 
-                    <?php elseif ($isTrabalhador && $status !== 'ATIVA'): ?>
+                    <?php elseif ($isTrabalhador && !$disponivel): ?>
 
                         <div class="w-full bg-gray-100 border border-gray-200 text-gray-600 font-semibold py-2 px-4 rounded text-center mb-4">
-                            Vaga encerrada
+                            <?= $vaga->isUserActive() ? 'Vaga encerrada' : 'Vaga indisponível' ?>
                         </div>
 
                     <?php endif; ?>

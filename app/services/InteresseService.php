@@ -31,6 +31,9 @@ class InteresseService
             throw new Exception("Vaga não encontrada.");
         }
         error_log("Vaga encontrada: " . print_r($vaga, true)); // Log the vaga object
+        if (!$vaga->isUserActive()) {
+            throw new Exception("Esta vaga não está mais disponível.");
+        }
         if ($vaga->getStatus() !== 'ATIVA') {
             throw new Exception("Esta vaga já foi encerrada.");
         }
