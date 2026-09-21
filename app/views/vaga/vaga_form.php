@@ -256,9 +256,13 @@ $erros = $erros ?? [];
                             required
                             step="0.01"
                             min="0"
-                            value="<?= $vaga ? number_format($vaga->getRemuneracao(),2,'.','') : '' ?>"
+                            value="<?= htmlspecialchars($_POST['remuneracao'] ?? ($vaga && $vaga->getRemuneracao() !== null ? number_format($vaga->getRemuneracao(), 2, '.', '') : ''), ENT_QUOTES, 'UTF-8') ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2"
                         >
+
+                        <?php if (isset($erros['remuneracao'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['remuneracao'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
 
                     </div>
 

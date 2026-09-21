@@ -194,7 +194,8 @@ public function criar(): void
     $titulo = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
-    $remuneracao = $_POST['remuneracao'] ?? null;
+    // Aceita vírgula ou ponto como separador decimal; a validação é feita sobre o valor normalizado
+    $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
     $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
@@ -262,6 +263,8 @@ private function validarDadosVaga(array $d): Validador
         ->obrigatorio('descricao', $d['descricao'], 'Informe a descrição da vaga.')
         ->obrigatorio('localizacao', $d['localizacao'], 'Informe o local do serviço.')
         ->obrigatorio('id_categoria', $d['idCategoria'], 'Selecione a categoria.')
+        ->obrigatorio('remuneracao', $d['remuneracao'], 'Informe a remuneração.')
+        ->monetario('remuneracao', $d['remuneracao'])
         ->obrigatorio('data_servico', $d['dataServico'], 'Informe a data do serviço.')
         ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
         ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.', $d['dataServicoAtual'] ?? null)
@@ -363,7 +366,8 @@ public function editar(): void
     $titulo = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
-    $remuneracao = $_POST['remuneracao'] ?? null;
+    // Aceita vírgula ou ponto como separador decimal; a validação é feita sobre o valor normalizado
+    $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
     $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');

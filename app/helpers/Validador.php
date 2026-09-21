@@ -224,6 +224,27 @@ class Validador {
         return $this;
     }
 
+    /**
+     * Valor monetário: dígitos com até 2 casas decimais (ponto), maior que zero e dentro de
+     * DECIMAL(10,2). Recusa notação científica (1e3), hexadecimal, sinais e separador de milhar,
+     * que o cast (float) aceitaria ou converteria em silêncio.
+     * Espera o valor já sem espaços e com o ponto como separador decimal.
+     */
+    public function monetario(string $campo, ?string $valor, ?string $mensagem = null): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        if (!preg_match('/^\d{1,8}(\.\d{1,2})?$/', $valor)) {
+            $this->erros[$campo] = $mensagem ?? 'Informe um valor numérico válido, ex.: 150 ou 150,50.';
+        } elseif ((float)$valor <= 0) {
+            $this->erros[$campo] = 'A remuneração deve ser maior que zero.';
+        }
+
+        return $this;
+    }
+
     public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {
