@@ -184,6 +184,24 @@ class Validador {
         return $this;
     }
 
+    /**
+     * Telefone brasileiro com DDD: 10 (fixo) ou 11 (celular) dígitos.
+     */
+    public function telefone(string $campo, ?string $valor, ?string $mensagem = null): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        $digitos = preg_replace('/\D/', '', $valor);
+
+        if (!preg_match('/^\d{10,11}$/', $digitos)) {
+            $this->erros[$campo] = $mensagem ?? 'Telefone inválido. Informe DDD e número, ex.: (46) 99999-0000.';
+        }
+
+        return $this;
+    }
+
     public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {

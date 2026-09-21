@@ -89,10 +89,14 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                             type="tel" 
                             id="telefone" 
                             name="telefone" 
+                            required
                             placeholder="(11) 98765-4321"
                             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             value="<?= htmlspecialchars($_POST['telefone'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                         >
+                        <?php if (isset($erros['telefone'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['telefone'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Tipo de pessoa -->
@@ -141,6 +145,7 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                             type="text" 
                             id="documento" 
                             name="documento" 
+                            required
                             placeholder="<?= $tipoPessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00' ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             value="<?= htmlspecialchars($_POST['documento'] ?? '', ENT_QUOTES, 'UTF-8') ?>"

@@ -128,6 +128,11 @@ class AutenticacaoController extends Controller
                   ->obrigatorio('tipo_pessoa', $tipoPessoa, 'Informe se você é pessoa física ou empresa.')
                   ->emLista('tipo_pessoa', $tipoPessoa, ['PF', 'PJ'], 'Tipo de pessoa inválido.');
 
+        // Telefone e documento são obrigatórios (RN03)
+        $validador->obrigatorio('telefone', $telefone, 'Informe o telefone.')
+                  ->telefone('telefone', $telefone)
+                  ->obrigatorio('documento', $documento, $tipoPessoa === 'PJ' ? 'Informe o CNPJ da empresa.' : 'Informe o CPF.');
+
         // Documento coerente com o tipo de pessoa (CPF para PF, CNPJ para PJ)
         $validador->papeis('papeis', $papeis, $tipoPessoa);
         $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
