@@ -24,7 +24,8 @@ class UsuarioService
         string $senha,
         string $tipoUsuario,
         ?string $telefone = null,
-        ?string $documento = null
+        ?string $documento = null,
+        string $tipoPessoa = 'PF'
     ): Usuario {
         // Verificar se email já existe
         if ($this->repository->emailExiste($email)) {
@@ -45,7 +46,9 @@ class UsuarioService
             null,
             null,
             $documento,
-            1
+            1,
+            '',
+            $tipoPessoa
         );
 
         $idCriado = $this->repository->criar($usuario);

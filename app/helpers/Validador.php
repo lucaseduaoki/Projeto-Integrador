@@ -123,6 +123,20 @@ class Validador {
         return $this;
     }
 
+    /**
+     * Documento coerente com o tipo de pessoa: CPF para PF, CNPJ para PJ.
+     */
+    public function documentoPorTipoPessoa(string $campo, ?string $valor, string $tipoPessoa): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        return $tipoPessoa === 'PJ'
+            ? $this->cnpj($campo, $valor, 'CNPJ inválido. Empresas devem informar um CNPJ válido (14 dígitos).')
+            : $this->cpf($campo, $valor, 'CPF inválido. Pessoas físicas devem informar um CPF válido (11 dígitos).');
+    }
+
     public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {

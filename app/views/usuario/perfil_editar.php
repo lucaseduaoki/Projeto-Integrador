@@ -113,13 +113,13 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
 
                         <!-- Documento -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <label for="documento" class="block text-sm font-medium text-gray-700 mb-1">Documento</label>
+                            <label for="documento" class="block text-sm font-medium text-gray-700 mb-1"><?= $usuario->isPessoaJuridica() ? 'CNPJ' : 'CPF' ?></label>
                             <input 
                                 type="text" 
                                 id="documento" 
                                 name="documento" 
                                 value="<?= $documento ?>"
-                                placeholder="000.000.000-00"
+                                placeholder="<?= $usuario->isPessoaJuridica() ? '00.000.000/0000-00' : '000.000.000-00' ?>"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                         </div>

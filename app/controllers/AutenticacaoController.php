@@ -111,6 +111,7 @@ class AutenticacaoController extends Controller
         $senha = $_POST['senha'] ?? '';
         $confirmaSenha = $_POST['confirma_senha'] ?? '';
         $tipoUsuario = htmlspecialchars(trim($_POST['tipo_usuario'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $tipoPessoa = trim($_POST['tipo_pessoa'] ?? '');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
 
@@ -124,18 +125,13 @@ class AutenticacaoController extends Controller
                   ->minimo('senha', $senha, 8)
                   ->obrigatorio('confirma_senha', $confirmaSenha)
                   ->obrigatorio('tipo_usuario', $tipoUsuario)
-                  ->emLista('tipo_usuario', $tipoUsuario, ['TRABALHADOR', 'CONTRATANTE']);
+                  ->emLista('tipo_usuario', $tipoUsuario, ['TRABALHADOR', 'CONTRATANTE'])
+                  ->obrigatorio('tipo_pessoa', $tipoPessoa, 'Informe se você é pessoa física ou empresa.')
+                  ->emLista('tipo_pessoa', $tipoPessoa, ['PF', 'PJ'], 'Tipo de pessoa inválido.');
 
-        // Validar CPF/CNPJ se informado
-        if (!empty($documento)) {
-            if (strlen(preg_replace('/\D/', '', $documento)) === 11) {
-                $validador->cpf('documento', $documento);
-            } elseif (strlen(preg_replace('/\D/', '', $documento)) === 14) {
-                $validador->cnpj('documento', $documento);
-            } else {
-                $validador->obrigatorio('documento', 'inválido');
-            }
-        }
+        // Documento coerente com o tipo de pessoa (CPF para PF, CNPJ para PJ)
+        $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
+        $documento = preg_replace('/\D/', '', $documento);
 
         // Verificar se senhas coincidem
         if ($senha !== $confirmaSenha) {
@@ -147,7 +143,8 @@ class AutenticacaoController extends Controller
                 'erros' => $validador->getErros(),
                 'nome' => $nome,
                 'email' => $email,
-                'tipo_usuario' => $tipoUsuario
+                'tipo_usuario' => $tipoUsuario,
+                'tipo_pessoa' => $tipoPessoa
             ]);
             return;
         }
@@ -160,7 +157,8 @@ class AutenticacaoController extends Controller
                 $senha,
                 $tipoUsuario,
                 $telefone ?: null,
-                $documento ?: null
+                $documento ?: null,
+                $tipoPessoa
             );
 
             // Logar automaticamente após cadastro
@@ -173,7 +171,8 @@ class AutenticacaoController extends Controller
                 'erros' => ['geral' => $e->getMessage()],
                 'nome' => $nome,
                 'email' => $email,
-                'tipo_usuario' => $tipoUsuario
+                'tipo_usuario' => $tipoUsuario,
+                'tipo_pessoa' => $tipoPessoa
             ]);
         }
     }

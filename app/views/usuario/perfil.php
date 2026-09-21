@@ -64,7 +64,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
                         <!-- Documento -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <strong>Documento:</strong> <?= htmlspecialchars($usuario->getDocumento() ?? 'Não informado', ENT_QUOTES, 'UTF-8') ?>
+                            <strong><?= $usuario->isPessoaJuridica() ? 'CNPJ' : 'CPF' ?>:</strong> <?= htmlspecialchars($usuario->getDocumento() ?? 'Não informado', ENT_QUOTES, 'UTF-8') ?>
                         </div>
 
                         <!-- Localização -->

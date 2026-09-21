@@ -90,8 +90,8 @@ class UsuarioRepository
      */
     public function criar(Usuario $usuario): int
     {
-        $sql = "INSERT INTO usuario (nome, email, senha, telefone, tipo_usuario, foto_perfil, descricao, documento, ativo) 
-                VALUES (:nome, :email, :senha, :telefone, :tipo_usuario, :foto_perfil, :descricao, :documento, :ativo)";
+        $sql = "INSERT INTO usuario (nome, email, senha, telefone, tipo_usuario, tipo_pessoa, foto_perfil, descricao, documento, ativo) 
+                VALUES (:nome, :email, :senha, :telefone, :tipo_usuario, :tipo_pessoa, :foto_perfil, :descricao, :documento, :ativo)";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':nome', $usuario->getNome(), PDO::PARAM_STR);
@@ -99,6 +99,7 @@ class UsuarioRepository
         $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->bindValue(':telefone', $usuario->getTelefone(), PDO::PARAM_STR);
         $stmt->bindValue(':tipo_usuario', $usuario->getTipoUsuario(), PDO::PARAM_STR);
+        $stmt->bindValue(':tipo_pessoa', $usuario->getTipoPessoa(), PDO::PARAM_STR);
         $stmt->bindValue(':foto_perfil', $usuario->getFotoPerfil(), PDO::PARAM_STR);
         $stmt->bindValue(':descricao', $usuario->getDescricao(), PDO::PARAM_STR);
         $stmt->bindValue(':documento', $usuario->getDocumento(), PDO::PARAM_STR);
@@ -115,7 +116,7 @@ class UsuarioRepository
     {
         $sql = "UPDATE usuario 
                 SET nome = :nome, email = :email, senha = :senha, telefone = :telefone, 
-                    tipo_usuario = :tipo_usuario, foto_perfil = :foto_perfil, 
+                    tipo_usuario = :tipo_usuario, tipo_pessoa = :tipo_pessoa, foto_perfil = :foto_perfil, 
                     descricao = :descricao, documento = :documento, ativo = :ativo
                 WHERE id_usuario = :id";
         
@@ -126,6 +127,7 @@ class UsuarioRepository
         $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->bindValue(':telefone', $usuario->getTelefone(), PDO::PARAM_STR);
         $stmt->bindValue(':tipo_usuario', $usuario->getTipoUsuario(), PDO::PARAM_STR);
+        $stmt->bindValue(':tipo_pessoa', $usuario->getTipoPessoa(), PDO::PARAM_STR);
         $stmt->bindValue(':foto_perfil', $usuario->getFotoPerfil(), PDO::PARAM_STR);
         $stmt->bindValue(':descricao', $usuario->getDescricao(), PDO::PARAM_STR);
         $stmt->bindValue(':documento', $usuario->getDocumento(), PDO::PARAM_STR);

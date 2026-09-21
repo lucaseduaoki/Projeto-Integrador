@@ -5,6 +5,7 @@ include __DIR__ . '/../shared/navbar.php';
 
 $erros = $erros ?? [];
 $tipoUsuario = $_POST['tipo_usuario'] ?? 'TRABALHADOR';
+$tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
 ?>
 
 <main class="flex-1 flex items-center justify-center px-4 py-12">
@@ -94,6 +95,24 @@ $tipoUsuario = $_POST['tipo_usuario'] ?? 'TRABALHADOR';
                         >
                     </div>
 
+                    <!-- Tipo de pessoa -->
+                    <fieldset>
+                        <legend class="block text-sm font-medium text-gray-700 mb-1">Você é</legend>
+                        <div class="flex gap-6">
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="tipo_pessoa" value="PF" required onchange="atualizarDocumento()" <?= $tipoPessoa === 'PF' ? 'checked' : '' ?>>
+                                Pessoa física
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="tipo_pessoa" value="PJ" onchange="atualizarDocumento()" <?= $tipoPessoa === 'PJ' ? 'checked' : '' ?>>
+                                Empresa
+                            </label>
+                        </div>
+                        <?php if (isset($erros['tipo_pessoa'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['tipo_pessoa'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                    </fieldset>
+
                     <!-- Tipo de Usuário -->
                     <div>
                         <label for="tipo_usuario" class="block text-sm font-medium text-gray-700 mb-1">Tipo de conta</label>
@@ -114,15 +133,15 @@ $tipoUsuario = $_POST['tipo_usuario'] ?? 'TRABALHADOR';
                     </div>
 
                     <!-- Documento (CPF/CNPJ) - Dinâmico conforme tipo -->
-                    <div id="documentoDiv" class="<?= !$tipoUsuario || $tipoUsuario === '' ? 'hidden' : '' ?>">
+                    <div id="documentoDiv">
                         <label id="documentoLabel" for="documento" class="block text-sm font-medium text-gray-700 mb-1">
-                            <?= $tipoUsuario === 'CONTRATANTE' ? 'CNPJ' : 'CPF' ?>
+                            <?= $tipoPessoa === 'PJ' ? 'CNPJ' : 'CPF' ?>
                         </label>
                         <input 
                             type="text" 
                             id="documento" 
                             name="documento" 
-                            placeholder="<?= $tipoUsuario === 'CONTRATANTE' ? '00.000.000/0000-00' : '000.000.000-00' ?>"
+                            placeholder="<?= $tipoPessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00' ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             value="<?= htmlspecialchars($_POST['documento'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                         >
@@ -196,23 +215,13 @@ $tipoUsuario = $_POST['tipo_usuario'] ?? 'TRABALHADOR';
 
 <script>
 function atualizarFormulario() {
-    const tipoUsuario = document.getElementById('tipo_usuario').value;
-    const documentoDiv = document.getElementById('documentoDiv');
-    const documentoLabel = document.getElementById('documentoLabel');
-    const documentoInput = document.getElementById('documento');
-    
-    if (tipoUsuario) {
-        documentoDiv.classList.remove('hidden');
-        if (tipoUsuario === 'CONTRATANTE') {
-            documentoLabel.textContent = 'CNPJ';
-            documentoInput.placeholder = '00.000.000/0000-00';
-        } else {
-            documentoLabel.textContent = 'CPF';
-            documentoInput.placeholder = '000.000.000-00';
-        }
-    } else {
-        documentoDiv.classList.add('hidden');
-    }
+    // mantido por compatibilidade com o select de papel; o documento agora depende do tipo de pessoa
+}
+
+function atualizarDocumento() {
+    const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
+    document.getElementById('documentoLabel').textContent = pj ? 'CNPJ' : 'CPF';
+    document.getElementById('documento').placeholder = pj ? '00.000.000/0000-00' : '000.000.000-00';
 }
 </script>
 

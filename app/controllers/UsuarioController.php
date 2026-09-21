@@ -69,6 +69,9 @@ class UsuarioController extends Controller
         
         // Validar
         $validador = new Validador();
+        $validador->documentoPorTipoPessoa('documento', $documento, $usuario->getTipoPessoa());
+        $documento = preg_replace('/\D/', '', $documento);
+
         $validador->obrigatorio('nome', $nome)
             ->obrigatorio('documento', $documento)
             ->maximo('nome', $nome, 100)

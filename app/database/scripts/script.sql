@@ -25,6 +25,9 @@ CREATE TABLE usuario (
         'CONTRATANTE'
     ) NOT NULL,
 
+    -- PF usa CPF e PJ usa CNPJ no campo documento
+    tipo_pessoa ENUM('PF','PJ') NOT NULL DEFAULT 'PF',
+
     ativo BOOLEAN DEFAULT TRUE,
 
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP

@@ -15,6 +15,7 @@ class Usuario
     private ?string $documento;
     private int $ativo;
     private string $dataCadastro;
+    private string $tipoPessoa;
 
     public function __construct(
         int $idUsuario,
@@ -27,7 +28,8 @@ class Usuario
         ?string $descricao = null,
         ?string $documento = null,
         int $ativo = 1,
-        string $dataCadastro = ''
+        string $dataCadastro = '',
+        string $tipoPessoa = 'PF'
     ) {
         $this->idUsuario = $idUsuario;
         $this->nome = $nome;
@@ -40,6 +42,7 @@ class Usuario
         $this->documento = $documento;
         $this->ativo = $ativo;
         $this->dataCadastro = $dataCadastro ?: date('Y-m-d H:i:s');
+        $this->tipoPessoa = $tipoPessoa;
     }
 
     // Getters
@@ -76,6 +79,16 @@ class Usuario
     public function getTipoUsuario(): string
     {
         return $this->tipoUsuario;
+    }
+
+    public function getTipoPessoa(): string
+    {
+        return $this->tipoPessoa;
+    }
+
+    public function isPessoaJuridica(): bool
+    {
+        return $this->tipoPessoa === 'PJ';
     }
 
     public function getFotoPerfil(): ?string
@@ -204,7 +217,8 @@ class Usuario
             $data['descricao'] ?? null,
             $data['documento'] ?? null,
             $data['ativo'] ?? 1,
-            $data['data_cadastro'] ?? date('Y-m-d H:i:s')
+            $data['data_cadastro'] ?? date('Y-m-d H:i:s'),
+            $data['tipo_pessoa'] ?? 'PF'
         );
     }
 }
