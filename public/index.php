@@ -58,6 +58,8 @@ $router->get('/interesse/aceitos',      'InteresseController@listarAceitos');
 // ============================================================================
 $router->get('/denuncia/criar',          'DenunciaController@exibirFormDenunciar');
 $router->post('/denuncia/criar/submit',  'DenunciaController@denunciar');
+$router->get('/denuncia/nao-comparecimento',         'DenunciaController@exibirFormNaoComparecimento');
+$router->post('/denuncia/nao-comparecimento/submit', 'DenunciaController@registrarNaoComparecimento');
 
 // ============================================================================
 // ADMIN

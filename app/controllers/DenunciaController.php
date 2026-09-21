@@ -132,6 +132,70 @@ class DenunciaController extends Controller
     }
 
     /**
+     * Formulário de registro de não comparecimento (RN17): ?id=<interesse>.
+     */
+    public function exibirFormNaoComparecimento(): void
+    {
+        $this->contratanteRequired();
+
+        $idInteresse = (int)($_GET['id'] ?? 0);
+
+        try {
+            $interesse = $this->service->validarNaoComparecimento($idInteresse, $this->usuarioLogado()->getIdUsuario());
+        } catch (\Exception $e) {
+            $this->redirect(URL_BASE . '/vagas/minhas');
+        }
+
+        $this->view('denuncia/nao_comparecimento', [
+            'interesse' => $interesse,
+            'trabalhador' => $this->usuarioService->buscarPorId($interesse->getIdTrabalhador()),
+            'vaga' => $this->vagaService->buscarPorId($interesse->getIdVaga()),
+        ]);
+    }
+
+    /**
+     * Registrar não comparecimento (RN17). As regras vivem no DenunciaService.
+     */
+    public function registrarNaoComparecimento(): void
+    {
+        $this->contratanteRequired();
+
+        $usuario = $this->usuarioLogado();
+        $idInteresse = (int)($_POST['id_interesse'] ?? 0);
+        $descricao = trim($_POST['descricao'] ?? '');
+
+        $validador = new Validador();
+        $validador->tamanhoMax('descricao', $descricao, 1000, 'A descrição deve ter no máximo 1000 caracteres.');
+
+        try {
+            $interesse = $this->service->validarNaoComparecimento($idInteresse, $usuario->getIdUsuario());
+        } catch (\Exception $e) {
+            $this->redirect(URL_BASE . '/vagas/minhas');
+        }
+
+        $dadosForm = [
+            'interesse' => $interesse,
+            'trabalhador' => $this->usuarioService->buscarPorId($interesse->getIdTrabalhador()),
+            'vaga' => $this->vagaService->buscarPorId($interesse->getIdVaga()),
+        ];
+
+        if ($validador->temErros()) {
+            $this->view('denuncia/nao_comparecimento', $dadosForm + ['erros' => $validador->getErros()]);
+            return;
+        }
+
+        try {
+            $this->service->registrarNaoComparecimento($usuario->getIdUsuario(), $idInteresse, $descricao ?: null);
+
+            $this->view('denuncia/sucesso', [
+                'mensagem' => 'Não comparecimento registrado. A moderação vai analisar o caso.'
+            ]);
+        } catch (\Exception $e) {
+            $this->view('denuncia/nao_comparecimento', $dadosForm + ['erro' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Listar denúncias (admin)
      */
     public function listar(): void

@@ -20,6 +20,10 @@ class Denuncia
         'OUTRAS_CONDUTAS' => 'Outras condutas',
     ];
 
+    // RN17: não comparecimento do trabalhador selecionado, registrado pelo contratante da vaga.
+    // Fluxo próprio (alvo = usuário + vaga), fora das listas de motivos acima.
+    public const MOTIVO_NAO_COMPARECIMENTO = 'NAO_COMPARECIMENTO';
+
     public const TIPO_ANUNCIO = 'ANUNCIO';
     public const TIPO_USUARIO = 'USUARIO';
 
@@ -36,6 +40,10 @@ class Denuncia
      */
     public static function rotuloMotivo(string $motivo): string
     {
+        if ($motivo === self::MOTIVO_NAO_COMPARECIMENTO) {
+            return 'Não comparecimento';
+        }
+
         return self::MOTIVOS_ANUNCIO[$motivo] ?? self::MOTIVOS_USUARIO[$motivo] ?? $motivo;
     }
 

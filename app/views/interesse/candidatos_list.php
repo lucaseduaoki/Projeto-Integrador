@@ -212,6 +212,18 @@ include __DIR__ . '/../shared/navbar.php';
 
                                 <?php endif; ?>
 
+                                <?php if($status === 'ACEITO'): ?>
+
+                                    <a
+                                        href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdInteresse() ?>"
+                                        class="text-red-600 hover:text-red-800 font-medium text-sm">
+
+                                        Registrar não comparecimento
+
+                                    </a>
+
+                                <?php endif; ?>
+
 
                             </td>
 

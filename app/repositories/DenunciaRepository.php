@@ -123,6 +123,24 @@ class DenunciaRepository
         return $stmt->rowCount() > 0;
     }
 
+    /**
+     * Já existe registro de não comparecimento deste trabalhador nesta vaga?
+     */
+    public function existeNaoComparecimento(int $idTrabalhador, int $idVaga): bool
+    {
+        $sql = "SELECT COUNT(*) FROM denuncia
+                WHERE id_usuario_denunciado = :usuario
+                  AND id_vaga_denunciada = :vaga
+                  AND motivo = :motivo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':usuario', $idTrabalhador, PDO::PARAM_INT);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->bindValue(':motivo', Denuncia::MOTIVO_NAO_COMPARECIMENTO, PDO::PARAM_STR);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
     public function contarDenunciasAoPorUsuario(int $idUsuario): int
     {
         $sql = "SELECT COUNT(*) as total FROM denuncia WHERE id_usuario_denunciado = :id";

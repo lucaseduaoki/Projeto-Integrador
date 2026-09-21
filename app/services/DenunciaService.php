@@ -6,6 +6,7 @@ use app\models\Denuncia;
 use app\database\ConnectionFactory;
 use app\repositories\AdvertenciaRepository;
 use app\repositories\DenunciaRepository;
+use app\repositories\InteresseRepository;
 use app\repositories\UsuarioRepository;
 use app\repositories\VagaRepository;
 use Exception;
@@ -16,6 +17,7 @@ class DenunciaService
     private UsuarioRepository $usuarioRepository;
     private VagaRepository $vagaRepository;
     private AdvertenciaRepository $advertenciaRepository;
+    private InteresseRepository $interesseRepository;
 
     public function __construct()
     {
@@ -23,6 +25,7 @@ class DenunciaService
         $this->usuarioRepository = new UsuarioRepository();
         $this->vagaRepository = new VagaRepository();
         $this->advertenciaRepository = new AdvertenciaRepository();
+        $this->interesseRepository = new InteresseRepository();
     }
 
     /**
@@ -64,6 +67,60 @@ class DenunciaService
             'PENDENTE',
             date('Y-m-d H:i:s')
         );
+        return $this->repository->criar($denuncia);
+    }
+
+    /**
+     * Valida o registro de não comparecimento (RN17) e devolve a candidatura selecionada.
+     * Regras: quem registra é o contratante dono da vaga; o trabalhador precisa ter sido
+     * selecionado (ACEITO); só depois da data do serviço; e um único registro por trabalhador/vaga.
+     */
+    public function validarNaoComparecimento(int $idInteresse, int $idContratante): \app\models\Interesse
+    {
+        $interesse = $this->interesseRepository->buscarPorId($idInteresse);
+        $vaga = $interesse ? $this->vagaRepository->buscarPorId($interesse->getIdVaga()) : null;
+
+        if (!$interesse || !$vaga) {
+            throw new Exception('Candidatura não encontrada.');
+        }
+
+        if ($vaga->getIdContratante() !== $idContratante) {
+            throw new Exception('Você só pode registrar não comparecimento nas suas próprias vagas.');
+        }
+
+        if ($interesse->getStatus() !== 'ACEITO') {
+            throw new Exception('Só é possível registrar não comparecimento de um trabalhador selecionado.');
+        }
+
+        if ($vaga->getDataServico() !== null && $vaga->getDataServico() > date('Y-m-d')) {
+            throw new Exception('O não comparecimento só pode ser registrado a partir da data do serviço.');
+        }
+
+        if ($this->repository->existeNaoComparecimento($interesse->getIdTrabalhador(), $vaga->getIdVaga())) {
+            throw new Exception('O não comparecimento deste trabalhador nesta vaga já foi registrado.');
+        }
+
+        return $interesse;
+    }
+
+    /**
+     * Registra, via denúncia, o não comparecimento do trabalhador selecionado (RN17).
+     */
+    public function registrarNaoComparecimento(int $idContratante, int $idInteresse, ?string $descricao = null): int
+    {
+        $interesse = $this->validarNaoComparecimento($idInteresse, $idContratante);
+
+        $denuncia = new Denuncia(
+            0,
+            $idContratante,
+            $interesse->getIdTrabalhador(),
+            $interesse->getIdVaga(),
+            Denuncia::MOTIVO_NAO_COMPARECIMENTO,
+            $descricao,
+            'PENDENTE',
+            date('Y-m-d H:i:s')
+        );
+
         return $this->repository->criar($denuncia);
     }
 
@@ -215,7 +272,7 @@ class DenunciaService
 
         $denuncia = $this->denunciaPendente($idDenuncia);
 
-        if ($denuncia->getIdVagaDenunciada() === null) {
+        if ($denuncia->getIdVagaDenunciada() === null || $denuncia->getIdUsuarioDenunciado() !== null) {
             throw new Exception('Esta denúncia não é de um anúncio.');
         }
 
