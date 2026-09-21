@@ -16,6 +16,7 @@ class Vaga
     private ?int $trabalhadoresLimite;
     private string $status;
     private int $totalAceitos = 0;
+    private bool $isUserActive = true;
 
 public function __construct(
     int $idVaga,
@@ -29,7 +30,8 @@ public function __construct(
     ?string $dataLimite = null,
     ?int $trabalhadoresLimite = null,
     string $status = 'ATIVA',
-    int $totalAceitos = 0
+    int $totalAceitos = 0,
+    bool $isUserActive = true
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -42,7 +44,8 @@ public function __construct(
         $this->dataLimite = $dataLimite;
         $this->trabalhadoresLimite = $trabalhadoresLimite;
         $this->status = $status;
-        $this->totalAceitos = $totalAceitos;    
+        $this->totalAceitos = $totalAceitos;
+        $this->isUserActive = $isUserActive;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -59,8 +62,25 @@ public function __construct(
             $dados['data_limite'] ?? null,
             isset($dados['trabalhadores_limite']) ? (int)$dados['trabalhadores_limite'] : null,
             $dados['status'] ?? 'ATIVA',
-            isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0
+            isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0,
+            (bool)($dados['is_user_active'] ?? true)
         );
+    }
+
+    /**
+     * O contratante dono da vaga está ativo? (campo mantido por trigger no banco)
+     */
+    public function isUserActive(): bool
+    {
+        return $this->isUserActive;
+    }
+
+    /**
+     * Vaga realmente disponível: status ATIVA e contratante ativo.
+     */
+    public function estaDisponivel(): bool
+    {
+        return $this->status === 'ATIVA' && $this->isUserActive;
     }
 
     public function getTotalAceitos(): int
@@ -181,7 +201,8 @@ public function __construct(
             'dataPublicacao' => $this->dataPublicacao,
             'dataLimite' => $this->dataLimite,
             'trabalhadoresLimite' => $this->trabalhadoresLimite,
-            'status' => $this->status
+            'status' => $this->status,
+            'isUserActive' => $this->isUserActive
         ];
     }
 
