@@ -1,12 +1,12 @@
 <?php
-$tituloPagina = isset($modoEdicao) && $modoEdicao ? 'Editar Vaga' : 'Publicar Nova Vaga';
+$modoEdicao = $modoEdicao ?? (($acao ?? '') === 'editar');
+$tituloPagina = $modoEdicao ? 'Editar Vaga' : 'Publicar Nova Vaga';
 
 include __DIR__ . '/../shared/header.php';
 include __DIR__ . '/../shared/navbar.php';
 
 $vaga = $vaga ?? null;
 $erros = $erros ?? [];
-$modoEdicao = $modoEdicao ?? false;
 ?>
 
 <main class="flex-1">
@@ -27,14 +27,14 @@ $modoEdicao = $modoEdicao ?? false;
 
 
             <form method="POST"
-                  action="<?= $modoEdicao ? '/vagas/editar/submit' : '/vagas/criar/submit' ?>"
+                  action="<?= URL_BASE ?><?= $modoEdicao ? '/vagas/editar/submit' : '/vagas/criar/submit' ?>"
                   class="space-y-6">
 
 
                 <?php if ($modoEdicao): ?>
                     <input 
                         type="hidden"
-                        name="id_vaga"
+                        name="id"
                         value="<?= $vaga->getIdVaga() ?>"
                     >
                 <?php endif; ?>

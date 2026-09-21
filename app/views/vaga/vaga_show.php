@@ -167,7 +167,7 @@ $isProprietario =
                                 Editar
                             </a>
                             <form method="POST" action="<?= URL_BASE ?>/vagas/excluir" class="block">
-                                <input type="hidden" name="id_vaga" value="<?= $vaga->getIdVaga() ?>">
+                                <input type="hidden" name="id" value="<?= $vaga->getIdVaga() ?>">
                                 <button type="submit" onclick="return confirm('Tem certeza? Esta ação não pode ser desfeita.')" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">
                                     Excluir
                                 </button>

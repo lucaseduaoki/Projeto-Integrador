@@ -10,6 +10,7 @@ include __DIR__ . '/../shared/header.php';
 include __DIR__ . '/../shared/navbar.php';
 
 $habilidades = $habilidades ?? [];
+$erros = $erros ?? [];
 $localizacao = $usuario->getLocalizacao() ?? 'Não informado';
 
 $nomeUsuario = htmlspecialchars($usuario->getNome(), ENT_QUOTES, 'UTF-8');
@@ -22,6 +23,11 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
 <main class="flex-1">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <?php if (!empty($erros)): ?>
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6">
+                <?= htmlspecialchars(implode(' ', $erros), ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <!-- Coluna Esquerda - Card de Perfil -->

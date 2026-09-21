@@ -271,7 +271,7 @@ const tbody = document.getElementById('tbodyContatos');
 tbody.innerHTML =
 '<tr><td colspan="3" class="text-center p-4">Carregando...</td></tr>';
 
-fetch('/interesse/aceitos?id=' + idVaga)
+fetch('<?= URL_BASE ?>/interesse/aceitos?id=' + idVaga)
 
 .then(response => response.json())
 

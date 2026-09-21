@@ -9,8 +9,8 @@ $tituloVaga = $vaga && method_exists($vaga, 'getTitulo')
     : 'Vaga selecionada';
 
 $voltarUrl = $vaga
-    ? '/vagas/visualizar?id=' . $vaga->getIdVaga()
-    : '/vagas';
+    ? URL_BASE . '/vagas/visualizar?id=' . $vaga->getIdVaga()
+    : URL_BASE . '/vagas';
 
 include __DIR__ . '/../shared/header.php';
 include __DIR__ . '/../shared/navbar.php';
