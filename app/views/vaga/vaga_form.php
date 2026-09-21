@@ -122,9 +122,13 @@ $erros = $erros ?? [];
                         name="titulo"
                         required
                         <?= $travado ? 'readonly' : '' ?>
-                        value="<?= $vaga ? htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') : '' ?>"
+                        value="<?= htmlspecialchars($_POST['titulo'] ?? ($vaga ? $vaga->getTitulo() : ''), ENT_QUOTES, 'UTF-8') ?>"
                         class="w-full border border-gray-300 rounded px-3 py-2"
                     >
+
+                    <?php if (isset($erros['titulo'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['titulo'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
 
                 </div>
 
