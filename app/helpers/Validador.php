@@ -123,6 +123,19 @@ class Validador {
         return $this;
     }
 
+    public function horaValida(string $campo, ?string $valor, ?string $mensagem = null): self
+    {
+        if ($valor === null || $valor === '') {
+            return $this;
+        }
+
+        if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $valor)) {
+            $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve estar no formato hh:mm";
+        }
+
+        return $this;
+    }
+
     public function numerico(string $campo, mixed $valor, ?string $mensagem = null): self
     {
         if ($valor === null || $valor === '') {

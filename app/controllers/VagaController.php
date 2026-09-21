@@ -137,6 +137,7 @@ public function criar(): void
     $localizacao = trim($_POST['localizacao'] ?? '');
     $remuneracao = $_POST['remuneracao'] ?? null;
     $dataLimite = $_POST['data_limite'] ?? null;
+    $horario = trim($_POST['horario'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = new Validador();
@@ -144,7 +145,9 @@ public function criar(): void
     $validador
         ->obrigatorio('titulo', $titulo)
         ->obrigatorio('descricao', $descricao)
-        ->obrigatorio('id_categoria', $idCategoria);
+        ->obrigatorio('id_categoria', $idCategoria)
+        ->obrigatorio('horario', $horario, 'Informe o horário (hh:mm).')
+        ->horaValida('horario', $horario, 'O horário deve estar no formato hh:mm.');
 
     if ($validador->temErros()) {
         $this->view('vaga/vaga_form', [
@@ -163,7 +166,8 @@ public function criar(): void
             $localizacao ?: null,
             $remuneracao !== '' ? (float)$remuneracao : null,
             $dataLimite ?: null,
-            (int)$trabalhadoresLimite
+            (int)$trabalhadoresLimite,
+            $horario
         );
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $id);
@@ -242,6 +246,7 @@ public function editar(): void
     $localizacao = trim($_POST['localizacao'] ?? '');
     $remuneracao = $_POST['remuneracao'] ?? null;
     $dataLimite = $_POST['data_limite'] ?? null;
+    $horario = trim($_POST['horario'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = new Validador();
@@ -249,7 +254,9 @@ public function editar(): void
     $validador
         ->obrigatorio('titulo', $titulo)
         ->obrigatorio('descricao', $descricao)
-        ->obrigatorio('id_categoria', $idCategoria);
+        ->obrigatorio('id_categoria', $idCategoria)
+        ->obrigatorio('horario', $horario, 'Informe o horário (hh:mm).')
+        ->horaValida('horario', $horario, 'O horário deve estar no formato hh:mm.');
 
     if ($validador->temErros()) {
 
@@ -270,6 +277,7 @@ public function editar(): void
         $vaga->setRemuneracao($remuneracao !== '' ? (float)$remuneracao : null);
         $vaga->setDataLimite($dataLimite ?: null);
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
+        $vaga->setHorario($horario);
 
         $vaga->setIdCategoria($idCategoria);
 

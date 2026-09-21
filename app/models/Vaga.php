@@ -17,6 +17,7 @@ class Vaga
     private string $status;
     private int $totalAceitos = 0;
     private bool $isUserActive = true;
+    private ?string $horario = null;
 
 public function __construct(
     int $idVaga,
@@ -31,7 +32,8 @@ public function __construct(
     ?int $trabalhadoresLimite = null,
     string $status = 'ATIVA',
     int $totalAceitos = 0,
-    bool $isUserActive = true
+    bool $isUserActive = true,
+    ?string $horario = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -46,6 +48,7 @@ public function __construct(
         $this->status = $status;
         $this->totalAceitos = $totalAceitos;
         $this->isUserActive = $isUserActive;
+        $this->horario = $horario;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -63,7 +66,8 @@ public function __construct(
             isset($dados['trabalhadores_limite']) ? (int)$dados['trabalhadores_limite'] : null,
             $dados['status'] ?? 'ATIVA',
             isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0,
-            (bool)($dados['is_user_active'] ?? true)
+            (bool)($dados['is_user_active'] ?? true),
+            isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null
         );
     }
 
@@ -131,6 +135,16 @@ public function __construct(
     public function getDataPublicacao(): ?string
     {
         return $this->dataPublicacao;
+    }
+
+    public function getHorario(): ?string
+    {
+        return $this->horario;
+    }
+
+    public function setHorario(?string $horario): void
+    {
+        $this->horario = $horario;
     }
 
     public function getDataLimite(): ?string
@@ -202,7 +216,8 @@ public function __construct(
             'dataLimite' => $this->dataLimite,
             'trabalhadoresLimite' => $this->trabalhadoresLimite,
             'status' => $this->status,
-            'isUserActive' => $this->isUserActive
+            'isUserActive' => $this->isUserActive,
+            'horario' => $this->horario
         ];
     }
 

@@ -76,6 +76,8 @@ CREATE TABLE vaga (
 
     data_limite DATE,
 
+    horario TIME NULL,
+
     trabalhadores_limite INT NOT NULL DEFAULT 1,
 
     status ENUM(

@@ -206,6 +206,30 @@ $erros = $erros ?? [];
 
 
 
+                    <!-- Horário -->
+                    <div>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Horário
+                        </label>
+
+                        <input
+                            type="time"
+                            id="horario"
+                            name="horario"
+                            required
+                            value="<?= $vaga ? htmlspecialchars($vaga->getHorario() ?? '', ENT_QUOTES, 'UTF-8') : '' ?>"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
+                        >
+
+                        <?php if (isset($erros['horario'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['horario'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+
+                    </div>
+
+
+
                     <!-- Quantidade -->
                     <div>
 
@@ -290,6 +314,8 @@ function preencherFormularioTeste() {
 
     document.getElementById('data_limite').value =
         '2026-08-15';
+
+    document.getElementById('horario').value = '08:00';
 
     document.getElementById('trabalhadores_limite').value =
         '2';

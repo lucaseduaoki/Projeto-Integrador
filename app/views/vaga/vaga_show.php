@@ -99,6 +99,10 @@ $isProprietario =
                             <p class="text-gray-900 font-semibold">R$ <?= $remuneracao ?></p>
                         </div>
                         <div>
+                            <p class="text-xs text-gray-600 uppercase font-semibold">Horário</p>
+                            <p class="text-gray-900 font-medium"><?= $vaga->getHorario() ? htmlspecialchars($vaga->getHorario(), ENT_QUOTES, 'UTF-8') : 'Não informado' ?></p>
+                        </div>
+                        <div>
                             <p class="text-xs text-gray-600 uppercase font-semibold">Vagas preenchidas</p>
                             <p class="text-gray-900 font-medium"><?= $vaga->getTotalAceitos() ?> de <?= $vaga->getTrabalhadoresLimite() ?></p>
                         </div>
