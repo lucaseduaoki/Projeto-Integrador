@@ -3,19 +3,26 @@
 namespace app\services;
 
 use app\models\Denuncia;
+use app\database\ConnectionFactory;
+use app\repositories\AdvertenciaRepository;
 use app\repositories\DenunciaRepository;
 use app\repositories\UsuarioRepository;
+use app\repositories\VagaRepository;
 use Exception;
 
 class DenunciaService
 {
     private DenunciaRepository $repository;
     private UsuarioRepository $usuarioRepository;
+    private VagaRepository $vagaRepository;
+    private AdvertenciaRepository $advertenciaRepository;
 
     public function __construct()
     {
         $this->repository = new DenunciaRepository();
         $this->usuarioRepository = new UsuarioRepository();
+        $this->vagaRepository = new VagaRepository();
+        $this->advertenciaRepository = new AdvertenciaRepository();
     }
 
     /**
@@ -101,33 +108,107 @@ class DenunciaService
     }
 
     /**
-     * Moderar denúncia (admin) - bloquear usuário
+     * Denúncia ainda pendente, ou exceção: a moderação decide uma única vez.
      */
-    public function bloquearPorDenuncia(int $idDenuncia): bool
+    private function denunciaPendente(int $idDenuncia): Denuncia
     {
         $denuncia = $this->repository->buscarPorId($idDenuncia);
+
         if (!$denuncia) {
             throw new Exception('Denúncia não encontrada.');
         }
 
-        // Bloquear usuário denunciado
-        $this->usuarioRepository->bloquear($denuncia->getIdUsuarioDenunciado());
+        if (!$denuncia->isPendente()) {
+            throw new Exception('Esta denúncia já foi analisada.');
+        }
 
-        // Marcar denúncia como analisada
-        return $this->repository->mudarStatus($idDenuncia, 'ANALISADA');
+        return $denuncia;
     }
 
     /**
-     * Moderar denúncia (admin) - apenas marcar como analisada
+     * Usuário atingido pela denúncia: o denunciado, ou o dono do anúncio denunciado.
+     */
+    private function usuarioAlvo(Denuncia $denuncia): int
+    {
+        if ($denuncia->getIdUsuarioDenunciado() !== null) {
+            return $denuncia->getIdUsuarioDenunciado();
+        }
+
+        $vaga = $denuncia->getIdVagaDenunciada() !== null
+            ? $this->vagaRepository->buscarPorId($denuncia->getIdVagaDenunciada())
+            : null;
+
+        if ($vaga === null) {
+            throw new Exception('O alvo da denúncia não existe mais.');
+        }
+
+        return $vaga->getIdContratante();
+    }
+
+    /**
+     * Moderar denúncia (admin) - bloquear a conta do usuário atingido
+     */
+    public function bloquearPorDenuncia(int $idDenuncia): bool
+    {
+        $denuncia = $this->denunciaPendente($idDenuncia);
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->usuarioRepository->bloquear($this->usuarioAlvo($denuncia));
+            $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO');
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /**
+     * Moderar denúncia (admin) - advertir o usuário atingido (RN14).
+     * A advertência fica registrada e é mostrada ao advertido até ele dispensá-la.
+     */
+    public function advertir(int $idDenuncia, string $mensagem, int $idModerador): bool
+    {
+        $mensagem = trim($mensagem);
+
+        if (mb_strlen($mensagem) < 5 || mb_strlen($mensagem) > 500) {
+            throw new Exception('A mensagem da advertência deve ter entre 5 e 500 caracteres.');
+        }
+
+        $denuncia = $this->denunciaPendente($idDenuncia);
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->advertenciaRepository->criar(
+                $this->usuarioAlvo($denuncia),
+                $idDenuncia,
+                $idModerador,
+                $mensagem
+            );
+            $this->repository->registrarModeracao($idDenuncia, 'ADVERTENCIA');
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /**
+     * Moderar denúncia (admin) - apenas marcar como analisada, sem sanção
      */
     public function analisar(int $idDenuncia): bool
     {
-        $denuncia = $this->repository->buscarPorId($idDenuncia);
-        if (!$denuncia) {
-            throw new Exception('Denúncia não encontrada.');
-        }
+        $this->denunciaPendente($idDenuncia);
 
-        return $this->repository->mudarStatus($idDenuncia, 'ANALISADA');
+        return $this->repository->registrarModeracao($idDenuncia, 'NENHUMA');
     }
 
     /**

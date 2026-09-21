@@ -3,6 +3,7 @@
 namespace app\core;
 
 use app\models\Usuario;
+use app\services\AdvertenciaService;
 
 class Controller
 {
@@ -11,6 +12,12 @@ class Controller
      */
     public function view(string $view, ?array $data = null)
     {
+        // Advertências ainda não dispensadas do usuário logado, exibidas no topo (navbar)
+        $usuarioSessao = $_SESSION['usuario_logado'] ?? null;
+        $advertenciasPendentes = $usuarioSessao instanceof Usuario
+            ? (new AdvertenciaService())->listarNaoVisualizadas($usuarioSessao->getIdUsuario())
+            : [];
+
         if ($data) {
             // Controllers enviam 'erro' (mensagem única); as views leem $erros['geral']
             if (isset($data['erro'])) {

@@ -47,6 +47,7 @@ class Denuncia
     private ?string $descricao;
     private string $status;
     private ?string $dataDenuncia;
+    private ?string $acaoModeracao;
 
     public function __construct(
         int $idDenuncia,
@@ -56,7 +57,8 @@ class Denuncia
         string $motivo,
         ?string $descricao = null,
         string $status = 'PENDENTE',
-        ?string $dataDenuncia = null
+        ?string $dataDenuncia = null,
+        ?string $acaoModeracao = null
     ) {
         $this->idDenuncia = $idDenuncia;
         $this->idDenunciante = $idDenunciante;
@@ -66,6 +68,7 @@ class Denuncia
         $this->descricao = $descricao;
         $this->status = $status;
         $this->dataDenuncia = $dataDenuncia;
+        $this->acaoModeracao = $acaoModeracao;
     }
 
     public static function arrayParaObjeto(array $dados): Denuncia
@@ -82,7 +85,8 @@ class Denuncia
             $dados['motivo'],
             $dados['descricao'] ?? null,
             $dados['status'] ?? 'PENDENTE',
-            $dados['data_denuncia'] ?? null
+            $dados['data_denuncia'] ?? null,
+            $dados['acao_moderacao'] ?? null
         );
     }
 
@@ -114,6 +118,11 @@ class Denuncia
     public function getDescricao(): ?string
     {
         return $this->descricao;
+    }
+
+    public function getAcaoModeracao(): ?string
+    {
+        return $this->acaoModeracao;
     }
 
     public function getStatus(): string

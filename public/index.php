@@ -19,6 +19,8 @@ $router->get('/logout',         'AutenticacaoController@logout');
 $router->get('/cadastro',       'AutenticacaoController@exibirCadastro');
 $router->post('/cadastro/submit','AutenticacaoController@cadastrar');
 
+$router->post('/advertencias/dispensar', 'AdvertenciaController@dispensar');
+
 // ============================================================================
 // PERFIL DE USUÁRIO
 // ============================================================================
