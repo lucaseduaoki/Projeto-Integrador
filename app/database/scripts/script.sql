@@ -211,7 +211,7 @@ VALUES
 (
     'Administrador',
     'admin@freelaja.com',
-    '$2y$10$RRt2sklIYVmb5/3eIxWZteqfQw1u4nK1GRD6vBX5PpN3QQY2Y8NJu',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0001',
     'Dois Vizinhos',
     'ADMIN'
@@ -220,7 +220,7 @@ VALUES
 (
     'João Trabalhador',
     'trabalhador@freelaja.com',
-    '$2y$10$SqYEb0QT6mZq2B8gRNjBwu0mVv6KmCTFt0SHBYvKDqLHB4ElIwP1K',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0002',
     'Dois Vizinhos',
     'TRABALHADOR'
@@ -228,7 +228,7 @@ VALUES
 (
     'Maria Souza',
     'maria.souza@freelaja.com',
-    '$2y$10$SqYEb0QT6mZq2B8gRNjBwu0mVv6KmCTFt0SHBYvKDqLHB4ElIwP1K',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0004',
     'Dois Vizinhos',
     'TRABALHADOR'
@@ -236,7 +236,7 @@ VALUES
 (
     'Carlos Mendes',
     'carlos.mendes@freelaja.com',
-    '$2y$10$SqYEb0QT6mZq2B8gRNjBwu0mVv6KmCTFt0SHBYvKDqLHB4ElIwP1K',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0005',
     'Pato Branco',
     'TRABALHADOR'
@@ -244,7 +244,7 @@ VALUES
 (
     'Fernanda Lima',
     'fernanda.lima@freelaja.com',
-    '$2y$10$SqYEb0QT6mZq2B8gRNjBwu0mVv6KmCTFt0SHBYvKDqLHB4ElIwP1K',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0006',
     'Dois Vizinhos',
     'TRABALHADOR'
@@ -252,7 +252,7 @@ VALUES
 (
     'Ricardo Alves',
     'ricardo.alves@freelaja.com',
-    '$2y$10$SqYEb0QT6mZq2B8gRNjBwu0mVv6KmCTFt0SHBYvKDqLHB4ElIwP1K',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0007',
     'Dois Vizinhos',
     'TRABALHADOR'
@@ -261,7 +261,7 @@ VALUES
 (
     'Empresa Exemplo',
     'contratante@freelaja.com',
-    '$2y$10$BiGy7skgADaQQedBYLQjUO/cWqrnqxtXVPDBqgWgKWQR32RYa0OB6',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0003',
     'Dois Vizinhos',
     'CONTRATANTE'
@@ -269,7 +269,7 @@ VALUES
 (
     'Restaurante Sabor Real',
     'contato@saborreal.com',
-    '$2y$10$BiGy7skgADaQQedBYLQjUO/cWqrnqxtXVPDBqgWgKWQR32RYa0OB6',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0008',
     'Dois Vizinhos',
     'CONTRATANTE'
@@ -277,7 +277,7 @@ VALUES
 (
     'Condomínio Jardim das Flores',
     'sindico@jardimdasflores.com',
-    '$2y$10$BiGy7skgADaQQedBYLQjUO/cWqrnqxtXVPDBqgWgKWQR32RYa0OB6',
+    '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0009',
     'Dois Vizinhos',
     'CONTRATANTE'

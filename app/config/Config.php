@@ -34,7 +34,9 @@ if (session_status() === PHP_SESSION_NONE) {
 // ============================================================================
 
 define('APP_NAME', 'FreelaJá');
-define('URL_BASE', 'http://localhost:8080');
+// Segue o host/porta da requisição, para funcionar em qualquer porta (8000, 8080...)
+$esquema = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+define('URL_BASE', getenv('URL_BASE') ?: $esquema . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost:8080'));
 
 // ============================================================================
 // CONFIGURAÇÕES DO BANCO DE DADOS
