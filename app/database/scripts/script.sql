@@ -78,6 +78,8 @@ CREATE TABLE vaga (
 
     horario TIME NULL,
 
+    tipo_servico ENUM('FIXO','TEMPORARIO') NOT NULL DEFAULT 'FIXO',
+
     trabalhadores_limite INT NOT NULL DEFAULT 1,
 
     status ENUM(

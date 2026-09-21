@@ -18,6 +18,7 @@ class Vaga
     private int $totalAceitos = 0;
     private bool $isUserActive = true;
     private ?string $horario = null;
+    private string $tipoServico = 'FIXO';
 
 public function __construct(
     int $idVaga,
@@ -33,7 +34,8 @@ public function __construct(
     string $status = 'ATIVA',
     int $totalAceitos = 0,
     bool $isUserActive = true,
-    ?string $horario = null
+    ?string $horario = null,
+    string $tipoServico = 'FIXO'
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -49,6 +51,7 @@ public function __construct(
         $this->totalAceitos = $totalAceitos;
         $this->isUserActive = $isUserActive;
         $this->horario = $horario;
+        $this->tipoServico = $tipoServico;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -67,7 +70,8 @@ public function __construct(
             $dados['status'] ?? 'ATIVA',
             isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0,
             (bool)($dados['is_user_active'] ?? true),
-            isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null
+            isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null,
+            $dados['tipo_servico'] ?? 'FIXO'
         );
     }
 
@@ -135,6 +139,21 @@ public function __construct(
     public function getDataPublicacao(): ?string
     {
         return $this->dataPublicacao;
+    }
+
+    public function getTipoServico(): string
+    {
+        return $this->tipoServico;
+    }
+
+    public function setTipoServico(string $tipoServico): void
+    {
+        $this->tipoServico = $tipoServico;
+    }
+
+    public function isTemporario(): bool
+    {
+        return $this->tipoServico === 'TEMPORARIO';
     }
 
     public function getHorario(): ?string
@@ -217,7 +236,8 @@ public function __construct(
             'trabalhadoresLimite' => $this->trabalhadoresLimite,
             'status' => $this->status,
             'isUserActive' => $this->isUserActive,
-            'horario' => $this->horario
+            'horario' => $this->horario,
+            'tipoServico' => $this->tipoServico
         ];
     }
 

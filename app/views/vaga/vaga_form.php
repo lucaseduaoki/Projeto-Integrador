@@ -142,6 +142,34 @@ $erros = $erros ?? [];
 
 
 
+                <!-- Tipo de serviço -->
+                <fieldset>
+
+                    <legend class="block text-sm font-medium text-gray-700 mb-1">
+                        Tipo de serviço
+                    </legend>
+
+                    <?php $tipoAtual = $vaga ? $vaga->getTipoServico() : ($_POST['tipo_servico'] ?? ''); ?>
+
+                    <div class="flex gap-6">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="tipo_servico" value="FIXO" required <?= $tipoAtual === 'FIXO' ? 'checked' : '' ?>>
+                            Fixo
+                        </label>
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="tipo_servico" value="TEMPORARIO" <?= $tipoAtual === 'TEMPORARIO' ? 'checked' : '' ?>>
+                            Temporário
+                        </label>
+                    </div>
+
+                    <?php if (isset($erros['tipo_servico'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['tipo_servico'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
+                </fieldset>
+
+
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
 
@@ -316,6 +344,8 @@ function preencherFormularioTeste() {
         '2026-08-15';
 
     document.getElementById('horario').value = '08:00';
+
+    document.querySelector('input[name=tipo_servico][value=FIXO]').checked = true;
 
     document.getElementById('trabalhadores_limite').value =
         '2';
