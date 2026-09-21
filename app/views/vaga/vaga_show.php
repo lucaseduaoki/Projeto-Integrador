@@ -53,6 +53,9 @@ $isProprietario =
     $isContratante &&
     $usuarioLogado->getIdUsuario() === $vaga->getIdContratante();
 
+// Dono ou admin gerenciam a vaga (editar, excluir, ver interessados)
+$podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin());
+
 ?>
 
 <main class="flex-1">
@@ -196,7 +199,7 @@ $isProprietario =
                     <?php endif; ?>
 
                     <!-- Botões Contratante/Admin -->
-                    <?php if ($isProprietario): ?>
+                    <?php if ($podeGerenciar): ?>
                         <div class="space-y-2">
                             <a href="<?= URL_BASE ?>/vagas/editar?id=<?= $vaga->getIdVaga() ?>" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded text-center transition-colors duration-200 block">
                                 Editar
@@ -222,7 +225,7 @@ $isProprietario =
                     <?php endif; ?>
 
                     <!-- Link Ver Interessados -->
-                    <?php if ($isProprietario): ?>
+                    <?php if ($podeGerenciar): ?>
 
                         <div class="pt-4 border-t border-gray-200 mt-4">
 

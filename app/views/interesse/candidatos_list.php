@@ -4,6 +4,9 @@ $tituloPagina = 'Candidatos da Vaga';
 $vaga = $vaga ?? null;
 $interessados = $interessados ?? [];
 
+// Aceitar e registrar não comparecimento são do dono da vaga; o admin só consulta
+$ehDono = isset($usuario, $vaga) && $usuario->getIdUsuario() === $vaga->getIdContratante();
+
 $tituloVaga = $vaga && method_exists($vaga, 'getTitulo')
     ? $vaga->getTitulo()
     : 'Vaga selecionada';
@@ -187,7 +190,7 @@ include __DIR__ . '/../shared/navbar.php';
                             <td class="px-6 py-4">
 
 
-                                <?php if($status === 'PENDENTE'): ?>
+                                <?php if($ehDono && $status === 'PENDENTE'): ?>
 
 
                                     <form method="POST" action="<?= URL_BASE ?>/interesse/aceitar">
@@ -212,7 +215,7 @@ include __DIR__ . '/../shared/navbar.php';
 
                                 <?php endif; ?>
 
-                                <?php if($status === 'ACEITO'): ?>
+                                <?php if($ehDono && $status === 'ACEITO'): ?>
 
                                     <a
                                         href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdInteresse() ?>"

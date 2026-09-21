@@ -3,6 +3,7 @@
 namespace app\core;
 
 use app\models\Usuario;
+use app\models\Vaga;
 use app\services\AdvertenciaService;
 use app\services\UsuarioService;
 
@@ -77,6 +78,17 @@ class Controller
         }
 
         $_SESSION['usuario_logado'] = $atual;
+    }
+
+    /**
+     * Dono da vaga ou administrador (RN15: o admin gerencia as vagas de qualquer contratante).
+     */
+    protected function podeGerenciarVaga(Vaga $vaga): bool
+    {
+        $usuario = $this->usuarioLogado();
+
+        return $usuario !== null
+            && ($usuario->isAdmin() || $vaga->getIdContratante() === $usuario->getIdUsuario());
     }
 
     /**

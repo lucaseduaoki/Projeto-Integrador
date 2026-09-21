@@ -291,7 +291,7 @@ public function exibirFormEditar(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $this->usuarioLogado()->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -319,7 +319,7 @@ public function editar(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -411,7 +411,7 @@ public function excluir(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -440,7 +440,7 @@ public function encerrar(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 
@@ -468,7 +468,7 @@ public function reabrir(): void
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
 
-    if (!$vaga || $vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+    if (!$vaga || !$this->podeGerenciarVaga($vaga)) {
         $this->redirect(URL_BASE . '/403');
     }
 

@@ -80,8 +80,9 @@ class InteresseController extends Controller
         }
 
 
-        // Garante que somente o dono da vaga veja os interessados
-        if ($vaga->getIdContratante() !== $usuario->getIdUsuario()) {
+        // Só o dono da vaga (ou o admin, em leitura) vê os interessados. Contatos aceitos seguem
+        // restritos ao dono: ver listarAceitos e a RN12.
+        if (!$this->podeGerenciarVaga($vaga)) {
             $this->redirect(URL_BASE . '/403');
             return;
         }
