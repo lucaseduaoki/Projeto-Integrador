@@ -10,9 +10,11 @@ $erros = $erros ?? [];
     <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         <!-- Left Column - Ilustração (Desktop only) -->
-        <div class="hidden lg:flex flex-col justify-center bg-blue-700 rounded-md p-12 text-white">
-            <h2 class="text-3xl font-bold mb-8 leading-tight">Serviço combinado, prazo combinado, pagamento combinado.</h2>
-            <ul class="space-y-5 border-l border-blue-500 pl-5">
+        <div class="hidden lg:flex flex-col justify-center bg-marca rounded-md p-12 text-white relative overflow-hidden">
+            <span class="absolute -top-4 right-8 h-8 w-40 rounded-full bg-white/15"></span>
+            <span class="absolute top-10 right-24 h-8 w-28 rounded-full bg-white/10"></span>
+            <h2 class="text-3xl font-bold mb-8 leading-tight relative">Serviço combinado, prazo combinado, pagamento combinado.</h2>
+            <ul class="space-y-5 border-l border-white/40 pl-5">
                 <li>
                     <p class="font-semibold">Vagas novas todo dia</p>
                     <p class="text-blue-100 text-sm mt-0.5">Contratantes da sua região publicam direto na plataforma.</p>

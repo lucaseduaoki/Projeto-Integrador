@@ -14,8 +14,9 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
             
             <!-- Logo -->
             <div class="flex-shrink-0 flex items-center">
-                <a href="<?= URL_BASE ?>/vagas" class="flex items-center gap-2 font-display text-2xl font-bold text-blue-600">
-                    Freela<span class="text-amber-600">Já</span>
+                <a href="<?= URL_BASE ?>/vagas" class="flex items-center gap-2.5">
+                    <img src="<?= URL_BASE ?>/img/logo-icone.png" alt="" class="h-8 w-auto">
+                    <span class="font-display text-2xl font-bold text-gray-900 leading-none">Freela<span class="text-blue-600">Já</span></span>
                 </a>
             </div>
 

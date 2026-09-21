@@ -7,7 +7,7 @@ include __DIR__ . '/../shared/navbar.php';
 <main class="flex-1 flex items-center justify-center px-4 py-12">
     <div class="text-center">
         <div class="mb-6">
-            <h1 class="font-display text-8xl font-bold text-blue-600 mb-2">403</h1>
+            <h1 class="font-display text-9xl font-extrabold text-blue-600 mb-2">403</h1>
             <h2 class="text-3xl font-bold text-gray-900">Acesso Negado</h2>
         </div>
         
