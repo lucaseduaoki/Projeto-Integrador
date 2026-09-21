@@ -128,6 +128,11 @@ public function __construct(
         return $this->status;
     }
 
+    public function setIdCategoria(int $idCategoria): void
+    {
+        $this->idCategoria = $idCategoria;
+    }
+
     public function setTitulo(string $titulo): void
     {
         $this->titulo = $titulo;

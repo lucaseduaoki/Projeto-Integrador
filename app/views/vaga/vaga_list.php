@@ -10,11 +10,8 @@ $usuarioLogado = $usuario ?? null;
 $isContratante = $usuarioLogado &&
     $usuarioLogado->getTipoUsuario() === 'CONTRATANTE';
 
-error_log('[ANUNCIO_LIST] Anúncios recebidos: ' . count($vagas));
 
 if (!empty($vagas)) {
-    error_log('[ANUNCIO_LIST] Primeiro anúncio: ' . get_class($vagas[0]));
-    error_log('[ANUNCIO_LIST] Título: ' . $vagas[0]->getTitulo());
 }
 ?>
 
@@ -35,9 +32,9 @@ if (!empty($vagas)) {
 
             <?php if ($isContratante): ?>
                 <a
-                    href="/vagas/criar"
-                    class="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
-                    + Publicar vaga
+                    href="<?= URL_BASE ?>/vagas/criar"
+                    class="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition-colors">
+                    Publicar vaga
                 </a>
             <?php endif; ?>
 
@@ -106,17 +103,13 @@ if (!empty($vagas)) {
                 ?>
 
                     <a
-                        href="/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
-                        class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+                        href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
+                        class="bg-white rounded-md border border-gray-100 p-6 hover:border-blue-500 transition-colors">
 
                         <div class="flex justify-between items-center mb-3">
 
                             <span class="px-2 py-1 rounded-full text-xs font-semibold <?= $statusBadge ?>">
-                                <?= $status === 'ATIVA' ? '✓ Ativa' : 'Encerrada' ?>
-                            </span>
-
-                            <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                Categoria #<?= $vaga->getIdCategoria() ?>
+                                <?= $status === 'ATIVA' ? 'Ativa' : 'Encerrada' ?>
                             </span>
 
                         </div>
@@ -191,7 +184,7 @@ if (!empty($vagas)) {
                         <div class="pt-4 mt-4 border-t border-gray-100">
 
                             <span class="text-blue-600 font-semibold text-sm">
-                                Ver detalhes →
+                                Ver detalhes
                             </span>
 
                         </div>

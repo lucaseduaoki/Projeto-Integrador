@@ -8,7 +8,7 @@ include __DIR__ . '/../shared/navbar.php';
 
 <main class="flex-1 flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-lg">
-        <div class="bg-white rounded-xl shadow-sm border border-red-200 p-8 bg-red-50">
+        <div class="bg-white rounded-md border border-red-200 p-8 bg-red-50">
             
             <!-- Header com Alerta -->
             <div class="flex items-start gap-3 mb-6 pb-6 border-b border-red-200">
@@ -31,12 +31,12 @@ include __DIR__ . '/../shared/navbar.php';
 
             <!-- Erro Geral -->
             <?php if (isset($erros['geral'])): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm mb-6">
                     <?= htmlspecialchars($erros['geral'], ENT_QUOTES, 'UTF-8') ?>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="/denuncia/criar/submit" class="space-y-6">
+            <form method="POST" action="<?= URL_BASE ?>/denuncia/criar/submit" class="space-y-6">
                 
                 <input type="hidden" name="id_usuario_denunciado" value="<?= $denunciado->getIdUsuario() ?>">
 
@@ -47,7 +47,7 @@ include __DIR__ . '/../shared/navbar.php';
                         id="motivo" 
                         name="motivo" 
                         required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['motivo']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['motivo']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                     >
                         <option value="">-- Selecionar motivo --</option>
                         <option value="Comportamento inapropriado">Comportamento inapropriado</option>
@@ -69,7 +69,7 @@ include __DIR__ . '/../shared/navbar.php';
                         name="descricao" 
                         rows="5"
                         placeholder="Descreva o ocorrido com o máximo de detalhes possível. Isso nos ajuda a investigar melhor."
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['descricao']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['descricao']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                     ></textarea>
                     <?php if (isset($erros['descricao'])): ?>
                         <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -77,9 +77,9 @@ include __DIR__ . '/../shared/navbar.php';
                 </div>
 
                 <!-- Aviso de Consentimento
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
                     <p class="text-sm text-yellow-800">
-                        <strong>⚠️ Importante:</strong> Todas as denúncias são revisadas manualmente pela nossa equipe de moderação. Denúncias falsas ou infundadas podem resultar em ação contra sua conta.
+                        <strong>Importante:</strong> Todas as denúncias são revisadas manualmente pela nossa equipe de moderação. Denúncias falsas ou infundadas podem resultar em ação contra sua conta.
                     </p>
                 </div> -->
 
@@ -87,13 +87,13 @@ include __DIR__ . '/../shared/navbar.php';
                 <div class="flex gap-4 pt-6 border-t border-gray-200">
                     <button 
                         type="submit"
-                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
                     >
                         Enviar Denúncia
                     </button>
                     <a 
-                        href="/vagas"
-                        class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg text-center transition-colors duration-200"
+                        href="<?= URL_BASE ?>/vagas"
+                        class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded text-center transition-colors duration-200"
                     >
                         Cancelar
                     </a>

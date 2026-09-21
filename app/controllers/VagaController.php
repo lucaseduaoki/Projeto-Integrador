@@ -60,8 +60,7 @@ class VagaController extends Controller
             $this->redirect(URL_BASE . '/vagas');
         }
 
-        $contratante = $this->usuarioService
-            ->buscarPorId($vaga->getIdContratante());
+        $contratante = $this->usuarioService->buscarPorId($vaga->getIdContratante());
 
         $usuario = $this->usuarioLogado();
 
@@ -87,22 +86,27 @@ class VagaController extends Controller
         ]);
     }
 
-public function buscar(): void
-{
-    $this->autenticacaoRequired();
 
-    $titulo = trim($_GET['keywords'] ?? '');
-    $localizacao = trim($_GET['localizacao'] ?? '');
 
-    $vagas = $this->vagaService->buscar($titulo, $localizacao);
+    /**
+     * Buscar vagas por palavra-chave e localização
+     */
+    public function buscar(): void
+    {
+        $this->autenticacaoRequired();
 
-    $this->view('vaga/vaga_busca', [
-        'vagas' => $vagas,
-        'usuario' => $this->usuarioLogado(),
-        'filtros' => $_GET,
-        'totalResultados' => count($vagas)
-    ]);
-}
+        $titulo = trim($_GET['keywords'] ?? '');
+        $localizacao = trim($_GET['localizacao'] ?? '');
+
+        $vagas = $this->vagaService->buscar($titulo, $localizacao);
+
+        $this->view('vaga/vaga_busca', [
+            'vagas' => $vagas,
+            'usuario' => $this->usuarioLogado(),
+            'filtros' => $_GET,
+            'totalResultados' => count($vagas)
+        ]);
+    }
 
 /**
  * Exibir formulário de criação
@@ -267,14 +271,6 @@ public function editar(): void
         $vaga->setDataLimite($dataLimite ?: null);
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
 
-        /*
-         * Necessário adicionar este setter no model Vaga:
-         *
-         * public function setIdCategoria(int $idCategoria): void
-         * {
-         *     $this->idCategoria = $idCategoria;
-         * }
-         */
         $vaga->setIdCategoria($idCategoria);
 
         $this->vagaService->atualizar($vaga);

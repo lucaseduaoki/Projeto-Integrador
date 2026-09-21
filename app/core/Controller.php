@@ -12,6 +12,11 @@ class Controller
     public function view(string $view, ?array $data = null)
     {
         if ($data) {
+            // Controllers enviam 'erro' (mensagem única); as views leem $erros['geral']
+            if (isset($data['erro'])) {
+                $data['erros'] = ($data['erros'] ?? []) + ['geral' => $data['erro']];
+            }
+
             extract($data);
         }
 

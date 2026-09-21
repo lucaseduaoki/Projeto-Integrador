@@ -12,6 +12,7 @@ $router->get('/', 'AutenticacaoController@exibirLogin');
 // ============================================================================
 // AUTENTICAÇÃO
 // ============================================================================
+$router->get('/403',            'ErroController@acessoNegado');
 $router->get('/login',          'AutenticacaoController@exibirLogin');
 $router->post('/login/submit',  'AutenticacaoController@logar');
 $router->get('/logout',         'AutenticacaoController@logout');

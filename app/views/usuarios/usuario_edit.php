@@ -18,7 +18,7 @@
             </a>
         </div>
 
-        <div class="card shadow-sm col-md-8 mx-auto">
+        <div class="card col-md-8 mx-auto">
             <div class="card-body p-4">
                 <?php if (isset($erro)): ?>
                     <div class="alert alert-warning" role="alert">

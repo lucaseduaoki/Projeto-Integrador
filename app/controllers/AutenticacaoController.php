@@ -85,7 +85,7 @@ class AutenticacaoController extends Controller
         } catch (\Exception $e) {
             error_log('[LOGIN] Falha no login: ' . $e->getMessage());
             $this->view('autenticacao/login', [
-                'erro' => $e->getMessage(),
+                'erros' => ['geral' => $e->getMessage()],
             ]);
         }
     }
@@ -170,7 +170,7 @@ class AutenticacaoController extends Controller
             $this->redirect(URL_BASE . '/perfil');
         } catch (\Exception $e) {
             $this->view('autenticacao/cadastro', [
-                'erro' => $e->getMessage(),
+                'erros' => ['geral' => $e->getMessage()],
                 'nome' => $nome,
                 'email' => $email,
                 'tipo_usuario' => $tipoUsuario

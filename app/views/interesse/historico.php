@@ -17,15 +17,15 @@ $interesses = $interesses ?? [];
 
         <?php if (empty($interesses)): ?>
 
-            <div class="bg-white rounded-xl border p-10 text-center">
+            <div class="bg-white rounded-md border p-10 text-center">
 
                 <p class="text-gray-500 text-lg">
                     Você ainda não demonstrou interesse em nenhuma vaga.
                 </p>
 
                 <a
-                    href="/vagas"
-                    class="inline-block mt-5 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+                    href="<?= URL_BASE ?>/vagas"
+                    class="inline-block mt-5 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded">
 
                     Buscar vagas
 
@@ -53,7 +53,7 @@ $interesses = $interesses ?? [];
 
                 ?>
 
-                    <div class="bg-white border rounded-xl p-6 shadow-sm">
+                    <div class="bg-white border rounded-md p-6">
 
                         <div class="flex justify-between items-start">
 
@@ -121,8 +121,8 @@ $interesses = $interesses ?? [];
                             </div>
 
                             <a
-                                href="/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
-                                class="block text-center mt-6 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+                                href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
+                                class="block text-center mt-6 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
 
                                 Ver vaga
 

@@ -182,6 +182,11 @@ class UsuarioService
         return $this->repository->buscarHabilidades($idUsuario);
     }
 
+    public function listarHabilidades(): array
+    {
+        return $this->repository->listarHabilidades();
+    }
+
     /**
      * Limpar habilidades
      */

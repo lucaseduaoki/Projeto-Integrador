@@ -17,8 +17,8 @@ Meus Anúncios
 </h1>
 
 <a
-href="/vagas/criar"
-class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">
+href="<?= URL_BASE ?>/vagas/criar"
+class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded">
 
 Novo anúncio
 
@@ -28,15 +28,15 @@ Novo anúncio
 
 <?php if(empty($vagas)): ?>
 
-<div class="bg-white rounded-xl border p-10 text-center">
+<div class="bg-white rounded-md border p-10 text-center">
 
 <p class="text-gray-500 text-lg">
 Você ainda não publicou nenhum anúncio.
 </p>
 
 <a
-href="/vagas/criar"
-class="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+href="<?= URL_BASE ?>/vagas/criar"
+class="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded">
 
 Criar anúncio
 
@@ -63,7 +63,7 @@ $status = $vaga->getStatus();
 
 ?>
 
-<div class="bg-white border rounded-xl p-6 shadow-sm">
+<div class="bg-white border rounded-md p-6">
 
 <div class="flex justify-between">
 
@@ -127,7 +127,7 @@ style="width:<?= $porcentagem ?>%">
 <div class="grid grid-cols-2 gap-2 mt-6">
 
 <a
-href="/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
+href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
 class="text-center bg-blue-50 py-2 rounded">
 
 Visualizar
@@ -135,7 +135,7 @@ Visualizar
 </a>
 
 <a
-href="/vagas/editar?id=<?= $vaga->getIdVaga() ?>"
+href="<?= URL_BASE ?>/vagas/editar?id=<?= $vaga->getIdVaga() ?>"
 class="text-center bg-gray-100 py-2 rounded">
 
 Editar
@@ -145,7 +145,7 @@ Editar
 </div>
 
 <a
-href="/interesse/interessados?id=<?= $vaga->getIdVaga() ?>"
+href="<?= URL_BASE ?>/interesse/interessados?id=<?= $vaga->getIdVaga() ?>"
 class="block mt-3 text-center bg-green-600 text-white py-2 rounded">
 
 Ver interessados
@@ -162,7 +162,7 @@ Ver contatos aprovados
 
 <form
 method="POST"
-action="/vagas/excluir"
+action="<?= URL_BASE ?>/vagas/excluir"
 class="mt-3">
 
 <input
@@ -197,7 +197,7 @@ Excluir
 id="modalContatos"
 class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-<div class="bg-white rounded-xl w-full max-w-3xl p-6">
+<div class="bg-white rounded-md w-full max-w-3xl p-6">
 
 <div class="flex justify-between items-center mb-5">
 
@@ -271,7 +271,7 @@ const tbody = document.getElementById('tbodyContatos');
 tbody.innerHTML =
 '<tr><td colspan="3" class="text-center p-4">Carregando...</td></tr>';
 
-fetch('/interesse/aceitos?id=' + idVaga)
+fetch('<?= URL_BASE ?>/interesse/aceitos?id=' + idVaga)
 
 .then(response => response.json())
 

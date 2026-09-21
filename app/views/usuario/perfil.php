@@ -1,16 +1,17 @@
 <?php
 $tituloPagina = 'Meu Perfil';
+$usuario = $usuario ?? null;
+if (!$usuario) {
+    header('Location: ' . URL_BASE . '/login');
+    exit;
+}
+
 include __DIR__ . '/../shared/header.php';
 include __DIR__ . '/../shared/navbar.php';
 
-$usuario = $usuario ?? null;
 $habilidades = $habilidades ?? [];
-$avaliacoes = $avaliacoes ?? [];
+$erros = $erros ?? [];
 $localizacao = $usuario->getLocalizacao() ?? 'Não informado';
-if (!$usuario) {
-    header('Location: /login');
-    exit;
-}
 
 $nomeUsuario = htmlspecialchars($usuario->getNome(), ENT_QUOTES, 'UTF-8');
 $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8');
@@ -22,11 +23,16 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
 <main class="flex-1">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <?php if (!empty($erros)): ?>
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6">
+                <?= htmlspecialchars(implode(' ', $erros), ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <!-- Coluna Esquerda - Card de Perfil -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <div class="bg-white rounded-md border border-gray-100 p-6 sticky top-24">
                     
                     <!-- Avatar -->
                     <div class="flex flex-col items-center">
@@ -58,17 +64,17 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
                         <!-- Documento -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <strong>Documento:</strong> <?= htmlspecialchars($usuario->getDocumento(), ENT_QUOTES, 'UTF-8') ?>
+                            <strong>Documento:</strong> <?= htmlspecialchars($usuario->getDocumento() ?? 'Não informado', ENT_QUOTES, 'UTF-8') ?>
                         </div>
 
                         <!-- Localização -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <strong>Localização:</strong> <?= htmlspecialchars($localizacao) ?>
+                            <strong>Localização:</strong> <?= htmlspecialchars($localizacao, ENT_QUOTES, 'UTF-8') ?>
                         </div>
 
                         
                         <!-- Botão Editar -->
-                        <a href="/perfil/editar" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-center transition-colors duration-200">
+                        <a href="<?= URL_BASE ?>/perfil/editar" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded text-center transition-colors duration-200">
                             Editar Perfil
                         </a>
                     </div>
@@ -79,7 +85,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
             <div class="lg:col-span-2 space-y-6">
                 
                 <!-- Sobre Mim -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="bg-white rounded-md border border-gray-100 p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Sobre mim</h3>
                     <p class="text-gray-600 whitespace-pre-wrap">
                         <?= $descricao ?: 'Nenhuma descrição adicionada ainda.' ?>
@@ -88,7 +94,7 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
 
                 <!-- Habilidades (apenas trabalhadores) -->
                 <?php if ($usuario->isTrabalhador() && !empty($habilidades)): ?>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="bg-white rounded-md border border-gray-100 p-6">
                         <h3 class="text-lg font-bold text-gray-900 mb-4">Habilidades</h3>
                         <div class="flex flex-wrap gap-2">
                             <?php foreach ($habilidades as $habilidade): ?>

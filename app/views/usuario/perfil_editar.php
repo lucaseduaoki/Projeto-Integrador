@@ -27,28 +27,28 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
 
 <main class="flex-1">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div class="bg-white rounded-md border border-gray-100 p-8">
             <h1 class="text-2xl font-bold text-gray-900 mb-6">Editar Perfil</h1>
 
             <!-- Mensagem de Sucesso -->
             <?php if ($sucesso): ?>
-                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-6">
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-sm mb-6">
                     <?= htmlspecialchars($sucesso, ENT_QUOTES, 'UTF-8') ?>
                 </div>
             <?php endif; ?>
 
             <!-- Erro Geral -->
             <?php if (isset($erros['geral'])): ?>
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6">
                     <?= htmlspecialchars($erros['geral'], ENT_QUOTES, 'UTF-8') ?>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="/perfil/editar" enctype="multipart/form-data" class="space-y-6">
+            <form method="POST" action="<?= URL_BASE ?>/perfil/editar" enctype="multipart/form-data" class="space-y-6">
                 
 
                 <!-- Foto de Perfil -->
-                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <div class="bg-gray-50 rounded p-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Foto de Perfil</h3>
                     <div class="flex flex-col sm:flex-row gap-6 items-start">
                         <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold flex-shrink-0">
@@ -60,7 +60,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                                 id="foto_perfil" 
                                 name="foto_perfil" 
                                 accept="image/*"
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
                             >
                             <p class="text-xs text-gray-600 mt-2">Formatos suportados: JPG, PNG, GIF (máx 2MB)</p>
                         </div>
@@ -79,7 +79,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                                 name="nome" 
                                 required
                                 value="<?= $nomeUsuario ?>"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['nome']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['nome']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                             >
                             <?php if (isset($erros['nome'])): ?>
                                 <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['nome'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -94,7 +94,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                                 name="telefone" 
                                 value="<?= $telefone ?>"
                                 placeholder="(11) 98765-4321"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                         </div>
 
@@ -106,7 +106,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                                 name="email" 
                                 value="<?= $email ?>"
                                 disabled
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-gray-600"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-gray-600"
                             >
                             <p class="text-xs text-gray-500 mt-1">E-mail não pode ser alterado</p>
                         </div>
@@ -120,7 +120,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                                 name="documento" 
                                 value="<?= $documento ?>"
                                 placeholder="000.000.000-00"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                         </div>
 
@@ -135,7 +135,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                         name="descricao" 
                         rows="4"
                         placeholder="Fale um pouco sobre você, suas experiências e serviços que oferece..."
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['descricao']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['descricao']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                     ><?= $descricao ?></textarea>
                     <?php if (isset($erros['descricao'])): ?>
                         <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -150,7 +150,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                         id="localizacao" 
                         name="localizacao" 
                         placeholder="Cidade, Estado"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                 </div>
 
@@ -160,7 +160,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Habilidades</h3>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <?php foreach ($habilidades as $habilidade): 
-                                $idHabilidade = $habilidade->getId();
+                                $idHabilidade = $habilidade->getIdHabilidade();
                                 $checked = in_array($idHabilidade, $habilidadesUsuario);
                             ?>
                                 <label class="flex items-center">
@@ -184,13 +184,13 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                 <div class="flex gap-4 pt-6 border-t border-gray-200">
                     <button 
                         type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition-colors duration-200"
                     >
                         Salvar alterações
                     </button>
                     <a 
-                        href="/perfil"
-                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors duration-200"
+                        href="<?= URL_BASE ?>/perfil"
+                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded transition-colors duration-200"
                     >
                         Cancelar
                     </a>

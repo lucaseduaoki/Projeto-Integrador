@@ -17,7 +17,7 @@ $denuncias = $denuncias ?? [];
 
         <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="bg-white rounded-md border border-gray-100 p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-600 text-sm">Pendentes</p>
@@ -30,7 +30,7 @@ $denuncias = $denuncias ?? [];
                     </svg>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="bg-white rounded-md border border-gray-100 p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-600 text-sm">Analisadas</p>
@@ -43,7 +43,7 @@ $denuncias = $denuncias ?? [];
                     </svg>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="bg-white rounded-md border border-gray-100 p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-600 text-sm">Total</p>
@@ -65,11 +65,11 @@ $denuncias = $denuncias ?? [];
 
         <!-- Tabela -->
         <?php if (empty($denuncias)): ?>
-            <div class="text-center py-16 bg-white rounded-xl border border-gray-100">
+            <div class="text-center py-16 bg-white rounded-md border border-gray-100">
                 <p class="text-gray-500">Nenhuma denúncia no momento</p>
             </div>
         <?php else: ?>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-white rounded-md border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
@@ -117,13 +117,13 @@ $denuncias = $denuncias ?? [];
                                     <td class="px-6 py-4 text-sm">
                                         <?php if ($status === 'PENDENTE'): ?>
                                             <div class="flex items-center gap-2">
-                                                <form method="POST" action="/admin/denuncias/moderar" class="inline">
+                                                <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                     <input type="hidden" name="id_denuncia" value="<?= $denuncia->getId() ?>">
                                                     <input type="hidden" name="acao" value="bloquear">
                                                     <button type="submit" onclick="return confirm('Tem certeza que deseja bloquear este usuário?')" class="text-red-600 hover:text-red-700 font-medium text-xs">Bloquear</button>
                                                 </form>
                                                 <span class="text-gray-300">|</span>
-                                                <form method="POST" action="/admin/denuncias/moderar" class="inline">
+                                                <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                     <input type="hidden" name="id_denuncia" value="<?= $denuncia->getId() ?>">
                                                     <input type="hidden" name="acao" value="analisar">
                                                     <button type="submit" class="text-blue-600 hover:text-blue-700 font-medium text-xs">Analisar</button>

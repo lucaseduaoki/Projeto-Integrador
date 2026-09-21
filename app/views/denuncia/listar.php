@@ -18,36 +18,36 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="bg-white rounded-md border border-gray-100 p-6">
                 <p class="text-sm text-gray-600">Pendentes</p>
                 <p class="text-3xl font-bold text-yellow-600"><?= $pendentes ?></p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="bg-white rounded-md border border-gray-100 p-6">
                 <p class="text-sm text-gray-600">Analisadas</p>
                 <p class="text-3xl font-bold text-blue-600"><?= $analisadas ?></p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="bg-white rounded-md border border-gray-100 p-6">
                 <p class="text-sm text-gray-600">Total</p>
                 <p class="text-3xl font-bold text-gray-900"><?= count($denuncias) ?></p>
             </div>
         </div>
 
         <div class="flex flex-wrap gap-2 mb-6">
-            <a href="/admin/denuncias" class="px-4 py-2 rounded-full <?= $statusFiltro === '' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700' ?> font-medium hover:bg-blue-200 transition-colors">
+            <a href="<?= URL_BASE ?>/admin/denuncias" class="px-4 py-2 rounded-full <?= $statusFiltro === '' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700' ?> font-medium hover:bg-blue-200 transition-colors">
                 Todas
             </a>
-            <a href="/admin/denuncias?status=pendentes" class="px-4 py-2 rounded-full <?= $statusFiltro === 'pendentes' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700' ?> font-medium hover:bg-blue-200 transition-colors">
+            <a href="<?= URL_BASE ?>/admin/denuncias?status=pendentes" class="px-4 py-2 rounded-full <?= $statusFiltro === 'pendentes' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700' ?> font-medium hover:bg-blue-200 transition-colors">
                 Pendentes
             </a>
         </div>
 
         <?php if (empty($denuncias)): ?>
-            <div class="text-center py-16 bg-white rounded-xl border border-gray-100">
+            <div class="text-center py-16 bg-white rounded-md border border-gray-100">
                 <p class="text-gray-500 text-lg">Nenhuma denúncia encontrada</p>
                 <p class="text-gray-400 text-sm mt-1">Quando surgirem denúncias, elas aparecerão aqui</p>
             </div>
         <?php else: ?>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-white rounded-md border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
@@ -82,12 +82,12 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                                     <td class="px-6 py-4 text-sm">
                                         <?php if ($statusDenuncia === 'PENDENTE'): ?>
                                             <div class="flex items-center gap-3">
-                                                <form method="POST" action="/admin/denuncias/moderar" class="inline">
+                                                <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                     <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
                                                     <input type="hidden" name="acao" value="bloquear">
                                                     <button type="submit" onclick="return confirm('Tem certeza que deseja bloquear este usuário?')" class="text-red-600 hover:text-red-700 font-medium text-xs">Bloquear</button>
                                                 </form>
-                                                <form method="POST" action="/admin/denuncias/moderar" class="inline">
+                                                <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                     <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
                                                     <input type="hidden" name="acao" value="analisar">
                                                     <button type="submit" class="text-blue-600 hover:text-blue-700 font-medium text-xs">Analisar</button>
