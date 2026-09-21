@@ -22,6 +22,7 @@ class Vaga
     private ?string $duracao = null;
     private ?string $observacoes = null;
     private ?string $dataServico = null;
+    private string $visibilidade = 'VISIVEL';
 
 public function __construct(
     int $idVaga,
@@ -41,7 +42,8 @@ public function __construct(
     string $tipoServico = 'FIXO',
     ?string $duracao = null,
     ?string $observacoes = null,
-    ?string $dataServico = null
+    ?string $dataServico = null,
+    string $visibilidade = 'VISIVEL'
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -61,6 +63,7 @@ public function __construct(
         $this->duracao = $duracao;
         $this->observacoes = $observacoes;
         $this->dataServico = $dataServico;
+        $this->visibilidade = $visibilidade;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -83,7 +86,8 @@ public function __construct(
             $dados['tipo_servico'] ?? 'FIXO',
             $dados['duracao'] ?? null,
             $dados['observacoes'] ?? null,
-            $dados['data_servico'] ?? null
+            $dados['data_servico'] ?? null,
+            $dados['visibilidade'] ?? 'VISIVEL'
         );
     }
 
@@ -96,11 +100,11 @@ public function __construct(
     }
 
     /**
-     * Vaga realmente disponível: status ATIVA e contratante ativo.
+     * Vaga realmente disponível: status ATIVA, contratante ativo e não oculta/removida pela moderação.
      */
     public function estaDisponivel(): bool
     {
-        return $this->status === 'ATIVA' && $this->isUserActive;
+        return $this->status === 'ATIVA' && $this->isUserActive && $this->estaVisivel();
     }
 
     public function getTotalAceitos(): int
@@ -171,6 +175,21 @@ public function __construct(
     public function setDuracao(?string $duracao): void
     {
         $this->duracao = $duracao;
+    }
+
+    public function getVisibilidade(): string
+    {
+        return $this->visibilidade;
+    }
+
+    public function estaVisivel(): bool
+    {
+        return $this->visibilidade === 'VISIVEL';
+    }
+
+    public function foiRemovidaPelaModeracao(): bool
+    {
+        return $this->visibilidade === 'REMOVIDA';
     }
 
     public function getDataServico(): ?string
@@ -282,7 +301,8 @@ public function __construct(
             'tipoServico' => $this->tipoServico,
             'duracao' => $this->duracao,
             'observacoes' => $this->observacoes,
-            'dataServico' => $this->dataServico
+            'dataServico' => $this->dataServico,
+            'visibilidade' => $this->visibilidade
         ];
     }
 

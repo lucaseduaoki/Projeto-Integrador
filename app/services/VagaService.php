@@ -109,6 +109,10 @@ class VagaService
             throw new Exception("Vaga não encontrada.");
         }
 
+        if ($vagaExistente->foiRemovidaPelaModeracao()) {
+            throw new Exception("Este anúncio foi removido pela moderação e não pode ser editado.");
+        }
+
         return $this->repository->atualizar($vaga);
     }
 
@@ -121,6 +125,11 @@ class VagaService
 
         if (!$vagaExistente) {
             throw new Exception("Vaga não encontrada.");
+        }
+
+        // Anúncio moderado fica preservado (evidência da denúncia): o dono não o apaga
+        if (!$vagaExistente->estaVisivel()) {
+            throw new Exception("Anúncios ocultos ou removidos pela moderação não podem ser excluídos.");
         }
 
         return $this->repository->deletar($idVaga);

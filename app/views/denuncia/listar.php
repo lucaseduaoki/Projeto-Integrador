@@ -98,6 +98,19 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                                                         <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs py-1 px-2 rounded">Enviar advertência</button>
                                                     </form>
                                                 </details>
+                                                <?php if ($denuncia->getIdVagaDenunciada() !== null): ?>
+                                                    <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $denuncia->getIdVagaDenunciada() ?>" class="text-gray-600 hover:text-gray-900 font-medium text-xs">Ver anúncio</a>
+                                                    <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
+                                                        <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
+                                                        <input type="hidden" name="acao" value="ocultar">
+                                                        <button type="submit" onclick="return confirm('Ocultar este anúncio? Ele some da listagem, mas o dono ainda pode vê-lo e corrigi-lo.')" class="text-orange-600 hover:text-orange-700 font-medium text-xs">Ocultar anúncio</button>
+                                                    </form>
+                                                    <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
+                                                        <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
+                                                        <input type="hidden" name="acao" value="remover">
+                                                        <button type="submit" onclick="return confirm('Remover este anúncio? O dono não poderá mais editá-lo nem excluí-lo.')" class="text-red-600 hover:text-red-700 font-medium text-xs">Remover anúncio</button>
+                                                    </form>
+                                                <?php endif; ?>
                                                 <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                     <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
                                                     <input type="hidden" name="acao" value="bloquear">

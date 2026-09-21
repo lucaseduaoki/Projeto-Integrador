@@ -110,6 +110,9 @@ CREATE TABLE vaga (
     -- Vaga cujo dono está desativado não deve aparecer nem receber candidaturas.
     is_user_active BOOLEAN NOT NULL DEFAULT TRUE,
 
+    -- moderação: OCULTA some da listagem e fica só para dono/admin, REMOVIDA também trava o dono
+    visibilidade ENUM('VISIVEL','OCULTA','REMOVIDA') NOT NULL DEFAULT 'VISIVEL',
+
     CONSTRAINT fk_vaga_contratante
         FOREIGN KEY (id_contratante)
         REFERENCES usuario(id_usuario)
@@ -168,7 +171,7 @@ CREATE TABLE denuncia (
     ) DEFAULT 'PENDENTE',
 
     -- decisão da moderação (nula enquanto a denúncia está pendente)
-    acao_moderacao ENUM('NENHUMA','ADVERTENCIA','BLOQUEIO') NULL,
+    acao_moderacao ENUM('NENHUMA','ADVERTENCIA','BLOQUEIO','ANUNCIO_OCULTO','ANUNCIO_REMOVIDO') NULL,
 
     data_denuncia DATETIME DEFAULT CURRENT_TIMESTAMP,
 

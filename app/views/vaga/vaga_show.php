@@ -75,7 +75,15 @@ $isProprietario =
                 <!-- Status -->
                 <div class="flex flex-wrap gap-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $statusBadge ?>">
-                        <?= $disponivel ? 'Aberta' : ($vaga->isUserActive() ? 'Encerrada' : 'Indisponível') ?>
+                        <?php
+                        if ($disponivel) {
+                            echo 'Aberta';
+                        } elseif (!$vaga->estaVisivel()) {
+                            echo $vaga->foiRemovidaPelaModeracao() ? 'Removida pela moderação' : 'Oculta pela moderação';
+                        } else {
+                            echo $vaga->isUserActive() ? 'Encerrada' : 'Indisponível';
+                        }
+                        ?>
                     </span>
                 </div>
                 <!-- Título -->
@@ -182,7 +190,7 @@ $isProprietario =
                     <?php elseif ($isTrabalhador && !$isProprietario && !$disponivel): ?>
 
                         <div class="w-full bg-gray-100 border border-gray-200 text-gray-600 font-semibold py-2 px-4 rounded text-center mb-4">
-                            <?= $vaga->isUserActive() ? 'Vaga encerrada' : 'Vaga indisponível' ?>
+                            <?= !$vaga->isUserActive() || !$vaga->estaVisivel() ? 'Vaga indisponível' : 'Vaga encerrada' ?>
                         </div>
 
                     <?php endif; ?>

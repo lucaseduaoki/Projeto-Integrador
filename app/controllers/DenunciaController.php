@@ -163,13 +163,15 @@ class DenunciaController extends Controller
         $idDenuncia = (int)($_POST['id'] ?? 0);
         $acao = htmlspecialchars(trim($_POST['acao'] ?? ''), ENT_QUOTES, 'UTF-8');
 
-        if ($idDenuncia <= 0 || !in_array($acao, ['bloquear', 'analisar', 'advertir'], true)) {
+        if ($idDenuncia <= 0 || !in_array($acao, ['bloquear', 'analisar', 'advertir', 'ocultar', 'remover'], true)) {
             $this->redirect(URL_BASE . '/admin/denuncias');
         }
 
         try {
             if ($acao === 'bloquear') {
                 $this->service->bloquearPorDenuncia($idDenuncia);
+            } elseif ($acao === 'ocultar' || $acao === 'remover') {
+                $this->service->moderarAnuncio($idDenuncia, $acao === 'ocultar' ? 'OCULTA' : 'REMOVIDA');
             } elseif ($acao === 'advertir') {
                 $this->service->advertir(
                     $idDenuncia,

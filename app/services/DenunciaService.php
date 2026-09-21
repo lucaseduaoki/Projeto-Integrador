@@ -202,6 +202,39 @@ class DenunciaService
     }
 
     /**
+     * Moderar denúncia de anúncio (admin): oculta ou remove o anúncio, sem apagá-lo (RN14).
+     * $visibilidade: 'OCULTA' ou 'REMOVIDA'.
+     */
+    public function moderarAnuncio(int $idDenuncia, string $visibilidade): bool
+    {
+        $acoes = ['OCULTA' => 'ANUNCIO_OCULTO', 'REMOVIDA' => 'ANUNCIO_REMOVIDO'];
+
+        if (!isset($acoes[$visibilidade])) {
+            throw new Exception('Ação de moderação inválida.');
+        }
+
+        $denuncia = $this->denunciaPendente($idDenuncia);
+
+        if ($denuncia->getIdVagaDenunciada() === null) {
+            throw new Exception('Esta denúncia não é de um anúncio.');
+        }
+
+        $pdo = ConnectionFactory::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), $visibilidade);
+            $this->repository->registrarModeracao($idDenuncia, $acoes[$visibilidade]);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /**
      * Moderar denúncia (admin) - apenas marcar como analisada, sem sanção
      */
     public function analisar(int $idDenuncia): bool

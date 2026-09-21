@@ -38,7 +38,8 @@ return new Vaga(
     $row['tipo_servico'] ?? 'FIXO',
     $row['duracao'] ?? null,
     $row['observacoes'] ?? null,
-    $row['data_servico'] ?? null
+    $row['data_servico'] ?? null,
+    $row['visibilidade'] ?? 'VISIVEL'
 );
     }
 
@@ -71,6 +72,7 @@ return new Vaga(
             FROM vaga
             WHERE status = 'ATIVA'
               AND is_user_active = 1
+              AND visibilidade = 'VISIVEL'
             ORDER BY data_publicacao DESC
             LIMIT :limit OFFSET :offset
         ";
@@ -128,6 +130,7 @@ $sql = "
             FROM vaga
             WHERE status = 'ATIVA'
               AND is_user_active = 1
+              AND visibilidade = 'VISIVEL'
         ";
 
         $params = [];
@@ -287,6 +290,21 @@ $sql = "
         );
 
         $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+    /**
+     * Aplica a decisão da moderação sobre o anúncio (VISIVEL, OCULTA ou REMOVIDA).
+     */
+    public function mudarVisibilidade(int $idVaga, string $visibilidade): bool
+    {
+        $stmt = $this->conn->prepare(
+            "UPDATE vaga SET visibilidade = :visibilidade WHERE id_vaga = :id"
+        );
+
+        $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);
+        $stmt->bindValue(':visibilidade', $visibilidade);
 
         return $stmt->execute();
     }

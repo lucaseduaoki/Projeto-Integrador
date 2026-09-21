@@ -64,6 +64,15 @@ class VagaController extends Controller
 
         $usuario = $this->usuarioLogado();
 
+        // Anúncio oculto/removido pela moderação só é visto pelo dono e pelo admin
+        if (
+            !$vaga->estaVisivel() &&
+            !$usuario->isAdmin() &&
+            $vaga->getIdContratante() !== $usuario->getIdUsuario()
+        ) {
+            $this->redirect(URL_BASE . '/vagas');
+        }
+
         $jaDemonstrouInteresse = false;
 
         if (
@@ -284,6 +293,10 @@ public function exibirFormEditar(): void
 
     if (!$vaga || $vaga->getIdContratante() !== $this->usuarioLogado()->getIdUsuario()) {
         $this->redirect(URL_BASE . '/403');
+    }
+
+    if ($vaga->foiRemovidaPelaModeracao()) {
+        $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
     }
 
     $this->view('vaga/vaga_form', [
