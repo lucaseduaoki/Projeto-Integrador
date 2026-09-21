@@ -260,6 +260,7 @@ private function validarDadosVaga(array $d): Validador
     $validador
         ->obrigatorio('titulo', $d['titulo'], 'Informe a função (título) da vaga.')
         ->obrigatorio('descricao', $d['descricao'], 'Informe a descrição da vaga.')
+        ->obrigatorio('localizacao', $d['localizacao'], 'Informe o local do serviço.')
         ->obrigatorio('id_categoria', $d['idCategoria'], 'Selecione a categoria.')
         ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
         ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
@@ -272,6 +273,11 @@ private function validarDadosVaga(array $d): Validador
     // Função (título): 2 a 100 caracteres
     if ($d['titulo'] !== '') {
         $validador->tamanhoMinMax('titulo', $d['titulo'], 2, 100, 'A função (título) deve ter entre 2 e 100 caracteres.');
+    }
+
+    // Local: 2 a 150 caracteres
+    if ($d['localizacao'] !== '') {
+        $validador->tamanhoMinMax('localizacao', $d['localizacao'], 2, 150, 'O local deve ter entre 2 e 150 caracteres.');
     }
 
     // Descrição: 10 a 1000 caracteres

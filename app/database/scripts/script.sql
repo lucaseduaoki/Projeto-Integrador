@@ -80,7 +80,7 @@ CREATE TABLE vaga (
     titulo VARCHAR(150) NOT NULL,
     descricao TEXT NOT NULL,
 
-    localizacao VARCHAR(100),
+    localizacao VARCHAR(150),
 
     remuneracao DECIMAL(10,2),
 

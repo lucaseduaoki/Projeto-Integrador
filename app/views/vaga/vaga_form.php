@@ -229,9 +229,14 @@ $erros = $erros ?? [];
                             id="localizacao"
                             name="localizacao"
                             required
-                            value="<?= $vaga ? htmlspecialchars($vaga->getLocalizacao(), ENT_QUOTES, 'UTF-8') : '' ?>"
+                            maxlength="150"
+                            value="<?= htmlspecialchars($_POST['localizacao'] ?? ($vaga ? ($vaga->getLocalizacao() ?? '') : ''), ENT_QUOTES, 'UTF-8') ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2"
                         >
+
+                        <?php if (isset($erros['localizacao'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['localizacao'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
 
                     </div>
 
