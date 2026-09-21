@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\core\Controller;
 use app\helpers\Validador;
+use app\models\Denuncia;
 use app\services\DenunciaService;
 use app\services\UsuarioService;
 
@@ -38,7 +39,8 @@ class DenunciaController extends Controller
         error_log("Denunciado object after check: " . print_r($denunciadoObject, true)); // Log the value of $denunciadoObject after the check
         error_log("🙃​🙃​🙃​🙃​🙃​");
         $this->view('denuncia/denuncia_form', [
-            'denunciado' => $denunciadoObject,  
+            'denunciado' => $denunciadoObject,
+            'motivos' => Denuncia::motivosPara(Denuncia::TIPO_USUARIO),
         ]);
     }
 
@@ -51,30 +53,36 @@ class DenunciaController extends Controller
 
         $usuario = $this->usuarioLogado();
         $idDenunciado = (int)($_POST['id_usuario_denunciado'] ?? 0);
-        $motivo = htmlspecialchars(trim($_POST['motivo'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $descricao = htmlspecialchars(trim($_POST['descricao'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $motivo = trim($_POST['motivo'] ?? '');
+        $descricao = trim($_POST['descricao'] ?? '');
         $idVaga = (int)($_POST['id_vaga'] ?? 0);
 
-        // Buscar o usuário denunciado logo no início, já que a view precisa dele
-        // nos dois cenários abaixo (erro de validação e exceção)
+        // Denúncia de anúncio (com id_vaga) ou de usuário; cada tipo tem seus motivos (RN13)
+        $tipo = $idVaga > 0 ? Denuncia::TIPO_ANUNCIO : Denuncia::TIPO_USUARIO;
+        $motivos = Denuncia::motivosPara($tipo);
+
+        // O alvo precisa existir e não pode ser a própria pessoa
         $denunciado = $this->usuarioService->buscarPorId($idDenunciado);
+        if ($denunciado === null || $idDenunciado === $usuario->getIdUsuario()) {
+            $this->redirect(URL_BASE . '/vagas');
+        }
 
         // Validar
         $validador = new Validador();
-        $validador->obrigatorio('motivo', $motivo)
-                ->minimo('motivo', $motivo, 5);
+        $validador->obrigatorio('motivo', $motivo, 'Selecione o motivo da denúncia.')
+                  ->emLista('motivo', $motivo, array_keys($motivos), 'Motivo inválido: escolha uma das opções.')
+                  ->tamanhoMax('descricao', $descricao, 1000, 'A descrição deve ter no máximo 1000 caracteres.');
 
         if ($validador->temErros()) {
             $this->view('denuncia/denuncia_form', [
                 'denunciado' => $denunciado,
-                'idDenunciado' => $idDenunciado,
+                'motivos' => $motivos,
                 'erros' => $validador->getErros(),
             ]);
             return;
         }
 
         try {
-            error_log("Tentando criar denúncia para o usuário denunciado ID: $idDenunciado"); // Log before creating the complaint
             $this->service->criar(
                 $usuario->getIdUsuario(),
                 $idDenunciado,
@@ -83,14 +91,13 @@ class DenunciaController extends Controller
                 $idVaga > 0 ? $idVaga : null
             );
 
-            error_log("Denúncia criada com sucesso para o usuário denunciado ID: $idDenunciado"); // Log success message
             $this->view('denuncia/sucesso', [
                 'mensagem' => 'Denúncia registrada. Obrigado por manter a plataforma segura!'
             ]);
         } catch (\Exception $e) {
             $this->view('denuncia/denuncia_form', [
                 'denunciado' => $denunciado,
-                'idDenunciado' => $idDenunciado,
+                'motivos' => $motivos,
                 'erro' => $e->getMessage(),
             ]);
         }

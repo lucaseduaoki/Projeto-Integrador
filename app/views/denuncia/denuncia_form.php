@@ -1,5 +1,5 @@
 <?php
-$denunciado = $denunciado ;
+$motivos = $motivos ?? [];
 $erros = $erros ?? [];
 $tituloPagina = 'Realizar Denúncia';
 include __DIR__ . '/../shared/header.php';
@@ -50,11 +50,9 @@ include __DIR__ . '/../shared/navbar.php';
                         class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['motivo']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
                     >
                         <option value="">-- Selecionar motivo --</option>
-                        <option value="Comportamento inapropriado">Comportamento inapropriado</option>
-                        <option value="Informações falsas">Informações falsas</option>
-                        <option value="Não comparecimento">Não comparecimento</option>
-                        <option value="Assédio">Assédio</option>
-                        <option value="Outro">Outro</option>
+                        <?php foreach ($motivos as $codigo => $rotulo): ?>
+                            <option value="<?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') ?>" <?= ($_POST['motivo'] ?? '') === $codigo ? 'selected' : '' ?>><?= htmlspecialchars($rotulo, ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php endforeach; ?>
                     </select>
                     <?php if (isset($erros['motivo'])): ?>
                         <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['motivo'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -70,7 +68,7 @@ include __DIR__ . '/../shared/navbar.php';
                         rows="5"
                         placeholder="Descreva o ocorrido com o máximo de detalhes possível. Isso nos ajuda a investigar melhor."
                         class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($erros['descricao']) ? 'border-red-500 focus:ring-red-500' : '' ?>"
-                    ></textarea>
+                    ><?= htmlspecialchars($_POST['descricao'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                     <?php if (isset($erros['descricao'])): ?>
                         <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
                     <?php endif; ?>

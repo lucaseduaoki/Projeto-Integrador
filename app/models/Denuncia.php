@@ -4,6 +4,41 @@ namespace app\models;
 
 class Denuncia
 {
+    // Motivos padronizados (RN13): listas distintas para anúncio e para usuário.
+    // A chave é o valor gravado em denuncia.motivo; o texto é o que a pessoa vê.
+    public const MOTIVOS_ANUNCIO = [
+        'CONTEUDO_IMPROPRIO' => 'Conteúdo impróprio',
+        'VAGA_SUSPEITA' => 'Vaga suspeita',
+        'DISCRIMINACAO' => 'Discriminação',
+        'SPAM' => 'Spam',
+    ];
+
+    public const MOTIVOS_USUARIO = [
+        'COMPORTAMENTO_INADEQUADO' => 'Comportamento inadequado',
+        'FRAUDE' => 'Fraude',
+        'ASSEDIO' => 'Assédio',
+        'OUTRAS_CONDUTAS' => 'Outras condutas',
+    ];
+
+    public const TIPO_ANUNCIO = 'ANUNCIO';
+    public const TIPO_USUARIO = 'USUARIO';
+
+    /**
+     * Motivos válidos para o tipo de alvo da denúncia (ANUNCIO ou USUARIO).
+     */
+    public static function motivosPara(string $tipo): array
+    {
+        return $tipo === self::TIPO_ANUNCIO ? self::MOTIVOS_ANUNCIO : self::MOTIVOS_USUARIO;
+    }
+
+    /**
+     * Texto legível do motivo. Denúncias antigas guardam texto livre: nesse caso é devolvido como está.
+     */
+    public static function rotuloMotivo(string $motivo): string
+    {
+        return self::MOTIVOS_ANUNCIO[$motivo] ?? self::MOTIVOS_USUARIO[$motivo] ?? $motivo;
+    }
+
     private int $idDenuncia;
     private int $idDenunciante;
     private ?int $idUsuarioDenunciado;

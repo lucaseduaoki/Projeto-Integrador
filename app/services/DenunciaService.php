@@ -29,9 +29,14 @@ class DenunciaService
         ?string $descricao = null,
         ?int $idVaga = null
     ): int {
-        error_log("motivo recebido: " . $motivo); // Log the received motivo
         if (empty($motivo)) {
             throw new Exception('Motivo da denúncia é obrigatório.');
+        }
+
+        // RN13: o motivo precisa pertencer à lista do tipo de alvo (anúncio ou usuário)
+        $tipo = $idVaga !== null ? Denuncia::TIPO_ANUNCIO : Denuncia::TIPO_USUARIO;
+        if (!array_key_exists($motivo, Denuncia::motivosPara($tipo))) {
+            throw new Exception('Motivo inválido para este tipo de denúncia.');
         }
 
 
@@ -45,7 +50,6 @@ class DenunciaService
             'PENDENTE',
             date('Y-m-d H:i:s')
         );
-        error_log("Denúncia criada: " . print_r($denuncia, true)); // Log the created Denuncia object
         return $this->repository->criar($denuncia);
     }
 
