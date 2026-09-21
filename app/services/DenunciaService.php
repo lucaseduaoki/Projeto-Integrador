@@ -103,7 +103,7 @@ class DenunciaService
         $this->usuarioRepository->bloquear($denuncia->getIdUsuarioDenunciado());
 
         // Marcar denúncia como analisada
-        return $this->repository->mudarStatus($idDenuncia, 'ANALISADO');
+        return $this->repository->mudarStatus($idDenuncia, 'ANALISADA');
     }
 
     /**
@@ -116,7 +116,7 @@ class DenunciaService
             throw new Exception('Denúncia não encontrada.');
         }
 
-        return $this->repository->mudarStatus($idDenuncia, 'ANALISADO');
+        return $this->repository->mudarStatus($idDenuncia, 'ANALISADA');
     }
 
     /**

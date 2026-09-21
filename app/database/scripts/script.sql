@@ -162,6 +162,7 @@ CREATE TABLE denuncia (
 
     status ENUM(
         'PENDENTE',
+        'ANALISADA',
         'APROVADA',
         'REJEITADA'
     ) DEFAULT 'PENDENTE',

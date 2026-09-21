@@ -7,7 +7,7 @@ $denuncias = $denuncias ?? [];
 $statusFiltro = $status ?? '';
 
 $pendentes = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStatus() === 'PENDENTE'));
-$analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStatus() === 'ANALISADO'));
+$analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStatus() === 'ANALISADA'));
 ?>
 
 <main class="flex-1">
