@@ -118,7 +118,8 @@ $sql = "
     }
 
     /**
-     * Busca vagas ativas. Filtros aceitos (todos opcionais): titulo, localizacao, tipo_servico.
+     * Busca vagas ativas. Filtros aceitos (todos opcionais): titulo, localizacao, tipo_servico,
+     * data_from, remuneracao_min, remuneracao_max. Vagas sem remuneração ficam fora quando há filtro de valor.
      */
     public function buscar(array $filtros = []): array
     {
@@ -144,6 +145,16 @@ $sql = "
         if (($filtros['data_from'] ?? '') !== '') {
             $sql .= " AND data_servico >= :data_from";
             $params['data_from'] = $filtros['data_from'];
+        }
+
+        if (isset($filtros['remuneracao_min'])) {
+            $sql .= " AND remuneracao >= :remuneracao_min";
+            $params['remuneracao_min'] = $filtros['remuneracao_min'];
+        }
+
+        if (isset($filtros['remuneracao_max'])) {
+            $sql .= " AND remuneracao <= :remuneracao_max";
+            $params['remuneracao_max'] = $filtros['remuneracao_max'];
         }
 
         if (($filtros['tipo_servico'] ?? '') !== '') {

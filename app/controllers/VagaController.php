@@ -119,6 +119,34 @@ class VagaController extends Controller
             }
         }
 
+        // Faixa de remuneração: numérica, não negativa e com mínimo <= máximo
+        $validador = new Validador();
+        $faixa = [];
+        foreach (['remuneracao_min' => 'mínima', 'remuneracao_max' => 'máxima'] as $campo => $rotulo) {
+            $valor = trim((string)($_GET[$campo] ?? ''));
+            if ($valor === '') {
+                continue;
+            }
+
+            $validador->numerico($campo, $valor, "A remuneração {$rotulo} deve ser um número e foi ignorada.");
+            if (!isset($validador->getErros()[$campo]) && (float)$valor < 0) {
+                $validador->erro($campo, "A remuneração {$rotulo} não pode ser negativa e foi ignorada.");
+            }
+
+            if (!isset($validador->getErros()[$campo])) {
+                $faixa[$campo] = (string)(float)$valor;
+            }
+        }
+
+        if (isset($faixa['remuneracao_min'], $faixa['remuneracao_max'])
+            && (float)$faixa['remuneracao_min'] > (float)$faixa['remuneracao_max']) {
+            $validador->erro('remuneracao_min', 'A remuneração mínima é maior que a máxima: a faixa foi ignorada.');
+            $faixa = [];
+        }
+
+        $erros += $validador->getErros();
+        $filtros += $faixa;
+
         $vagas = $this->vagaService->buscar($filtros);
 
         $this->view('vaga/vaga_busca', [
