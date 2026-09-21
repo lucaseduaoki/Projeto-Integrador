@@ -160,7 +160,7 @@ $tipoUsuario = htmlspecialchars($usuario->getTipoUsuario(), ENT_QUOTES, 'UTF-8')
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Habilidades</h3>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <?php foreach ($habilidades as $habilidade): 
-                                $idHabilidade = $habilidade->getId();
+                                $idHabilidade = $habilidade->getIdHabilidade();
                                 $checked = in_array($idHabilidade, $habilidadesUsuario);
                             ?>
                                 <label class="flex items-center">

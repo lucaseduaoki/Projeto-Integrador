@@ -3,6 +3,7 @@
 namespace app\repositories;
 
 use app\database\ConnectionFactory;
+use app\models\Habilidade;
 use app\models\Usuario;
 use PDO;
 
@@ -241,8 +242,23 @@ class UsuarioRepository
         $stmt->bindValue(':id_usuario', $idUsuario, PDO::PARAM_INT);
         $stmt->execute();
 
-        $resultados = $stmt->fetchAll();
-        return $resultados ?: [];
+        return array_map(
+            fn(array $linha) => Habilidade::arrayParaObjeto($linha),
+            $stmt->fetchAll()
+        );
+    }
+
+    /**
+     * Listar todas as habilidades cadastradas
+     */
+    public function listarHabilidades(): array
+    {
+        $stmt = $this->conn->query("SELECT * FROM habilidade ORDER BY nome");
+
+        return array_map(
+            fn(array $linha) => Habilidade::arrayParaObjeto($linha),
+            $stmt->fetchAll()
+        );
     }
 
     /**

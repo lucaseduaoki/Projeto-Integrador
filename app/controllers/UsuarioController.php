@@ -41,7 +41,6 @@ class UsuarioController extends Controller
         $this->autenticacaoRequired();
         
         $usuario = $this->usuarioLogado();
-        error_log("Print Usuario: " . print_r($usuario, true));
         $habilidades = $this->service->buscarHabilidades($usuario->getIdUsuario());
         
         $this->view('usuario/perfil', [
@@ -115,11 +114,15 @@ class UsuarioController extends Controller
         $this->autenticacaoRequired();
 
         $usuario = $this->usuarioLogado();
-        $habilidades = $this->service->buscarHabilidades($usuario->getIdUsuario());
-        error_log("Print Usuario: " . print_r($usuario, true));
+        $habilidadesUsuario = array_map(
+            fn($h) => $h->getIdHabilidade(),
+            $this->service->buscarHabilidades($usuario->getIdUsuario())
+        );
+
         $this->view('usuario/perfil_editar', [
             'usuario' => $usuario,
-            'habilidades' => $habilidades
+            'habilidades' => $this->service->listarHabilidades(),
+            'habilidadesUsuario' => $habilidadesUsuario
         ]);
     }
 }
