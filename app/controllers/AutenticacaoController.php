@@ -40,7 +40,14 @@ class AutenticacaoController extends Controller
      */
     public function exibirLogin(): void
     {
+        $erros = [];
+
+        if (($_GET['motivo'] ?? '') === 'conta_inativa') {
+            $erros['geral'] = 'Sua conta está desativada ou foi bloqueada. Entre em contato com o suporte.';
+        }
+
         $this->view('autenticacao/login', [
+            'erros' => $erros,
         ]);
     }
 

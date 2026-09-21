@@ -4,6 +4,7 @@ namespace app\core;
 
 use app\models\Usuario;
 use app\services\AdvertenciaService;
+use app\services\UsuarioService;
 
 class Controller
 {
@@ -62,6 +63,20 @@ class Controller
             $this->redirect(URL_BASE . '/login');
             exit;
         }
+
+        // RN04: a conta é conferida no banco a cada requisição. Bloqueada, desativada ou removida
+        // depois do login, a sessão é encerrada. O usuário da sessão também é atualizado, então
+        // papéis alterados passam a valer sem novo login.
+        $atual = (new UsuarioService())->buscarPorId($_SESSION['usuario_logado']->getIdUsuario());
+
+        if ($atual === null || !$atual->isAtivo()) {
+            $_SESSION = [];
+            session_destroy();
+            $this->redirect(URL_BASE . '/login?motivo=conta_inativa');
+            exit;
+        }
+
+        $_SESSION['usuario_logado'] = $atual;
     }
 
     /**
