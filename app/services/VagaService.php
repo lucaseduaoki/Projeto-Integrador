@@ -34,7 +34,8 @@ class VagaService
         ?string $horario = null,
         string $tipoServico = 'FIXO',
         ?string $duracao = null,
-        ?string $observacoes = null
+        ?string $observacoes = null,
+        ?string $dataServico = null
     ): int {
 
         $vaga = new Vaga(
@@ -51,7 +52,8 @@ class VagaService
             horario: $horario,
             tipoServico: $tipoServico,
             duracao: $duracao,
-            observacoes: $observacoes
+            observacoes: $observacoes,
+            dataServico: $dataServico
         );
 
         return $this->repository->criar($vaga);

@@ -126,6 +126,12 @@ $totalResultados = $totalResultados ?? count($vagas);
             <!-- Resultados (3/4) -->
             <div class="lg:col-span-3">
                 
+                <?php if (!empty($erros)): ?>
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded text-sm mb-4">
+                        <?= htmlspecialchars(implode(' ', $erros), ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Header com Ordenação -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
                     <h2 class="text-xl font-bold text-gray-900">

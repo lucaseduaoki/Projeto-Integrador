@@ -88,6 +88,9 @@ CREATE TABLE vaga (
 
     data_limite DATE,
 
+    -- dia em que o serviço acontece (data_limite é só o prazo opcional de candidatura)
+    data_servico DATE NULL,
+
     horario TIME NULL,
 
     tipo_servico ENUM('FIXO','TEMPORARIO') NOT NULL DEFAULT 'FIXO',
@@ -186,6 +189,9 @@ ON vaga(status);
 
 CREATE INDEX idx_vaga_contratante
 ON vaga(id_contratante);
+
+CREATE INDEX idx_vaga_data_servico
+ON vaga(data_servico);
 
 CREATE INDEX idx_interesse_vaga
 ON interesse(id_vaga);

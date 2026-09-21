@@ -103,6 +103,12 @@ $isProprietario =
                             <p class="text-xs text-gray-600 uppercase font-semibold">Remuneração</p>
                             <p class="text-gray-900 font-semibold">R$ <?= $remuneracao ?></p>
                         </div>
+                        <?php if ($vaga->getDataServico()): ?>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase font-semibold">Data do serviço</p>
+                            <p class="text-gray-900 font-medium"><?= date('d/m/Y', strtotime($vaga->getDataServico())) ?></p>
+                        </div>
+                        <?php endif; ?>
                         <div>
                             <p class="text-xs text-gray-600 uppercase font-semibold">Tipo de serviço</p>
                             <p class="text-gray-900 font-medium"><?= $vaga->isTemporario() ? 'Temporário' : 'Fixo' ?></p>

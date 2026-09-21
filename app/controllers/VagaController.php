@@ -106,12 +106,26 @@ class VagaController extends Controller
             $filtros['tipo_servico'] = $tipoServico;
         }
 
+        // Data a partir de: formato válido ou ignorada, com aviso
+        $erros = [];
+        $dataFrom = trim((string)($_GET['data_from'] ?? ''));
+        if ($dataFrom !== '') {
+            $validador = new Validador();
+            $validador->dataValida('data_from', $dataFrom, false, 'A data do filtro é inválida e foi ignorada.');
+            if ($validador->temErros()) {
+                $erros = $validador->getErros();
+            } else {
+                $filtros['data_from'] = $dataFrom;
+            }
+        }
+
         $vagas = $this->vagaService->buscar($filtros);
 
         $this->view('vaga/vaga_busca', [
             'vagas' => $vagas,
             'usuario' => $this->usuarioLogado(),
             'filtros' => $_GET,
+            'erros' => $erros,
             'totalResultados' => count($vagas)
         ]);
     }
@@ -145,6 +159,7 @@ public function criar(): void
     $localizacao = trim($_POST['localizacao'] ?? '');
     $remuneracao = $_POST['remuneracao'] ?? null;
     $dataLimite = $_POST['data_limite'] ?? null;
+    $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
     $tipoServico = trim($_POST['tipo_servico'] ?? '');
     $duracao = trim($_POST['duracao'] ?? '');
@@ -157,6 +172,7 @@ public function criar(): void
         ->obrigatorio('titulo', $titulo)
         ->obrigatorio('descricao', $descricao)
         ->obrigatorio('id_categoria', $idCategoria)
+        ->dataValida('data_servico', $dataServico, false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
         ->obrigatorio('horario', $horario, 'Informe o horário (hh:mm).')
         ->horaValida('horario', $horario, 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('tipo_servico', $tipoServico, 'Selecione o tipo de serviço (fixo ou temporário).')
@@ -191,7 +207,8 @@ public function criar(): void
             $horario,
             $tipoServico,
             $duracao ?: null,
-            $observacoes ?: null
+            $observacoes ?: null,
+            $dataServico ?: null
         );
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $id);
@@ -270,6 +287,7 @@ public function editar(): void
     $localizacao = trim($_POST['localizacao'] ?? '');
     $remuneracao = $_POST['remuneracao'] ?? null;
     $dataLimite = $_POST['data_limite'] ?? null;
+    $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
     $tipoServico = trim($_POST['tipo_servico'] ?? '');
     $duracao = trim($_POST['duracao'] ?? '');
@@ -282,6 +300,7 @@ public function editar(): void
         ->obrigatorio('titulo', $titulo)
         ->obrigatorio('descricao', $descricao)
         ->obrigatorio('id_categoria', $idCategoria)
+        ->dataValida('data_servico', $dataServico, false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
         ->obrigatorio('horario', $horario, 'Informe o horário (hh:mm).')
         ->horaValida('horario', $horario, 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('tipo_servico', $tipoServico, 'Selecione o tipo de serviço (fixo ou temporário).')
@@ -318,6 +337,7 @@ public function editar(): void
         $vaga->setTipoServico($tipoServico);
         $vaga->setDuracao($duracao ?: null);
         $vaga->setObservacoes($observacoes ?: null);
+        $vaga->setDataServico($dataServico ?: null);
 
         $vaga->setIdCategoria($idCategoria);
 

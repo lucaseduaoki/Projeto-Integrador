@@ -21,6 +21,7 @@ class Vaga
     private string $tipoServico = 'FIXO';
     private ?string $duracao = null;
     private ?string $observacoes = null;
+    private ?string $dataServico = null;
 
 public function __construct(
     int $idVaga,
@@ -39,7 +40,8 @@ public function __construct(
     ?string $horario = null,
     string $tipoServico = 'FIXO',
     ?string $duracao = null,
-    ?string $observacoes = null
+    ?string $observacoes = null,
+    ?string $dataServico = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -58,6 +60,7 @@ public function __construct(
         $this->tipoServico = $tipoServico;
         $this->duracao = $duracao;
         $this->observacoes = $observacoes;
+        $this->dataServico = $dataServico;
     }
 
     public static function arrayParaObjeto(array $dados): Vaga
@@ -79,7 +82,8 @@ public function __construct(
             isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null,
             $dados['tipo_servico'] ?? 'FIXO',
             $dados['duracao'] ?? null,
-            $dados['observacoes'] ?? null
+            $dados['observacoes'] ?? null,
+            $dados['data_servico'] ?? null
         );
     }
 
@@ -167,6 +171,16 @@ public function __construct(
     public function setDuracao(?string $duracao): void
     {
         $this->duracao = $duracao;
+    }
+
+    public function getDataServico(): ?string
+    {
+        return $this->dataServico;
+    }
+
+    public function setDataServico(?string $dataServico): void
+    {
+        $this->dataServico = $dataServico;
     }
 
     public function getObservacoes(): ?string
@@ -267,7 +281,8 @@ public function __construct(
             'horario' => $this->horario,
             'tipoServico' => $this->tipoServico,
             'duracao' => $this->duracao,
-            'observacoes' => $this->observacoes
+            'observacoes' => $this->observacoes,
+            'dataServico' => $this->dataServico
         ];
     }
 

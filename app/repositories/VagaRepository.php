@@ -37,7 +37,8 @@ return new Vaga(
     isset($row['horario']) ? substr($row['horario'], 0, 5) : null,
     $row['tipo_servico'] ?? 'FIXO',
     $row['duracao'] ?? null,
-    $row['observacoes'] ?? null
+    $row['observacoes'] ?? null,
+    $row['data_servico'] ?? null
 );
     }
 
@@ -140,6 +141,11 @@ $sql = "
             $params['localizacao'] = "%{$filtros['localizacao']}%";
         }
 
+        if (($filtros['data_from'] ?? '') !== '') {
+            $sql .= " AND data_servico >= :data_from";
+            $params['data_from'] = $filtros['data_from'];
+        }
+
         if (($filtros['tipo_servico'] ?? '') !== '') {
             $sql .= " AND tipo_servico = :tipo_servico";
             $params['tipo_servico'] = $filtros['tipo_servico'];
@@ -176,6 +182,7 @@ $sql = "
                 localizacao,
                 remuneracao,
                 data_limite,
+                data_servico,
                 horario,
                 tipo_servico,
                 duracao,
@@ -192,6 +199,7 @@ $sql = "
                 :localizacao,
                 :remuneracao,
                 :data_limite,
+                :data_servico,
                 :horario,
                 :tipo_servico,
                 :duracao,
@@ -210,6 +218,7 @@ $sql = "
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
+        $stmt->bindValue(':data_servico', $vaga->getDataServico());
         $stmt->bindValue(':horario', $vaga->getHorario());
         $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
@@ -232,6 +241,7 @@ $sql = "
                 localizacao = :localizacao,
                 remuneracao = :remuneracao,
                 data_limite = :data_limite,
+                data_servico = :data_servico,
                 horario = :horario,
                 tipo_servico = :tipo_servico,
                 duracao = :duracao,
@@ -249,6 +259,7 @@ $sql = "
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
+        $stmt->bindValue(':data_servico', $vaga->getDataServico());
         $stmt->bindValue(':horario', $vaga->getHorario());
         $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
