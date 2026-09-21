@@ -132,6 +132,8 @@ class UsuarioService
     // Foto de perfil: só estes tipos (detectados pelo conteúdo) e até 2 MB
     private const FOTO_TIPOS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif'];
     private const FOTO_TAMANHO_MAX = 2 * 1024 * 1024;
+    private const FOTO_LADO_MAX = 4096;
+    private const FOTO_PIXELS_MAX = 12000000;
     private const FOTO_PASTA = 'uploads/perfis/';
 
     /**
@@ -157,14 +159,29 @@ class UsuarioService
             throw new Exception('Arquivo de foto inválido.');
         }
 
-        if (filesize($temporario) > self::FOTO_TAMANHO_MAX) {
+        $tamanho = filesize($temporario);
+
+        if ($tamanho === 0) {
+            throw new Exception('O arquivo enviado está vazio.');
+        }
+
+        if ($tamanho > self::FOTO_TAMANHO_MAX) {
             throw new Exception('A foto deve ter no máximo 2 MB.');
         }
 
         $tipo = (new \finfo(FILEINFO_MIME_TYPE))->file($temporario);
 
-        if (!isset(self::FOTO_TIPOS[$tipo]) || @getimagesize($temporario) === false) {
+        $dimensoes = @getimagesize($temporario);
+
+        if (!isset(self::FOTO_TIPOS[$tipo]) || $dimensoes === false) {
             throw new Exception('Formato inválido. Envie uma imagem JPG, PNG ou GIF.');
+        }
+
+        // Limites de dimensão: evitam imagens gigantes que estouram memória ao serem exibidas/processadas
+        [$largura, $altura] = $dimensoes;
+
+        if ($largura > self::FOTO_LADO_MAX || $altura > self::FOTO_LADO_MAX || $largura * $altura > self::FOTO_PIXELS_MAX) {
+            throw new Exception('A foto é grande demais: use até 4096 x 4096 pixels (12 megapixels).');
         }
 
         // Sem GD não dá para recodificar a imagem; barra o polyglot mais comum (imagem válida com PHP anexado).
