@@ -79,6 +79,10 @@ include __DIR__ . '/../shared/navbar.php';
                             </th>
 
                             <th class="px-6 py-3 text-left">
+                                Telefone
+                            </th>
+
+                            <th class="px-6 py-3 text-left">
                                 Data
                             </th>
 
@@ -160,7 +164,9 @@ include __DIR__ . '/../shared/navbar.php';
 
                             </td>
 
-
+                            <td class="px-6 py-4 text-gray-600">
+                                <?= htmlspecialchars($interesse->getTelefoneTrabalhador() ?? 'N/A', ENT_QUOTES, 'UTF-8') ?>
+                            </td>
 
                             <td class="px-6 py-4 text-gray-600">
 
