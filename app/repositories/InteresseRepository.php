@@ -17,7 +17,7 @@ class InteresseRepository
 
     public function buscarPorId(int $id): ?Interesse
     {
-        $sql = "SELECT * FROM interesse WHERE id_interesse = :id";
+        $sql = "SELECT * FROM candidatura WHERE id_candidatura = :id";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -30,10 +30,8 @@ class InteresseRepository
 
     public function buscarPorVagaETrabalhador(int $idVaga, int $idTrabalhador): ?Interesse
     {
-        error_log("Buscando interesse para vaga ID: $idVaga e trabalhador ID: $idTrabalhador");
-
         $sql = "SELECT *
-                FROM interesse
+                FROM candidatura
                 WHERE id_vaga = :vaga
                 AND id_trabalhador = :trabalhador";
 
@@ -44,9 +42,6 @@ class InteresseRepository
 
         $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        error_log("TODOS OS INTERESSES:");
-        error_log(print_r($resultado, true));
-
         if (!empty($resultado)) {
             return Interesse::arrayParaObjeto($resultado[0]);
         }
@@ -55,31 +50,30 @@ class InteresseRepository
     }
 
     public function listarContatosAceitos(int $idVaga): array
-{
-    $sql = "
-        SELECT
-            u.nome,
-            u.email,
-            u.telefone
-        FROM interesse i
-        INNER JOIN usuario u
-            ON u.id_usuario = i.id_trabalhador
-        WHERE i.id_vaga = :vaga
-          AND i.status = 'ACEITO'
-        ORDER BY u.nome
-    ";
+    {
+        $sql = "
+            SELECT
+                u.nome,
+                u.email,
+                u.telefone
+            FROM candidatura i
+            INNER JOIN usuario u
+                ON u.id_usuario = i.id_trabalhador
+            WHERE i.id_vaga = :vaga
+              AND i.status = 'ACEITO'
+            ORDER BY u.nome
+        ";
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
-    $stmt->execute();
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     public function criar(Interesse $interesse): int
     {
-        error_log("Chegou no repository criar com os valores: vaga=" . $interesse->getIdVaga() . ", trabalhador=" . $interesse->getIdTrabalhador() . ", status=" . $interesse->getStatus() . ", data=" . $interesse->getDataInteresse()); // Log the values being inserted
-        $sql = "INSERT INTO interesse (id_vaga, id_trabalhador, status, data_interesse)
+        $sql = "INSERT INTO candidatura (id_vaga, id_trabalhador, status, data_candidatura)
                 VALUES (:vaga, :trabalhador, :status, :data)";
 
         $stmt = $this->conn->prepare($sql);
@@ -94,27 +88,16 @@ class InteresseRepository
 
 
 
-
-
-
-        $stmt = $this->conn->query(
-    "SELECT * FROM interesse ORDER BY id_interesse DESC LIMIT 1"
-);
-        error_log("aqui está o id do interesse criado: " . $id); // Log the last inserted ID
-
-
         return $id;
-
     }
 
     public function listarPorVaga(int $idVaga): array
     {
-        // Traz só o nome do trabalhador: e-mail e telefone ficam ocultos até a seleção (RN10)
         $sql = "SELECT i.*, u.nome AS nome_trabalhador
-                FROM interesse i
+                FROM candidatura i
                 INNER JOIN usuario u ON u.id_usuario = i.id_trabalhador
                 WHERE i.id_vaga = :vaga
-                ORDER BY i.data_interesse ASC";
+                ORDER BY i.data_candidatura ASC";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
@@ -131,10 +114,10 @@ class InteresseRepository
     public function listarAceitos(int $idVaga): array
     {
         $sql = "SELECT *
-                FROM interesse
+                FROM candidatura
                 WHERE id_vaga = :vaga
                 AND status = 'ACEITO'
-                ORDER BY data_interesse";
+                ORDER BY data_candidatura";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
@@ -151,7 +134,7 @@ class InteresseRepository
     public function contarAceitos(int $idVaga): int
     {
         $sql = "SELECT COUNT(*) AS total
-                FROM interesse
+                FROM candidatura
                 WHERE id_vaga = :vaga
                 AND status = 'ACEITO'";
 
@@ -164,9 +147,9 @@ class InteresseRepository
 
     public function aceitar(int $idInteresse): bool
     {
-        $sql = "UPDATE interesse
+        $sql = "UPDATE candidatura
                 SET status = 'ACEITO'
-                WHERE id_interesse = :id";
+                WHERE id_candidatura = :id";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $idInteresse, PDO::PARAM_INT);
@@ -177,8 +160,8 @@ class InteresseRepository
     public function remover(int $idInteresse): bool
     {
         $sql = "DELETE
-                FROM interesse
-                WHERE id_interesse = :id";
+                FROM candidatura
+                WHERE id_candidatura = :id";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $idInteresse, PDO::PARAM_INT);
@@ -189,9 +172,9 @@ class InteresseRepository
     public function listarPorTrabalhador(int $idTrabalhador): array
     {
         $sql = "SELECT *
-                FROM interesse
+                FROM candidatura
                 WHERE id_trabalhador = :trabalhador
-                ORDER BY data_interesse DESC";
+                ORDER BY data_candidatura DESC";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':trabalhador', $idTrabalhador, PDO::PARAM_INT);

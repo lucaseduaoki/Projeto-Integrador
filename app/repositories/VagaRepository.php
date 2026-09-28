@@ -49,10 +49,10 @@ return new Vaga(
             SELECT
                 v.*,
                 c.nome AS categoria_nome,
-                COUNT(i.id_interesse) AS total_aceitos
+                COUNT(i.id_candidatura) AS total_aceitos
             FROM vaga v
             INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-            LEFT JOIN interesse i
+            LEFT JOIN candidatura i
                 ON i.id_vaga = v.id_vaga
             AND i.status = 'ACEITO'
             WHERE v.id_vaga = :id
@@ -96,20 +96,20 @@ return new Vaga(
 
     public function listarPorContratante(int $idContratante): array
     {
-$sql = "
-    SELECT
-        v.*,
-        c.nome AS categoria_nome,
-        COUNT(i.id_interesse) AS total_aceitos
-    FROM vaga v
-    INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-    LEFT JOIN interesse i
-        ON i.id_vaga = v.id_vaga
-       AND i.status = 'ACEITO'
-    WHERE v.id_contratante = :id
-    GROUP BY v.id_vaga
-    ORDER BY v.data_publicacao DESC
-";
+        $sql = "
+            SELECT
+                v.*,
+                c.nome AS categoria_nome,
+                COUNT(i.id_candidatura) AS total_aceitos
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
+            LEFT JOIN candidatura i
+                ON i.id_vaga = v.id_vaga
+               AND i.status = 'ACEITO'
+            WHERE v.id_contratante = :id
+            GROUP BY v.id_vaga
+            ORDER BY v.data_publicacao DESC
+        ";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $idContratante, PDO::PARAM_INT);
@@ -163,8 +163,6 @@ $sql = "
         if (isset($filtros['remuneracao_max'])) {
             $sql .= " AND remuneracao <= :remuneracao_max";
             $params['remuneracao_max'] = $filtros['remuneracao_max'];
-        }
-
         }
 
         $sql .= " ORDER BY data_publicacao DESC";
