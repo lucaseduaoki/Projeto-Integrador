@@ -167,6 +167,9 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                         </div>
                         <h3 class="font-bold text-gray-900"><?= htmlspecialchars($contratante->getNome(), ENT_QUOTES, 'UTF-8') ?></h3>
                         <p class="text-sm text-gray-600">Contratante</p>
+                        <a href="<?= URL_BASE ?>/perfil/ver?id=<?= $contratante->getIdUsuario() ?>" class="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block">
+                            Ver perfil
+                        </a>
                     </div>
 
                     <!-- Ação Principal -->
