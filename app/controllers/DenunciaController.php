@@ -133,24 +133,24 @@ class DenunciaController extends Controller
     }
 
     /**
-     * Formulário de registro de não comparecimento (RN17): ?id=<interesse>.
+     * Formulário de registro de não comparecimento (RN16): ?id=<candidatura>.
      */
     public function exibirFormNaoComparecimento(): void
     {
         $this->contratanteRequired();
 
-        $idInteresse = (int)($_GET['id'] ?? 0);
+        $idCandidatura = (int)($_GET['id'] ?? 0);
 
         try {
-            $interesse = $this->service->validarNaoComparecimento($idInteresse, $this->usuarioLogado()->getIdUsuario());
+            $candidatura = $this->service->validarNaoComparecimento($idCandidatura, $this->usuarioLogado()->getIdUsuario());
         } catch (\Exception $e) {
             $this->redirect(URL_BASE . '/vagas/minhas');
         }
 
         $this->view('denuncia/nao_comparecimento', [
-            'interesse' => $interesse,
-            'trabalhador' => $this->usuarioService->buscarPorId($interesse->getIdTrabalhador()),
-            'vaga' => $this->vagaService->buscarPorId($interesse->getIdVaga()),
+            'candidatura' => $candidatura,
+            'trabalhador' => $this->usuarioService->buscarPorId($candidatura->getIdTrabalhador()),
+            'vaga' => $this->vagaService->buscarPorId($candidatura->getIdVaga()),
         ]);
     }
 
@@ -171,15 +171,15 @@ class DenunciaController extends Controller
                   ->tamanhoMax('descricao', $descricao, 1000, 'A descrição deve ter no máximo 1000 caracteres.');
 
         try {
-            $interesse = $this->service->validarNaoComparecimento($idInteresse, $usuario->getIdUsuario());
+            $candidatura = $this->service->validarNaoComparecimento($idInteresse, $usuario->getIdUsuario());
         } catch (\Exception $e) {
             $this->redirect(URL_BASE . '/vagas/minhas');
         }
 
         $dadosForm = [
-            'interesse' => $interesse,
-            'trabalhador' => $this->usuarioService->buscarPorId($interesse->getIdTrabalhador()),
-            'vaga' => $this->vagaService->buscarPorId($interesse->getIdVaga()),
+            'candidatura' => $candidatura,
+            'trabalhador' => $this->usuarioService->buscarPorId($candidatura->getIdTrabalhador()),
+            'vaga' => $this->vagaService->buscarPorId($candidatura->getIdVaga()),
         ];
 
         if ($validador->temErros()) {

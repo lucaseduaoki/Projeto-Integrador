@@ -310,7 +310,7 @@ return new Vaga(
     public function possuiCandidaturas(int $idVaga): bool
     {
         $stmt = $this->conn->prepare(
-            "SELECT COUNT(*) FROM interesse WHERE id_vaga = :id"
+            "SELECT COUNT(*) FROM candidatura WHERE id_vaga = :id"
         );
 
         $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);

@@ -85,11 +85,11 @@ class CandidaturaController extends Controller
             return;
         }
 
-        $interessados = $this->service->listarInteressados($idVaga);
+        $candidatos = $this->service->listarInteressados($idVaga);
 
         $this->view('interesse/candidatos_list', [
             'vaga' => $vaga,
-            'interessados' => $interessados,
+            'interessados' => $candidatos,
             'usuario' => $usuario
         ]);
     }
@@ -105,18 +105,18 @@ public function aceitar(): void
     $usuario = $this->usuarioLogado();
 
     try {
-        $interesse = $this->service->buscarPorId($idInteresse);
-        if (!$interesse) {
+        $candidatura = $this->service->buscarPorId($idInteresse);
+        if (!$candidatura) {
             throw new \Exception('Candidatura não encontrada.');
         }
 
-        $vaga = $this->vagaService->buscarPorId($interesse->getIdVaga());
+        $vaga = $this->vagaService->buscarPorId($candidatura->getIdVaga());
         if (!$vaga) {
             throw new \Exception('Vaga não encontrada.');
         }
 
         // RN 10: Validar aceitação (não exceder limite)
-        $this->validador->validarAceitacaoCandidato($vaga, $interesse->getIdTrabalhador());
+        $this->validador->validarAceitacaoCandidato($vaga, $candidatura->getIdTrabalhador());
 
         $this->service->aceitarInteressado(
             $idInteresse,
@@ -169,10 +169,10 @@ public function listarAceitos(): void
     {
         $this->contratanteRequired();
 
-        $interesse = $this->service->buscarPorId((int)($_GET['id'] ?? 0));
-        $vaga = $interesse ? $this->vagaService->buscarPorId($interesse->getIdVaga()) : null;
+        $candidatura = $this->service->buscarPorId((int)($_GET['id'] ?? 0));
+        $vaga = $candidatura ? $this->vagaService->buscarPorId($candidatura->getIdVaga()) : null;
 
-        if (!$interesse || !$vaga) {
+        if (!$candidatura || !$vaga) {
             $this->redirect(URL_BASE . '/vagas/minhas');
             return;
         }
@@ -183,12 +183,12 @@ public function listarAceitos(): void
             return;
         }
 
-        $trabalhador = $this->usuarioService->buscarPorId($interesse->getIdTrabalhador());
+        $trabalhador = $this->usuarioService->buscarPorId($candidatura->getIdTrabalhador());
 
         $this->view('usuario/perfil_candidato', [
             'trabalhador' => $trabalhador,
-            'habilidades' => $this->usuarioService->buscarHabilidades($interesse->getIdTrabalhador()),
-            'interesse' => $interesse,
+            'habilidades' => $this->usuarioService->buscarHabilidades($candidatura->getIdTrabalhador()),
+            'interesse' => $candidatura,
             'vaga' => $vaga,
         ]);
     }
@@ -208,21 +208,21 @@ public function listarAceitos(): void
             return;
         }
 
-        $interesse = $this->service->buscarPorId($idInteresse);
+        $candidatura = $this->service->buscarPorId($idInteresse);
 
-        if (!$interesse) {
+        if (!$candidatura) {
             $this->redirect(URL_BASE . '/candidatura/historico');
             return;
         }
 
         // RN 14: Trabalhador só vê suas próprias candidaturas
-        if ($interesse->getIdTrabalhador() !== $usuario->getIdUsuario()) {
+        if ($candidatura->getIdTrabalhador() !== $usuario->getIdUsuario()) {
             $this->redirect(URL_BASE . '/403');
             return;
         }
 
         $this->view('interesse/visualizar_historico', [
-            'interesse' => $interesse,
+            'interesse' => $candidatura,
             'usuario' => $usuario
         ]);
     }
@@ -237,11 +237,11 @@ public function listarAceitos(): void
         $usuario = $this->usuarioLogado();
         $interesses = $this->service->listarHistorico($usuario->getIdUsuario());
 
-        $candidaturas = array_map(function ($interesse) {
+        $candidaturas = array_map(function ($candidatura) {
             return [
-                'candidatura' => $interesse,
-                'vaga' => $this->vagaService->buscarPorId($interesse->getIdVaga()),
-                'contratante' => $this->vagaService->buscarContratantePorVaga($interesse->getIdVaga())
+                'candidatura' => $candidatura,
+                'vaga' => $this->vagaService->buscarPorId($candidatura->getIdVaga()),
+                'contratante' => $this->vagaService->buscarContratantePorVaga($candidatura->getIdVaga())
             ];
         }, $interesses);
 
