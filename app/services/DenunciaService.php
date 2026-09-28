@@ -203,7 +203,7 @@ class DenunciaService
     /**
      * Moderar denúncia (admin) - bloquear a conta do usuário atingido
      */
-    public function bloquearPorDenuncia(int $idDenuncia): bool
+    public function bloquearPorDenuncia(int $idDenuncia, int $idAdmin): bool
     {
         $denuncia = $this->denunciaPendente($idDenuncia);
 
@@ -212,7 +212,7 @@ class DenunciaService
 
         try {
             $this->usuarioRepository->bloquear($this->usuarioAlvo($denuncia));
-            $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO');
+            $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO', $idAdmin);
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
@@ -226,7 +226,7 @@ class DenunciaService
      * Moderar denúncia de anúncio (admin): oculta ou remove o anúncio, sem apagá-lo (RN14).
      * $visibilidade: 'OCULTA' ou 'REMOVIDA'.
      */
-    public function moderarAnuncio(int $idDenuncia, string $visibilidade): bool
+    public function moderarAnuncio(int $idDenuncia, string $visibilidade, int $idAdmin): bool
     {
         $acoes = ['OCULTA' => 'ANUNCIO_OCULTO', 'REMOVIDA' => 'ANUNCIO_REMOVIDO'];
 
@@ -245,7 +245,7 @@ class DenunciaService
 
         try {
             $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), $visibilidade);
-            $this->repository->registrarModeracao($idDenuncia, $acoes[$visibilidade]);
+            $this->repository->registrarModeracao($idDenuncia, $acoes[$visibilidade], $idAdmin);
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
@@ -258,11 +258,11 @@ class DenunciaService
     /**
      * Moderar denúncia (admin) - apenas marcar como analisada, sem sanção
      */
-    public function analisar(int $idDenuncia): bool
+    public function analisar(int $idDenuncia, int $idAdmin): bool
     {
         $this->denunciaPendente($idDenuncia);
 
-        return $this->repository->registrarModeracao($idDenuncia, 'NENHUMA');
+        return $this->repository->registrarModeracao($idDenuncia, 'NENHUMA', $idAdmin);
     }
 
     /**

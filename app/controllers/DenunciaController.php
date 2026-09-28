@@ -229,6 +229,7 @@ class DenunciaController extends Controller
 
         $idDenuncia = (int)($_POST['id'] ?? 0);
         $acao = htmlspecialchars(trim($_POST['acao'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $idAdmin = $this->usuarioLogado()->getIdUsuario();
 
         if ($idDenuncia <= 0 || !in_array($acao, ['bloquear', 'analisar', 'ocultar', 'remover'], true)) {
             $this->redirect(URL_BASE . '/admin/denuncias');
@@ -236,11 +237,11 @@ class DenunciaController extends Controller
 
         try {
             if ($acao === 'bloquear') {
-                $this->service->bloquearPorDenuncia($idDenuncia);
+                $this->service->bloquearPorDenuncia($idDenuncia, $idAdmin);
             } elseif ($acao === 'ocultar' || $acao === 'remover') {
-                $this->service->moderarAnuncio($idDenuncia, $acao === 'ocultar' ? 'OCULTA' : 'REMOVIDA');
+                $this->service->moderarAnuncio($idDenuncia, $acao === 'ocultar' ? 'OCULTA' : 'REMOVIDA', $idAdmin);
             } else {
-                $this->service->analisar($idDenuncia);
+                $this->service->analisar($idDenuncia, $idAdmin);
             }
 
             $this->redirect(URL_BASE . '/admin/denuncias?status=pendentes');

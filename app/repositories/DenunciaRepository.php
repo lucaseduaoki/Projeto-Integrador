@@ -111,13 +111,14 @@ class DenunciaRepository
     /**
      * Fecha a denúncia registrando a decisão da moderação. Só age em denúncia ainda pendente.
      */
-    public function registrarModeracao(int $idDenuncia, string $acao): bool
+    public function registrarModeracao(int $idDenuncia, string $acao, int $idAdmin): bool
     {
-        $sql = "UPDATE denuncia SET status = 'ANALISADA', acao_moderacao = :acao
+        $sql = "UPDATE denuncia SET status = 'ANALISADA', acao_moderacao = :acao, id_admin = :idAdmin, analisada_em = NOW()
                 WHERE id_denuncia = :id AND status = 'PENDENTE'";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $idDenuncia, PDO::PARAM_INT);
         $stmt->bindValue(':acao', $acao, PDO::PARAM_STR);
+        $stmt->bindValue(':idAdmin', $idAdmin, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->rowCount() > 0;
