@@ -35,7 +35,6 @@ return new Vaga(
     isset($row['total_aceitos']) ? (int)$row['total_aceitos'] : 0,
     (bool)($row['is_user_active'] ?? true),
     isset($row['horario']) ? substr($row['horario'], 0, 5) : null,
-    $row['tipo_servico'] ?? 'FIXO',
     $row['duracao'] ?? null,
     $row['observacoes'] ?? null,
     $row['data_servico'] ?? null,
@@ -126,7 +125,6 @@ $sql = "
     }
 
     /**
-     * Busca vagas ativas. Filtros aceitos (todos opcionais): titulo, localizacao, tipo_servico,
      * data_from, remuneracao_min, remuneracao_max. Vagas sem remuneração ficam fora quando há filtro de valor.
      */
     public function buscar(array $filtros = []): array
@@ -167,9 +165,6 @@ $sql = "
             $params['remuneracao_max'] = $filtros['remuneracao_max'];
         }
 
-        if (($filtros['tipo_servico'] ?? '') !== '') {
-            $sql .= " AND tipo_servico = :tipo_servico";
-            $params['tipo_servico'] = $filtros['tipo_servico'];
         }
 
         $sql .= " ORDER BY data_publicacao DESC";
@@ -205,7 +200,6 @@ $sql = "
                 data_limite,
                 data_servico,
                 horario,
-                tipo_servico,
                 duracao,
                 observacoes,
                 trabalhadores_limite,
@@ -222,7 +216,6 @@ $sql = "
                 :data_limite,
                 :data_servico,
                 :horario,
-                :tipo_servico,
                 :duracao,
                 :observacoes,
                 :trabalhadores_limite,
@@ -241,7 +234,6 @@ $sql = "
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
         $stmt->bindValue(':data_servico', $vaga->getDataServico());
         $stmt->bindValue(':horario', $vaga->getHorario());
-        $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
         $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
@@ -264,7 +256,6 @@ $sql = "
                 data_limite = :data_limite,
                 data_servico = :data_servico,
                 horario = :horario,
-                tipo_servico = :tipo_servico,
                 duracao = :duracao,
                 observacoes = :observacoes,
                 trabalhadores_limite = :trabalhadores_limite
@@ -282,7 +273,6 @@ $sql = "
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
         $stmt->bindValue(':data_servico', $vaga->getDataServico());
         $stmt->bindValue(':horario', $vaga->getHorario());
-        $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
         $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);

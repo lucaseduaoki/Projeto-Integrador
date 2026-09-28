@@ -110,9 +110,6 @@ class VagaController extends Controller
         ];
 
         // Tipo de serviço: só aceita os valores do domínio, qualquer outro é ignorado
-        $tipoServico = trim((string)($_GET['tipo_servico'] ?? ''));
-        if (in_array($tipoServico, ['FIXO', 'TEMPORARIO'], true)) {
-            $filtros['tipo_servico'] = $tipoServico;
         }
 
         // Data a partir de: formato válido ou ignorada, com aviso
@@ -199,18 +196,15 @@ public function criar(): void
     $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
-    $tipoServico = trim($_POST['tipo_servico'] ?? '');
     $duracao = trim($_POST['duracao'] ?? '');
     $observacoes = trim($_POST['observacoes'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = $this->validarDadosVaga(compact(
         'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
-        'dataServico', 'horario', 'tipoServico', 'duracao', 'observacoes'
     ));
 
     // Serviço fixo não tem duração
-    if ($tipoServico !== 'TEMPORARIO') {
         $duracao = '';
     }
 
@@ -233,7 +227,6 @@ public function criar(): void
             $dataLimite ?: null,
             (int)$trabalhadoresLimite,
             $horario,
-            $tipoServico,
             $duracao ?: null,
             $observacoes ?: null,
             $dataServico ?: null
@@ -271,8 +264,6 @@ private function validarDadosVaga(array $d): Validador
         ->dataValida('data_limite', $d['dataLimite'], false, 'O prazo para candidatura deve ser uma data válida (aaaa-mm-dd).')
         ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
         ->horaValida('horario', $d['horario'], 'O horário deve estar no formato hh:mm.')
-        ->obrigatorio('tipo_servico', $d['tipoServico'], 'Selecione o tipo de serviço (fixo ou temporário).')
-        ->emLista('tipo_servico', $d['tipoServico'], ['FIXO', 'TEMPORARIO'], 'Tipo de serviço inválido: escolha fixo ou temporário.')
         ->tamanhoMax('duracao', $d['duracao'], 50, 'A duração deve ter no máximo 50 caracteres.')
         ->tamanhoMax('observacoes', $d['observacoes'], 500, 'As observações devem ter no máximo 500 caracteres.');
 
@@ -291,7 +282,6 @@ private function validarDadosVaga(array $d): Validador
         $validador->tamanhoMinMax('descricao', $d['descricao'], 10, 1000, 'A descrição deve ter entre 10 e 1000 caracteres.');
     }
 
-    if ($d['tipoServico'] === 'TEMPORARIO') {
         $validador->obrigatorio('duracao', $d['duracao'], 'Informe a duração do serviço temporário (ex.: 3 dias).');
     }
 
@@ -371,7 +361,6 @@ public function editar(): void
     $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
-    $tipoServico = trim($_POST['tipo_servico'] ?? '');
     $duracao = trim($_POST['duracao'] ?? '');
     $observacoes = trim($_POST['observacoes'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
@@ -381,11 +370,9 @@ public function editar(): void
 
     $validador = $this->validarDadosVaga(compact(
         'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
-        'dataServico', 'dataServicoAtual', 'horario', 'tipoServico', 'duracao', 'observacoes'
     ));
 
     // Serviço fixo não tem duração
-    if ($tipoServico !== 'TEMPORARIO') {
         $duracao = '';
     }
 
@@ -410,7 +397,6 @@ public function editar(): void
         $vaga->setDataLimite($dataLimite ?: null);
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
         $vaga->setHorario($horario);
-        $vaga->setTipoServico($tipoServico);
         $vaga->setDuracao($duracao ?: null);
         $vaga->setObservacoes($observacoes ?: null);
         $vaga->setDataServico($dataServico ?: null);

@@ -10,7 +10,6 @@ $usuarioLogado = $usuarioLogado ?? null;
 $tituloVaga = $vaga ? $vaga->getTitulo() : 'A vaga selecionada';
 $localizacao = $vaga ? ($vaga->getLocalizacao() ?? 'Não informada') : 'Não informada';
 $remuneracao = $vaga ? 'R$ ' . number_format((float)$vaga->getRemuneracao(), 2, ',', '.') : 'Não informada';
-$tipoServico = $vaga ? ($vaga->getTipoServico() === 'TEMPORARIO' ? 'Temporário' : 'Fixo') : 'Não informado';
 $statusCandidatura = $candidatura ? ucfirst(strtolower($candidatura->getStatus())) : 'Confirmada';
 ?>
 
@@ -47,7 +46,6 @@ $statusCandidatura = $candidatura ? ucfirst(strtolower($candidatura->getStatus()
                     </div>
                     <div class="rounded-md border border-gray-200 p-4">
                         <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Tipo / Valor</p>
-                        <p class="mt-1 text-lg font-semibold text-gray-900"><?= htmlspecialchars($tipoServico, ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($remuneracao, ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                 </div>
 

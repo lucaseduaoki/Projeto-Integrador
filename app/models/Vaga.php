@@ -18,7 +18,6 @@ class Vaga
     private int $totalAceitos = 0;
     private bool $isUserActive = true;
     private ?string $horario = null;
-    private string $tipoServico = 'FIXO';
     private ?string $duracao = null;
     private ?string $observacoes = null;
     private ?string $dataServico = null;
@@ -40,7 +39,6 @@ public function __construct(
     int $totalAceitos = 0,
     bool $isUserActive = true,
     ?string $horario = null,
-    string $tipoServico = 'FIXO',
     ?string $duracao = null,
     ?string $observacoes = null,
     ?string $dataServico = null,
@@ -61,7 +59,6 @@ public function __construct(
         $this->totalAceitos = $totalAceitos;
         $this->isUserActive = $isUserActive;
         $this->horario = $horario;
-        $this->tipoServico = $tipoServico;
         $this->duracao = $duracao;
         $this->observacoes = $observacoes;
         $this->dataServico = $dataServico;
@@ -159,16 +156,6 @@ public function __construct(
     public function getDataPublicacao(): ?string
     {
         return $this->dataPublicacao;
-    }
-
-    public function getTipoServico(): string
-    {
-        return $this->tipoServico;
-    }
-
-    public function setTipoServico(string $tipoServico): void
-    {
-        $this->tipoServico = $tipoServico;
     }
 
     public function getDuracao(): ?string

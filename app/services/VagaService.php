@@ -32,7 +32,6 @@ class VagaService
         ?string $dataLimite = null,
         ?string $trabalhadoresLimite = null,
         ?string $horario = null,
-        string $tipoServico = 'FIXO',
         ?string $duracao = null,
         ?string $observacoes = null,
         ?string $dataServico = null
@@ -50,7 +49,6 @@ class VagaService
             $dataLimite,
             $trabalhadoresLimite,
             horario: $horario,
-            tipoServico: $tipoServico,
             duracao: $duracao,
             observacoes: $observacoes,
             dataServico: $dataServico
@@ -118,14 +116,12 @@ class VagaService
             throw new Exception("Este anúncio foi removido pela moderação e não pode ser editado.");
         }
 
-        // RN18: com candidaturas, a função (título) e o tipo de serviço não podem mudar
         if ($this->repository->possuiCandidaturas($vaga->getIdVaga())) {
             if ($vaga->getTitulo() !== $vagaExistente->getTitulo()) {
                 throw new Exception("Esta vaga já tem candidaturas: a função (título) não pode ser alterada.");
             }
 
             if ($vaga->getTipoServico() !== $vagaExistente->getTipoServico()) {
-                throw new Exception("Esta vaga já tem candidaturas: o tipo de serviço não pode ser alterado.");
             }
         }
 

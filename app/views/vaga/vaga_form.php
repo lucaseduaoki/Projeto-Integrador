@@ -164,33 +164,26 @@ $erros = $erros ?? [];
                         Tipo de serviço
                     </legend>
 
-                    <?php $tipoAtual = $vaga ? $vaga->getTipoServico() : ($_POST['tipo_servico'] ?? ''); ?>
 
                     <?php if ($travado): ?>
                         <!-- radios desabilitados não são enviados: mantém o valor atual -->
-                        <input type="hidden" name="tipo_servico" value="<?= htmlspecialchars($tipoAtual, ENT_QUOTES, 'UTF-8') ?>">
                     <?php endif; ?>
 
                     <div class="flex gap-6">
                         <label class="inline-flex items-center gap-2">
-                            <input type="radio" name="tipo_servico" value="FIXO" required <?= $tipoAtual === 'FIXO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
                             Fixo
                         </label>
                         <label class="inline-flex items-center gap-2">
-                            <input type="radio" name="tipo_servico" value="TEMPORARIO" <?= $tipoAtual === 'TEMPORARIO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
                             Temporário
                         </label>
                     </div>
 
-                    <?php if (isset($erros['tipo_servico'])): ?>
-                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['tipo_servico'], ENT_QUOTES, 'UTF-8') ?></p>
                     <?php endif; ?>
 
                 </fieldset>
 
 
                 <!-- Duração (só para serviço temporário) -->
-                <div id="bloco_duracao" class="<?= $tipoAtual === 'TEMPORARIO' ? '' : 'hidden' ?>">
 
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Duração
@@ -430,9 +423,7 @@ $erros = $erros ?? [];
 
 // Duração só aparece (e só é exigida no HTML) quando o serviço é temporário.
 // A regra de verdade é validada no servidor.
-document.querySelectorAll('input[name=tipo_servico]').forEach(function (radio) {
     radio.addEventListener('change', function () {
-        var temporario = document.querySelector('input[name=tipo_servico]:checked').value === 'TEMPORARIO';
         document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
         document.getElementById('duracao').required = temporario;
     });
@@ -461,7 +452,6 @@ function preencherFormularioTeste() {
 
     document.getElementById('horario').value = '08:00';
 
-    document.querySelector('input[name=tipo_servico][value=FIXO]').checked = true;
 
     document.getElementById('trabalhadores_limite').value =
         '2';
