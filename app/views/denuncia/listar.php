@@ -97,15 +97,6 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                                     <td class="px-6 py-4 text-sm">
                                         <?php if ($statusDenuncia === 'PENDENTE'): ?>
                                             <div class="flex items-start gap-3">
-                                                <details>
-                                                    <summary class="cursor-pointer text-amber-700 hover:text-amber-800 font-medium text-xs">Advertir</summary>
-                                                    <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="mt-2 w-56 space-y-2">
-                                                        <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
-                                                        <input type="hidden" name="acao" value="advertir">
-                                                        <textarea name="mensagem" required minlength="5" maxlength="500" rows="3" placeholder="Mensagem para o advertido" class="w-full border border-gray-300 rounded px-2 py-1 text-xs"></textarea>
-                                                        <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs py-1 px-2 rounded">Enviar advertência</button>
-                                                    </form>
-                                                </details>
                                                 <?php if ($denuncia->getIdVagaDenunciada() !== null && $denuncia->getIdUsuarioDenunciado() === null): ?>
                                                     <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $denuncia->getIdVagaDenunciada() ?>" class="text-gray-600 hover:text-gray-900 font-medium text-xs">Ver anúncio</a>
                                                     <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">

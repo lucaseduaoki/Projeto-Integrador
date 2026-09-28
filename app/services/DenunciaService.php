@@ -4,7 +4,6 @@ namespace app\services;
 
 use app\models\Denuncia;
 use app\database\ConnectionFactory;
-use app\repositories\AdvertenciaRepository;
 use app\repositories\DenunciaRepository;
 use app\repositories\InteresseRepository;
 use app\repositories\UsuarioRepository;
@@ -16,7 +15,6 @@ class DenunciaService
     private DenunciaRepository $repository;
     private UsuarioRepository $usuarioRepository;
     private VagaRepository $vagaRepository;
-    private AdvertenciaRepository $advertenciaRepository;
     private InteresseRepository $interesseRepository;
 
     public function __construct()
@@ -24,7 +22,6 @@ class DenunciaService
         $this->repository = new DenunciaRepository();
         $this->usuarioRepository = new UsuarioRepository();
         $this->vagaRepository = new VagaRepository();
-        $this->advertenciaRepository = new AdvertenciaRepository();
         $this->interesseRepository = new InteresseRepository();
     }
 
@@ -215,40 +212,6 @@ class DenunciaService
         try {
             $this->usuarioRepository->bloquear($this->usuarioAlvo($denuncia));
             $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO');
-            $pdo->commit();
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
-            throw $e;
-        }
-
-        return true;
-    }
-
-    /**
-     * Moderar denúncia (admin) - advertir o usuário atingido (RN14).
-     * A advertência fica registrada e é mostrada ao advertido até ele dispensá-la.
-     */
-    public function advertir(int $idDenuncia, string $mensagem, int $idModerador): bool
-    {
-        $mensagem = trim($mensagem);
-
-        if (mb_strlen($mensagem) < 5 || mb_strlen($mensagem) > 500) {
-            throw new Exception('A mensagem da advertência deve ter entre 5 e 500 caracteres.');
-        }
-
-        $denuncia = $this->denunciaPendente($idDenuncia);
-
-        $pdo = ConnectionFactory::getConnection();
-        $pdo->beginTransaction();
-
-        try {
-            $this->advertenciaRepository->criar(
-                $this->usuarioAlvo($denuncia),
-                $idDenuncia,
-                $idModerador,
-                $mensagem
-            );
-            $this->repository->registrarModeracao($idDenuncia, 'ADVERTENCIA');
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();

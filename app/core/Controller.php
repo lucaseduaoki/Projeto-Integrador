@@ -4,7 +4,6 @@ namespace app\core;
 
 use app\models\Usuario;
 use app\models\Vaga;
-use app\services\AdvertenciaService;
 use app\services\UsuarioService;
 
 class Controller
@@ -14,12 +13,6 @@ class Controller
      */
     public function view(string $view, ?array $data = null)
     {
-        // Advertências ainda não dispensadas do usuário logado, exibidas no topo (navbar)
-        $usuarioSessao = $_SESSION['usuario_logado'] ?? null;
-        $advertenciasPendentes = $usuarioSessao instanceof Usuario
-            ? (new AdvertenciaService())->listarNaoVisualizadas($usuarioSessao->getIdUsuario())
-            : [];
-
         if ($data) {
             // Controllers enviam 'erro' (mensagem única); as views leem $erros['geral']
             if (isset($data['erro'])) {
@@ -72,13 +65,7 @@ class Controller
             exit;
         }
 
-        // Validar integridade da sessão (IP e User-Agent)
-        if (($_SESSION['ip'] ?? '') !== ($_SERVER['REMOTE_ADDR'] ?? '') ||
-            ($_SESSION['user_agent'] ?? '') !== ($_SERVER['HTTP_USER_AGENT'] ?? '')) {
-            session_destroy();
-            $this->redirect(URL_BASE . '/login');
-            exit;
-        }
+
 
         // RN04: a conta é conferida no banco a cada requisição. Bloqueada, desativada ou removida
         // depois do login, a sessão é encerrada. O usuário da sessão também é atualizado, então
