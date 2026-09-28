@@ -41,11 +41,27 @@ include __DIR__ . '/../shared/navbar.php';
                     </p>
                 </div>
 
+                <div class="flex gap-4 items-center">
+                    <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                        Aceitos: <?= $vaga->getTotalAceitos() ?? 0 ?> / <?= $vaga->getTrabalhadoresLimite() ?? 0 ?>
+                    </span>
 
-                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                    <?= count($interessados) ?>
-                    interessado<?= count($interessados) != 1 ? 's' : '' ?>
-                </span>
+                    <?php if($ehDono): ?>
+                        <?php $aceitos = $vaga->getTotalAceitos() ?? 0; $limite = $vaga->getTrabalhadoresLimite() ?? 0; ?>
+                        <?php if($vaga->getStatus() === 'ENCERRADA'): ?>
+                            <button disabled class="px-4 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed text-sm">
+                                Vaga encerrada
+                            </button>
+                        <?php else: ?>
+                            <form method="POST" action="<?= URL_BASE ?>/vagas/encerrar" style="display: inline;">
+                                <input type="hidden" name="id" value="<?= $vaga->getIdVaga() ?>">
+                                <button type="submit" class="px-4 py-2 <?php if($aceitos < $limite): ?>bg-gray-300 text-gray-500 cursor-not-allowed<?php else: ?>bg-black text-white hover:bg-gray-800<?php endif; ?> rounded text-sm" <?php if($aceitos < $limite): ?>disabled<?php endif; ?>>
+                                    Encerrar vaga
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
 
             </div>
 

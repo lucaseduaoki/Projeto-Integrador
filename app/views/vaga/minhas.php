@@ -166,6 +166,35 @@ Ver contatos aprovados
 
 </button>
 
+<?php if($status === 'ENCERRADA'): ?>
+<button
+disabled
+class="w-full mt-3 bg-gray-300 text-gray-500 py-2 rounded cursor-not-allowed">
+Vaga encerrada
+</button>
+<?php else: ?>
+<form
+method="POST"
+action="<?= URL_BASE ?>/vagas/encerrar"
+class="mt-3"
+onsubmit="<?php if($aceitos < $limite): ?>alert('A vaga só pode ser encerrada quando o número de aceitos atingir o limite.'); return false;<?php endif; ?>">
+
+<input
+type="hidden"
+name="id"
+value="<?= $vaga->getIdVaga() ?>">
+
+<button
+type="submit"
+class="w-full <?php if($aceitos < $limite): ?>bg-gray-300 text-gray-500 cursor-not-allowed<?php else: ?>bg-black text-white hover:bg-gray-800<?php endif; ?> py-2 rounded">
+
+Encerrar vaga
+
+</button>
+
+</form>
+<?php endif; ?>
+
 <form
 method="POST"
 action="<?= URL_BASE ?>/vagas/excluir"
