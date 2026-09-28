@@ -28,9 +28,25 @@ $erros = $erros ?? [];
             <?php endif; ?>
 
 
+            <!-- REMOVÍVEL: Botão para preencher com dados fictícios (apenas para apresentação) -->
+            <?php if (!$modoEdicao): ?>
+                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded flex items-center justify-between">
+                    <span class="text-sm text-blue-700">💡 Preencher com dados de exemplo para teste</span>
+                    <button
+                        type="button"
+                        id="btnPreencherExemplo"
+                        class="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition"
+                        onclick="preencherVagaExemplo()"
+                    >
+                        📋 Preencher Exemplo
+                    </button>
+                </div>
+            <?php endif; ?>
+
             <form method="POST"
                   action="<?= URL_BASE ?><?= $modoEdicao ? '/vagas/editar/submit' : '/vagas/criar/submit' ?>"
-                  class="space-y-6">
+                  class="space-y-6"
+                  id="formVaga">
 
 
                 <?php if ($modoEdicao): ?>
@@ -420,44 +436,36 @@ $erros = $erros ?? [];
 
 
 <script>
-
 // Duração só aparece (e só é exigida no HTML) quando o serviço é temporário.
-// A regra de verdade é validada no servidor.
-    radio.addEventListener('change', function () {
-        document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
-        document.getElementById('duracao').required = temporario;
-    });
+radio.addEventListener('change', function () {
+    document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
+    document.getElementById('duracao').required = temporario;
+});
 });
 
-function preencherFormularioTeste() {
+// REMOVÍVEL: Função para preencher formulário com dados fictícios
+// Delete this function when removing the example data feature
+function preencherVagaExemplo() {
+    const dados = {
+        'id_categoria': '2',
+        'titulo': 'Garçom para Evento Corporativo',
+        'descricao': 'Necessário profissional experiente para atuar em evento corporativo. Uniforme fornecido, treinamento no local. Experiência com atendimento premium é um diferencial.',
+        'bairro': 'Centro',
+        'localizacao': 'Rua das Flores, 456 - Centro de Eventos',
+        'remuneracao': '350.00',
+        'data_servico': new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        'horario': '18:00',
+        'duracao': '5 horas',
+        'trabalhadores_limite': '2',
+        'data_limite': new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        'observacoes': 'Preferencialmente com experiência em eventos corporativos. Uniforme e materiais fornecidos.'
+    };
 
-    document.getElementById('id_categoria').value = '2';
-
-    document.getElementById('titulo').value =
-        'Garçom para evento corporativo';
-
-    document.getElementById('descricao').value =
-        'Necessário auxiliar no atendimento de convidados durante evento corporativo.';
-
-    document.getElementById('localizacao').value =
-        'Foz do Iguaçu - PR';
-
-    document.getElementById('remuneracao').value =
-        '250.00';
-
-    document.getElementById('data_servico').value = '2027-01-10';
-
-    document.getElementById('data_limite').value =
-        '2026-08-15';
-
-    document.getElementById('horario').value = '08:00';
-
-
-    document.getElementById('trabalhadores_limite').value =
-        '2';
-
+    Object.entries(dados).forEach(([id, valor]) => {
+        const campo = document.getElementById(id);
+        if (campo) campo.value = valor;
+    });
 }
-
 </script>
 
 

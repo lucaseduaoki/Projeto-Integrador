@@ -38,6 +38,19 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">Criar nova conta</h1>
                 <p class="text-gray-600 mb-6">Cadastre-se em minutos e comece agora.</p>
 
+                <!-- REMOVÍVEL: Botão para preencher com dados fictícios (apenas para apresentação) -->
+                <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded flex items-center justify-between">
+                    <span class="text-sm text-green-700">💡 Preencher com dados de exemplo para teste</span>
+                    <button
+                        type="button"
+                        id="btnPreencherCadastro"
+                        class="px-4 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition"
+                        onclick="preencherCadastroExemplo()"
+                    >
+                        📋 Preencher
+                    </button>
+                </div>
+
                 <!-- Erro Geral -->
                 <?php if (isset($erros['geral'])): ?>
                     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6">
@@ -45,7 +58,7 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="<?= URL_BASE ?>/cadastro/submit" class="space-y-4">
+                <form method="POST" action="<?= URL_BASE ?>/cadastro/submit" class="space-y-4" id="formCadastro">
                     
 
                     <!-- Nome Completo -->
@@ -264,6 +277,31 @@ function atualizarDocumento() {
         const marcados = document.querySelectorAll('input[name="papeis[]"]:checked');
         for (let i = 1; i < marcados.length; i++) marcados[i].checked = false;
     }
+    atualizarFormulario();
+}
+
+// REMOVÍVEL: Função para preencher formulário com dados fictícios
+// Delete this function when removing the example data feature
+function preencherCadastroExemplo() {
+    const dados = {
+        'nome': 'João Silva Santos',
+        'email': 'joao.silva.' + Date.now() + '@example.com',
+        'documento': '123.456.789-10',
+        'telefone': '(46) 99999-0001',
+        'bairro': 'Centro',
+        'descricao': 'Profissional com experiência em atendimento ao público. Responsável, pontual e comprometido com qualidade do trabalho.',
+        'senha': 'Senha@123',
+        'confirma_senha': 'Senha@123'
+    };
+
+    Object.entries(dados).forEach(([id, valor]) => {
+        const campo = document.getElementById(id);
+        if (campo) campo.value = valor;
+    });
+
+    // Seleciona Pessoa Física e Trabalhador
+    document.querySelector('input[value="PF"]').checked = true;
+    document.querySelector('input[value="is_trabalhador"]').checked = true;
     atualizarFormulario();
 }
 </script>
