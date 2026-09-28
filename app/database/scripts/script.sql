@@ -1,4 +1,14 @@
-
+-- ============================================================================
+-- FREELAJA: Database Schema v1.0 (Alinhado à Especificação)
+-- ============================================================================
+-- Estrutura completa do banco de dados com todas as alterações:
+-- - Tabela "interesse" renomeada para "candidatura"
+-- - Remoção de "type_servico" (sistema é só temporário)
+-- - Remoção de tabela "advertencia"
+-- - Adição de campos: bairro, razao_social, nome_fantasia, excluida_em
+-- - Atualização de acao_moderacao enum
+-- - Rastreabilidade: id_admin, analisada_em em denuncia
+-- ============================================================================
 
 -- ============================================================================
 -- ESTRUTURA
@@ -12,7 +22,7 @@ CREATE TABLE usuario (
     senha VARCHAR(255) NOT NULL,
 
     telefone VARCHAR(20),
-    cidade VARCHAR(100),
+    bairro VARCHAR(100),
 
     foto_perfil VARCHAR(255),
     descricao TEXT,
@@ -21,6 +31,10 @@ CREATE TABLE usuario (
 
     -- indivíduo responsável pela execução (obrigatório para PJ que presta serviço)
     nome_responsavel VARCHAR(100) NULL,
+
+    -- PJ: razão social e nome fantasia
+    razao_social VARCHAR(150),
+    nome_fantasia VARCHAR(150),
 
     -- papéis (uma pessoa física pode ser trabalhador e contratante ao mesmo tempo)
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
@@ -80,6 +94,7 @@ CREATE TABLE vaga (
     titulo VARCHAR(150) NOT NULL,
     descricao TEXT NOT NULL,
 
+    bairro VARCHAR(100),
     localizacao VARCHAR(150),
 
     remuneracao DECIMAL(10,2),
@@ -93,8 +108,7 @@ CREATE TABLE vaga (
 
     horario TIME NULL,
 
-    tipo_servico ENUM('FIXO','TEMPORARIO') NOT NULL DEFAULT 'FIXO',
-
+    -- Sistema só trata trabalho temporário, duração é obrigatória
     duracao VARCHAR(50) NULL,
 
     observacoes TEXT NULL,
@@ -113,6 +127,9 @@ CREATE TABLE vaga (
     -- moderação: OCULTA some da listagem e fica só para dono/admin, REMOVIDA também trava o dono
     visibilidade ENUM('VISIVEL','OCULTA','REMOVIDA') NOT NULL DEFAULT 'VISIVEL',
 
+    -- exclusão lógica (RN 17)
+    excluida_em DATETIME NULL,
+
     CONSTRAINT fk_vaga_contratante
         FOREIGN KEY (id_contratante)
         REFERENCES usuario(id_usuario)
@@ -123,9 +140,10 @@ CREATE TABLE vaga (
         REFERENCES categoria(id_categoria)
 );
 
-CREATE TABLE interesse (
+-- Tabela renomeada de "interesse" para "candidatura" (RN 15)
+CREATE TABLE candidatura (
 
-    id_interesse INT AUTO_INCREMENT PRIMARY KEY,
+    id_candidatura INT AUTO_INCREMENT PRIMARY KEY,
 
     id_vaga INT NOT NULL,
     id_trabalhador INT NOT NULL,
@@ -135,19 +153,19 @@ CREATE TABLE interesse (
         'ACEITO'
     ) DEFAULT 'PENDENTE',
 
-    data_interesse DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_candidatura DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_interesse_vaga
+    CONSTRAINT fk_candidatura_vaga
         FOREIGN KEY (id_vaga)
         REFERENCES vaga(id_vaga)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_interesse_trabalhador
+    CONSTRAINT fk_candidatura_trabalhador
         FOREIGN KEY (id_trabalhador)
         REFERENCES usuario(id_usuario)
         ON DELETE CASCADE,
 
-    CONSTRAINT uk_interesse
+    CONSTRAINT uk_candidatura
         UNIQUE(id_vaga, id_trabalhador)
 );
 
@@ -170,10 +188,14 @@ CREATE TABLE denuncia (
         'REJEITADA'
     ) DEFAULT 'PENDENTE',
 
-    -- decisão da moderação (nula enquanto a denúncia está pendente)
-    acao_moderacao ENUM('NENHUMA','ADVERTENCIA','BLOQUEIO','ANUNCIO_OCULTO','ANUNCIO_REMOVIDO') NULL,
+    -- decisão da moderação (RN 13): NENHUMA, BLOQUEIO, VAGA_OCULTA, VAGA_REMOVIDA
+    acao_moderacao ENUM('NENHUMA','BLOQUEIO','VAGA_OCULTA','VAGA_REMOVIDA') NULL,
 
     data_denuncia DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Rastreabilidade: qual admin analisou e quando (RN 13)
+    id_admin INT NULL,
+    analisada_em DATETIME NULL,
 
     CONSTRAINT fk_denuncia_denunciante
         FOREIGN KEY (id_denunciante)
@@ -188,40 +210,17 @@ CREATE TABLE denuncia (
     CONSTRAINT fk_denuncia_vaga
         FOREIGN KEY (id_vaga_denunciada)
         REFERENCES vaga(id_vaga)
-        ON DELETE SET NULL
-);
-
-CREATE TABLE advertencia (
-
-    id_advertencia INT AUTO_INCREMENT PRIMARY KEY,
-
-    id_usuario INT NOT NULL,
-    id_denuncia INT NULL,
-    id_moderador INT NULL,
-
-    mensagem VARCHAR(500) NOT NULL,
-
-    data_advertencia DATETIME DEFAULT CURRENT_TIMESTAMP,
-    visualizada_em DATETIME NULL,
-
-    CONSTRAINT fk_advertencia_usuario
-        FOREIGN KEY (id_usuario)
-        REFERENCES usuario(id_usuario)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_advertencia_denuncia
-        FOREIGN KEY (id_denuncia)
-        REFERENCES denuncia(id_denuncia)
         ON DELETE SET NULL,
 
-    CONSTRAINT fk_advertencia_moderador
-        FOREIGN KEY (id_moderador)
+    CONSTRAINT fk_denuncia_admin
+        FOREIGN KEY (id_admin)
         REFERENCES usuario(id_usuario)
         ON DELETE SET NULL
 );
 
-CREATE INDEX idx_advertencia_usuario_pendente
-ON advertencia(id_usuario, visualizada_em);
+-- ============================================================================
+-- ÍNDICES
+-- ============================================================================
 
 CREATE INDEX idx_vaga_status
 ON vaga(status);
@@ -232,11 +231,11 @@ ON vaga(id_contratante);
 CREATE INDEX idx_vaga_data_servico
 ON vaga(data_servico);
 
-CREATE INDEX idx_interesse_vaga
-ON interesse(id_vaga);
+CREATE INDEX idx_candidatura_vaga
+ON candidatura(id_vaga);
 
-CREATE INDEX idx_interesse_trabalhador
-ON interesse(id_trabalhador);
+CREATE INDEX idx_candidatura_trabalhador
+ON candidatura(id_trabalhador);
 
 -- ============================================================================
 -- TRIGGERS: vaga.is_user_active acompanha usuario.ativo
@@ -294,7 +293,7 @@ INSERT INTO habilidade (nome) VALUES
 -- ============================================================================
 
 INSERT INTO usuario (
-    nome, email, senha, telefone, cidade, is_admin, is_trabalhador, is_contratante
+    nome, email, senha, telefone, bairro, is_admin, is_trabalhador, is_contratante, tipo_pessoa, ativo
 )
 VALUES
 -- Admin
@@ -303,8 +302,8 @@ VALUES
     'admin@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0001',
-    'Dois Vizinhos',
-    1, 0, 0
+    'Centro',
+    1, 0, 0, 'PJ', 1
 ),
 -- Trabalhadores (id 2 a 6)
 (
@@ -312,40 +311,40 @@ VALUES
     'trabalhador@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0002',
-    'Dois Vizinhos',
-    0, 1, 0
+    'Centro',
+    0, 1, 0, 'PF', 1
 ),
 (
     'Maria Souza',
     'maria.souza@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0004',
-    'Dois Vizinhos',
-    0, 1, 0
+    'Centro',
+    0, 1, 0, 'PF', 1
 ),
 (
     'Carlos Mendes',
     'carlos.mendes@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0005',
-    'Pato Branco',
-    0, 1, 0
+    'Parque',
+    0, 1, 0, 'PF', 1
 ),
 (
     'Fernanda Lima',
     'fernanda.lima@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0006',
-    'Dois Vizinhos',
-    0, 1, 0
+    'Vila',
+    0, 1, 0, 'PF', 1
 ),
 (
     'Ricardo Alves',
     'ricardo.alves@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0007',
-    'Dois Vizinhos',
-    0, 1, 0
+    'Centro',
+    0, 1, 0, 'PF', 1
 ),
 -- Contratantes (id 7 a 9)
 (
@@ -353,24 +352,24 @@ VALUES
     'contratante@freelaja.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0003',
-    'Dois Vizinhos',
-    0, 0, 1
+    'Centro',
+    0, 0, 1, 'PJ', 1
 ),
 (
     'Restaurante Sabor Real',
     'contato@saborreal.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0008',
-    'Dois Vizinhos',
-    0, 0, 1
+    'Centro',
+    0, 0, 1, 'PJ', 1
 ),
 (
     'Condomínio Jardim das Flores',
     'sindico@jardimdasflores.com',
     '$2y$10$IhxuWLqg3ge6jjc5qukdcu/f5TVA6TzUGlurGbqPS1zBgCD/.2qH6',
     '(46)99999-0009',
-    'Dois Vizinhos',
-    0, 0, 1
+    'Vila',
+    0, 0, 1, 'PJ', 1
 );
 
 -- ============================================================================
@@ -390,16 +389,21 @@ INSERT INTO usuario_habilidade (id_usuario, id_habilidade) VALUES
 
 INSERT INTO vaga (
     id_contratante, id_categoria, titulo, descricao,
-    localizacao, remuneracao, data_limite, trabalhadores_limite, status
+    bairro, localizacao, remuneracao, data_limite,
+    data_servico, horario, duracao, trabalhadores_limite, status
 )
 VALUES
--- Vaga 1: precisa de 2 garçons, ainda ATIVA com 1 aceito e 1 pendente
+-- Vaga 1: precisade 2 garçons, ainda ATIVA com 1 aceito e 1 pendente
 (
     8, 2,
     'Garçom para Evento',
     'Necessário atuar em evento no sábado à noite.',
-    'Dois Vizinhos', 250.00,
+    'Centro', 'Rua Central, 123',
+    250.00,
     DATE_ADD(CURDATE(), INTERVAL 15 DAY),
+    DATE_ADD(CURDATE(), INTERVAL 20 DAY),
+    '18:00',
+    '5 horas',
     2, 'ATIVA'
 ),
 -- Vaga 2: precisava de 1 faxineira, já ENCERRADA (aceito atingiu o limite)
@@ -407,8 +411,12 @@ VALUES
     9, 1,
     'Faxina Pós-Obra',
     'Limpeza pesada em apartamento recém reformado.',
-    'Dois Vizinhos', 180.00,
+    'Vila', 'Avenida Flores, 456',
+    180.00,
     DATE_ADD(CURDATE(), INTERVAL 5 DAY),
+    DATE_ADD(CURDATE(), INTERVAL 8 DAY),
+    '09:00',
+    '3 horas',
     1, 'ENCERRADA'
 ),
 -- Vaga 3: precisa de 3 pintores, ATIVA, só interesses pendentes ainda
@@ -416,8 +424,12 @@ VALUES
     7, 3,
     'Pintura de Muro Comercial',
     'Pintura externa de muro de aproximadamente 40 metros.',
-    'Dois Vizinhos', 600.00,
+    'Centro', 'Rua Comercial, 789',
+    600.00,
     DATE_ADD(CURDATE(), INTERVAL 10 DAY),
+    DATE_ADD(CURDATE(), INTERVAL 14 DAY),
+    '08:00',
+    '8 horas',
     3, 'ATIVA'
 ),
 -- Vaga 4: vaga de entrega, ATIVA, sem nenhum interesse ainda
@@ -425,8 +437,12 @@ VALUES
     7, 5,
     'Entregador para Fim de Semana',
     'Entregas de pequeno porte na região central.',
-    'Dois Vizinhos', 150.00,
+    'Centro', 'Região Central',
+    150.00,
     DATE_ADD(CURDATE(), INTERVAL 20 DAY),
+    DATE_ADD(CURDATE(), INTERVAL 25 DAY),
+    '08:00',
+    '6 horas',
     1, 'ATIVA'
 ),
 -- Vaga 5: sem prazo definido (data_limite NULL), ATIVA
@@ -434,16 +450,20 @@ VALUES
     8, 8,
     'Atendente de Balcão',
     'Cobertura de folga de atendente por alguns dias.',
-    'Dois Vizinhos', 200.00,
+    'Centro', 'Centro da Cidade',
+    200.00,
     NULL,
+    DATE_ADD(CURDATE(), INTERVAL 3 DAY),
+    '10:00',
+    '4 horas',
     1, 'ATIVA'
 );
 
 -- ============================================================================
--- INTERESSES
+-- CANDIDATURAS (Tabela renomeada de "interesse")
 -- ============================================================================
 
-INSERT INTO interesse (id_vaga, id_trabalhador, status) VALUES
+INSERT INTO candidatura (id_vaga, id_trabalhador, status) VALUES
 -- Vaga 1 (limite 2): 1 aceito + 1 pendente -> continua ATIVA até aceitar mais 1
 (1, 2, 'ACEITO'),
 (1, 5, 'PENDENTE'),
@@ -465,7 +485,7 @@ INSERT INTO denuncia (
 VALUES
 (
     2, 1,
-    'Informação incorreta',
+    'Conteúdo impróprio',
     'A descrição da vaga contém informações inconsistentes.',
     'PENDENTE'
 ),
@@ -473,5 +493,9 @@ VALUES
     4, 3,
     'Vaga suspeita',
     'Remuneração parece incompatível com o serviço descrito.',
-    'REJEITADA'
+    'ANALISADA'
 );
+
+-- ============================================================================
+-- FIM DO SCRIPT
+-- ============================================================================
