@@ -125,17 +125,20 @@ return new Vaga(
     }
 
     /**
-     * data_from, remuneracao_min, remuneracao_max. Vagas sem remuneração ficam fora quando há filtro de valor.
+     * RN 06: Mostra só vagas ativas, visíveis, não excluídas, dentro do prazo e com aceitos < limite.
      */
     public function buscar(array $filtros = []): array
     {
         $sql = "
-            SELECT v.*, c.nome AS categoria_nome
+            SELECT v.*, c.nome AS categoria_nome, COUNT(i.id_candidatura) AS total_aceitos
             FROM vaga v
             INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-            WHERE status = 'ATIVA'
-              AND is_user_active = 1
-              AND visibilidade = 'VISIVEL'
+            LEFT JOIN candidatura i ON i.id_vaga = v.id_vaga AND i.status = 'ACEITO'
+            WHERE v.status = 'ATIVA'
+              AND v.is_user_active = 1
+              AND v.visibilidade = 'VISIVEL'
+              AND (v.data_limite IS NULL OR v.data_limite >= CURDATE())
+              AND (v.trabalhadores_limite > COUNT(i.id_candidatura))
         ";
 
         $params = [];
@@ -165,7 +168,7 @@ return new Vaga(
             $params['remuneracao_max'] = $filtros['remuneracao_max'];
         }
 
-        $sql .= " ORDER BY data_publicacao DESC";
+        $sql .= " GROUP BY v.id_vaga ORDER BY v.data_publicacao DESC";
 
         $stmt = $this->conn->prepare($sql);
 
