@@ -3,9 +3,10 @@
 namespace app\services;
 
 use app\models\Denuncia;
+use app\models\Candidatura;
 use app\database\ConnectionFactory;
 use app\repositories\DenunciaRepository;
-use app\repositories\InteresseRepository;
+use app\repositories\CandidaturaRepository;
 use app\repositories\UsuarioRepository;
 use app\repositories\VagaRepository;
 use Exception;
@@ -15,14 +16,14 @@ class DenunciaService
     private DenunciaRepository $repository;
     private UsuarioRepository $usuarioRepository;
     private VagaRepository $vagaRepository;
-    private InteresseRepository $interesseRepository;
+    private CandidaturaRepository $candidaturaRepository;
 
     public function __construct()
     {
         $this->repository = new DenunciaRepository();
         $this->usuarioRepository = new UsuarioRepository();
         $this->vagaRepository = new VagaRepository();
-        $this->interesseRepository = new InteresseRepository();
+        $this->candidaturaRepository = new CandidaturaRepository();
     }
 
     /**
@@ -72,12 +73,12 @@ class DenunciaService
      * Regras: quem registra é o contratante dono da vaga; o trabalhador precisa ter sido
      * selecionado (ACEITO); só depois da data do serviço; e um único registro por trabalhador/vaga.
      */
-    public function validarNaoComparecimento(int $idInteresse, int $idContratante): \app\models\Interesse
+    public function validarNaoComparecimento(int $idInteresse, int $idContratante): Candidatura
     {
-        $interesse = $this->interesseRepository->buscarPorId($idInteresse);
-        $vaga = $interesse ? $this->vagaRepository->buscarPorId($interesse->getIdVaga()) : null;
+        $candidatura = $this->candidaturaRepository->buscarPorId($idInteresse);
+        $vaga = $candidatura ? $this->vagaRepository->buscarPorId($candidatura->getIdVaga()) : null;
 
-        if (!$interesse || !$vaga) {
+        if (!$candidatura || !$vaga) {
             throw new Exception('Candidatura não encontrada.');
         }
 
@@ -85,7 +86,7 @@ class DenunciaService
             throw new Exception('Você só pode registrar não comparecimento nas suas próprias vagas.');
         }
 
-        if ($interesse->getStatus() !== 'ACEITO') {
+        if ($candidatura->getStatus() !== 'ACEITO') {
             throw new Exception('Só é possível registrar não comparecimento de um trabalhador selecionado.');
         }
 
@@ -93,11 +94,11 @@ class DenunciaService
             throw new Exception('O não comparecimento só pode ser registrado a partir da data do serviço.');
         }
 
-        if ($this->repository->existeNaoComparecimento($interesse->getIdTrabalhador(), $vaga->getIdVaga())) {
+        if ($this->repository->existeNaoComparecimento($candidatura->getIdTrabalhador(), $vaga->getIdVaga())) {
             throw new Exception('O não comparecimento deste trabalhador nesta vaga já foi registrado.');
         }
 
-        return $interesse;
+        return $candidatura;
     }
 
     /**

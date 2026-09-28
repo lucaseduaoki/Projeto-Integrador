@@ -3,18 +3,18 @@
 namespace app\services;
 
 use app\models\Candidatura;
-use app\repositories\InteresseRepository;
+use app\repositories\CandidaturaRepository;
 use app\repositories\VagaRepository;
 use Exception;
 
-class InteresseService
+class CandidaturaService
 {
-    private InteresseRepository $repository;
+    private CandidaturaRepository $repository;
     private VagaRepository $vagaRepository;
 
     public function __construct()
     {
-        $this->repository = new InteresseRepository();
+        $this->repository = new CandidaturaRepository();
         $this->vagaRepository = new VagaRepository();
     }
 

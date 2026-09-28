@@ -5,7 +5,7 @@ namespace app\controllers;
 use app\core\Controller;
 use app\services\VagaService;
 use app\services\UsuarioService;
-use app\services\InteresseService;
+use app\services\CandidaturaService;
 use app\services\ValidadorRegrasNegocio;
 use app\helpers\Validador;
 
@@ -13,14 +13,14 @@ class VagaController extends Controller
 {
     private VagaService $vagaService;
     private UsuarioService $usuarioService;
-    private InteresseService $interesseService;
+    private CandidaturaService $candidaturaService;
     private ValidadorRegrasNegocio $validador;
 
     public function __construct()
     {
         $this->vagaService = new VagaService();
         $this->usuarioService = new UsuarioService();
-        $this->interesseService = new InteresseService();
+        $this->candidaturaService = new CandidaturaService();
         $this->validador = new ValidadorRegrasNegocio();
     }
 
@@ -52,7 +52,7 @@ class VagaController extends Controller
         $idVaga = (int)($_GET['id'] ?? 0);
         error_log("Visualizando objeto vaga com ID: $idVaga"); // Log the idVaga value
         error_log("objeto vaga: " . print_r($this->vagaService->buscarPorId($idVaga), true)); // Log the vaga object
-        error_log("verificando se usuario já demonstrou interesse: " . print_r($this->interesseService->jaDemonstrouInteresse($idVaga, $this->usuarioLogado()->getIdUsuario()), true)); // Log the result of jaDemonstrouInteresse
+        error_log("verificando se usuario já demonstrou interesse: " . print_r($this->candidaturaService->jaDemonstrouInteresse($idVaga, $this->usuarioLogado()->getIdUsuario()), true));
         if ($idVaga <= 0) {
             $this->redirect(URL_BASE . '/vagas');
         }
@@ -67,7 +67,6 @@ class VagaController extends Controller
 
         $usuario = $this->usuarioLogado();
 
-        // Anúncio oculto/removido pela moderação só é visto pelo dono e pelo admin
         if (
             !$vaga->estaVisivel() &&
             !$usuario->isAdmin() &&
@@ -83,7 +82,7 @@ class VagaController extends Controller
             $usuario->isTrabalhador()
         ) {
             $jaDemonstrouInteresse =
-                $this->interesseService->jaDemonstrouInteresse(
+                $this->candidaturaService->jaDemonstrouInteresse(
                     $idVaga,
                     $usuario->getIdUsuario(),
                     $dataInteresse = null

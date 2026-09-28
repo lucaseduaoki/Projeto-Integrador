@@ -172,7 +172,7 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                     <!-- Ação Principal -->
                     <?php if ($isTrabalhador && !$isProprietario && $disponivel && !$jaDemonstrouInteresse): ?>
 
-                        <form method="POST" action="<?= URL_BASE ?>/interesse/demonstrar" class="mb-4">
+                        <form method="POST" action="<?= URL_BASE ?>/candidatura/demonstrar" class="mb-4">
 
                             <input type="hidden" 
                                 name="id_vaga" 
@@ -232,7 +232,7 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
 
                         <div class="pt-4 border-t border-gray-200 mt-4">
 
-                            <a href="<?= URL_BASE ?>/interesse/interessados?id=<?= $vaga->getIdVaga() ?>"
+                            <a href="<?= URL_BASE ?>/candidatura/interessados?id=<?= $vaga->getIdVaga() ?>"
                             class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
 
                                 Ver interessados →

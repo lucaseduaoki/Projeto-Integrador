@@ -31,7 +31,7 @@ $mensagem = $mensagem ?? 'Candidatura realizada com sucesso!';
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a href="<?= URL_BASE ?>/interesse/historico/visualizar" class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
+                    <a href="<?= URL_BASE ?>/candidatura/historico/visualizar" class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
                         Ir para meu histórico
                     </a>
                     <a href="<?= URL_BASE ?>/vagas" class="flex-1 text-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors duration-200">

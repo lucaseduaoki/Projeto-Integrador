@@ -54,7 +54,7 @@ $statusCandidatura = $candidatura ? ucfirst(strtolower($candidatura->getStatus()
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a href="<?= URL_BASE ?>/interesse/historico/visualizar" class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded transition-colors duration-200">
+                    <a href="<?= URL_BASE ?>/candidatura/historico/visualizar" class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded transition-colors duration-200">
                         Ir para meu histórico
                     </a>
                     <?php if ($vaga): ?>

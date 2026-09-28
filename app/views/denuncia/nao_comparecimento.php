@@ -48,7 +48,7 @@ include __DIR__ . '/../shared/navbar.php';
                     <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
                         Registrar
                     </button>
-                    <a href="<?= URL_BASE ?>/interesse/interessados?id=<?= $vaga->getIdVaga() ?>" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded text-center">
+                    <a href="<?= URL_BASE ?>/candidatura/interessados?id=<?= $vaga->getIdVaga() ?>" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded text-center">
                         Cancelar
                     </a>
                 </div>

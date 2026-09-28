@@ -30,7 +30,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
                 <?php endif; ?>
                 
                 <?php if ($usuarioLogado && $isTrabalhador): ?>
-                    <a href="<?= URL_BASE ?>/interesse/historico" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Minhas Candidaturas</a>
+                    <a href="<?= URL_BASE ?>/candidatura/historico" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Minhas Candidaturas</a>
                 <?php endif; ?>
                 
                 <?php if ($usuarioLogado && $isAdmin): ?>
@@ -85,7 +85,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
             <?php endif; ?>
             
             <?php if ($usuarioLogado && $isTrabalhador): ?>
-                <a href="<?= URL_BASE ?>/interesse/historico" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Minhas Candidaturas</a>
+                <a href="<?= URL_BASE ?>/candidatura/historico" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Minhas Candidaturas</a>
             <?php endif; ?>
             
             <?php if ($usuarioLogado && $isAdmin): ?>

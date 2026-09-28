@@ -3,14 +3,14 @@
 namespace app\controllers;
 
 use app\core\Controller;
-use app\services\InteresseService;
+use app\services\CandidaturaService;
 use app\services\UsuarioService;
 use app\services\VagaService;
 use app\services\ValidadorRegrasNegocio;
 
-class InteresseController extends Controller
+class CandidaturaController extends Controller
 {
-    private InteresseService $service;
+    private CandidaturaService $service;
     private VagaService $vagaService;
     private UsuarioService $usuarioService;
     private ValidadorRegrasNegocio $validador;
@@ -18,7 +18,7 @@ class InteresseController extends Controller
     public function __construct()
     {
         $this->usuarioService = new UsuarioService();
-        $this->service = new InteresseService();
+        $this->service = new CandidaturaService();
         $this->vagaService = new VagaService();
         $this->validador = new ValidadorRegrasNegocio();
     }

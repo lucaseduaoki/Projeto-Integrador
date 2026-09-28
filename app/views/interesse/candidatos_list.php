@@ -145,7 +145,7 @@ include __DIR__ . '/../shared/navbar.php';
 
 
                                         <a
-                                            href="<?= URL_BASE ?>/interesse/candidato?id=<?= $interesse->getIdInteresse() ?>"
+                                            href="<?= URL_BASE ?>/candidatura/candidato?id=<?= $interesse->getIdInteresse() ?>"
                                             class="text-sm text-blue-600 hover:text-blue-800">
 
                                             Ver perfil
@@ -194,7 +194,7 @@ include __DIR__ . '/../shared/navbar.php';
                                 <?php if($ehDono && $status === 'PENDENTE'): ?>
 
 
-                                    <form method="POST" action="<?= URL_BASE ?>/interesse/aceitar">
+                                    <form method="POST" action="<?= URL_BASE ?>/candidatura/aceitar">
 
                                         <input
                                             type="hidden"
