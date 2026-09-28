@@ -6,93 +6,86 @@ use app\core\Controller;
 use app\services\InteresseService;
 use app\services\UsuarioService;
 use app\services\VagaService;
+use app\services\ValidadorRegrasNegocio;
 
 class InteresseController extends Controller
 {
     private InteresseService $service;
     private VagaService $vagaService;
     private UsuarioService $usuarioService;
+    private ValidadorRegrasNegocio $validador;
 
     public function __construct()
     {
         $this->usuarioService = new UsuarioService();
         $this->service = new InteresseService();
         $this->vagaService = new VagaService();
+        $this->validador = new ValidadorRegrasNegocio();
     }
 
-
+    /**
+     * Candidatura (RN 07, RN 15)
+     */
     public function demonstrar(): void
     {
-            error_log("ENTROU NO CONTROLLER demonstrar");
         $this->trabalhadorRequired();
 
         $usuario = $this->usuarioLogado();
-
         $idVaga = (int)($_POST['id_vaga'] ?? 0);
 
         if ($idVaga <= 0) {
             $this->redirect(URL_BASE . '/vagas');
+            return;
         }
 
+        $vaga = $this->vagaService->buscarPorId($idVaga);
+        if (!$vaga) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
 
+        // RN 07, RN 15: Validar candidatura
         try {
-
+            $this->validador->validarCandidatura($usuario, $vaga);
             $this->service->demonstrarInteresse(
                 $idVaga,
                 $usuario->getIdUsuario()
             );
-
-            error_log("fazendo busca no banco para saber se o interesse deu certo");
-            
-
-
-            $this->redirect(
-                URL_BASE . '/vagas/visualizar?id=' . $idVaga
-            );
-
-
+            $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
         } catch (\Exception $e) {
-
-            $this->redirect(
-                URL_BASE . '/vagas/visualizar?id=' . $idVaga
-            );
+            $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
         }
     }
 
-     public function listarInteressados(): void
+    /**
+     * Listar candidatos de uma vaga (RN 08)
+     */
+    public function listarInteressados(): void
     {
-        error_log("ENTROU NO CONTROLLER listarInteressados");
         $this->contratanteRequired();
 
         $usuario = $this->usuarioLogado();
-
         $idVaga = (int)($_GET['id'] ?? 0);
 
         if ($idVaga <= 0) {
             $this->redirect(URL_BASE . '/vagas');
             return;
         }
-        error_log("Buscando vaga com ID: " . $idVaga);
 
         $vaga = $this->vagaService->buscarPorId($idVaga);
-
 
         if (!$vaga) {
             $this->redirect(URL_BASE . '/vagas');
             return;
         }
 
-
-        // Só o dono da vaga (ou o admin, em leitura) vê os interessados. Contatos aceitos seguem
-        // restritos ao dono: ver listarAceitos e a RN12.
+        // RN 14: Só o dono da vaga vê os candidatos
         if (!$this->podeGerenciarVaga($vaga)) {
             $this->redirect(URL_BASE . '/403');
             return;
         }
 
-
         $interessados = $this->service->listarInteressados($idVaga);
-        error_log("Interessados encontrados: " . print_r($interessados, true));
 
         $this->view('interesse/candidatos_list', [
             'vaga' => $vaga,
@@ -101,92 +94,76 @@ class InteresseController extends Controller
         ]);
     }
 
+/**
+ * Aceitar candidato (RN 10)
+ */
 public function aceitar(): void
 {
-    error_log("[CONTROLLER] Entrou no método aceitar.");
+    $this->contratanteRequired();
 
     $idInteresse = (int)($_POST['id'] ?? 0);
-
-    error_log("[CONTROLLER] ID Interesse: {$idInteresse}");
-
     $usuario = $this->usuarioLogado();
 
-    error_log("[CONTROLLER] Usuário: {$usuario->getIdUsuario()}");
-
     try {
+        $interesse = $this->service->buscarPorId($idInteresse);
+        if (!$interesse) {
+            throw new \Exception('Candidatura não encontrada.');
+        }
+
+        $vaga = $this->vagaService->buscarPorId($interesse->getIdVaga());
+        if (!$vaga) {
+            throw new \Exception('Vaga não encontrada.');
+        }
+
+        // RN 10: Validar aceitação (não exceder limite)
+        $this->validador->validarAceitacaoCandidato($vaga, $interesse->getIdTrabalhador());
 
         $this->service->aceitarInteressado(
             $idInteresse,
             $usuario->getIdUsuario()
         );
 
-        error_log("[CONTROLLER] Aceite realizado.");
-
     } catch (\Exception $e) {
-
-        error_log("[ERRO] " . $e->getMessage());
+        error_log("Erro ao aceitar: " . $e->getMessage());
     }
 
     $this->redirect(URL_BASE . '/vagas');
 }
 
+/**
+ * Contatos dos candidatos aceitos (RN 09, RN 11, RN 16)
+ */
 public function listarAceitos(): void
 {
-    error_log("[ACEITOS] Entrou no controller");
-
     $this->contratanteRequired();
 
     $usuario = $this->usuarioLogado();
-
-    error_log("[ACEITOS] Usuário: " . $usuario->getIdUsuario());
-
     $idVaga = (int)($_GET['id'] ?? 0);
 
-    error_log("[ACEITOS] ID Vaga: " . $idVaga);
-
     if ($idVaga <= 0) {
-        error_log("[ACEITOS] ID inválido");
-
         http_response_code(400);
-
-        echo json_encode([
-            'erro' => 'ID da vaga inválido.'
-        ]);
-
+        echo json_encode(['erro' => 'ID da vaga inválido.']);
         return;
     }
 
     try {
-
-        error_log("[ACEITOS] Chamando service...");
-
         $aceitos = $this->service->listarContatosAceitos(
             $idVaga,
             $usuario->getIdUsuario()
         );
 
-        error_log("[ACEITOS] Retorno do service:");
-        error_log(print_r($aceitos, true));
-
         header('Content-Type: application/json');
-
         echo json_encode($aceitos);
 
     } catch (\Exception $e) {
-
-        error_log("[ACEITOS] ERRO: " . $e->getMessage());
-
         http_response_code(403);
-
         echo json_encode([
-            'erro' => $this->mensagemAmigavel($e, 'Não foi possível carregar os contatos agora. Tente novamente em instantes.')
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível carregar os contatos.')
         ]);
     }
 }
     /**
-     * Perfil de um candidato (?id=<interesse>) para o contratante da vaga decidir a seleção.
-     * Traz nome, sobre, localização e habilidades. Nunca traz contato: e-mail e telefone só
-     * aparecem depois da seleção, no modal de contatos aprovados (RN10/RN12).
+     * Perfil de um candidato (RN 08, RN 14)
      */
     public function visualizarCandidato(): void
     {
@@ -197,11 +174,13 @@ public function listarAceitos(): void
 
         if (!$interesse || !$vaga) {
             $this->redirect(URL_BASE . '/vagas/minhas');
+            return;
         }
 
-        // Só o contratante daquela vaga (ou o admin) vê o perfil do candidato
+        // RN 14: Só o contratante daquela vaga vê o perfil do candidato
         if (!$this->podeGerenciarVaga($vaga)) {
             $this->redirect(URL_BASE . '/403');
+            return;
         }
 
         $trabalhador = $this->usuarioService->buscarPorId($interesse->getIdTrabalhador());
@@ -214,27 +193,29 @@ public function listarAceitos(): void
         ]);
     }
 
+    /**
+     * Visualizar histórico de candidatura (trabalhador)
+     */
     public function visualizarHistorico(): void
     {
         $this->trabalhadorRequired();
 
         $usuario = $this->usuarioLogado();
-
         $idInteresse = (int)($_GET['id'] ?? 0);
 
         if ($idInteresse <= 0) {
-            $this->redirect(URL_BASE . '/interesse/historico');
+            $this->redirect(URL_BASE . '/candidatura/historico');
             return;
         }
 
         $interesse = $this->service->buscarPorId($idInteresse);
 
         if (!$interesse) {
-            $this->redirect(URL_BASE . '/interesse/historico');
+            $this->redirect(URL_BASE . '/candidatura/historico');
             return;
         }
 
-        // Garante que o trabalhador só visualize suas próprias candidaturas
+        // RN 14: Trabalhador só vê suas próprias candidaturas
         if ($interesse->getIdTrabalhador() !== $usuario->getIdUsuario()) {
             $this->redirect(URL_BASE . '/403');
             return;
@@ -246,34 +227,23 @@ public function listarAceitos(): void
         ]);
     }
 
+    /**
+     * Histórico de candidaturas (trabalhador)
+     */
     public function historico(): void
     {
         $this->trabalhadorRequired();
 
         $usuario = $this->usuarioLogado();
-
-        $interesses = $this->service->listarHistorico(
-            $usuario->getIdUsuario()
-        );
+        $interesses = $this->service->listarHistorico($usuario->getIdUsuario());
 
         $candidaturas = array_map(function ($interesse) {
-            error_log("Montando histórico para interesse ID: " . $interesse->getIdInteresse());
-            error_log("Interesse: " . print_r($interesse->toArray(), true));
-
             return [
                 'candidatura' => $interesse,
-                'vaga' => $this->vagaService->buscarPorId(
-                    $interesse->getIdVaga()
-                ),
-                'contratante' => $this->vagaService->buscarContratantePorVaga(
-                    $interesse->getIdVaga()
-                )
+                'vaga' => $this->vagaService->buscarPorId($interesse->getIdVaga()),
+                'contratante' => $this->vagaService->buscarContratantePorVaga($interesse->getIdVaga())
             ];
-
         }, $interesses);
-
-        error_log("Histórico montado:");
-        error_log(print_r($candidaturas, true));
 
         $this->view('interesse/historico', [
             'interesses' => $candidaturas,

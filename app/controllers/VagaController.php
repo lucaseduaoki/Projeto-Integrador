@@ -6,6 +6,7 @@ use app\core\Controller;
 use app\services\VagaService;
 use app\services\UsuarioService;
 use app\services\InteresseService;
+use app\services\ValidadorRegrasNegocio;
 use app\helpers\Validador;
 
 class VagaController extends Controller
@@ -13,12 +14,14 @@ class VagaController extends Controller
     private VagaService $vagaService;
     private UsuarioService $usuarioService;
     private InteresseService $interesseService;
+    private ValidadorRegrasNegocio $validador;
 
     public function __construct()
     {
         $this->vagaService = new VagaService();
         $this->usuarioService = new UsuarioService();
         $this->interesseService = new InteresseService();
+        $this->validador = new ValidadorRegrasNegocio();
     }
 
     /**
@@ -98,7 +101,7 @@ class VagaController extends Controller
 
 
     /**
-     * Buscar vagas por palavra-chave e localização
+     * Buscar vagas por palavra-chave e localização (RN 06)
      */
     public function buscar(): void
     {
@@ -107,10 +110,8 @@ class VagaController extends Controller
         $filtros = [
             'titulo' => trim((string)($_GET['keywords'] ?? '')),
             'localizacao' => trim((string)($_GET['localizacao'] ?? '')),
+            'categoria' => trim((string)($_GET['categoria'] ?? '')),
         ];
-
-        // Tipo de serviço: só aceita os valores do domínio, qualquer outro é ignorado
-        }
 
         // Data a partir de: formato válido ou ignorada, com aviso
         $erros = [];
@@ -177,21 +178,30 @@ public function exibirFormCriar(): void
 }
 
 /**
- * Criar vaga
+ * Criar vaga (RN 04)
  */
 public function criar(): void
 {
-    error_log("ENTROU NO CONTROLLER criar");
     $this->contratanteRequired();
-        error_log("Informações recebidas para criar vaga: " . print_r($_POST, true)); // Log the received data
 
     $usuario = $this->usuarioLogado();
+
+    // RN 04: Validar que contratante está ativo
+    try {
+        $this->validador->validarCriadorVaga($usuario);
+    } catch (\Exception $e) {
+        $this->view('vaga/vaga_form', [
+            'erro' => $e->getMessage(),
+            'acao' => 'criar'
+        ]);
+        return;
+    }
 
     $idCategoria = (int)($_POST['id_categoria'] ?? 0);
     $titulo = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
-    // Aceita vírgula ou ponto como separador decimal; a validação é feita sobre o valor normalizado
+    $bairro = trim($_POST['bairro'] ?? '');
     $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
     $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
@@ -201,12 +211,8 @@ public function criar(): void
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = $this->validarDadosVaga(compact(
-        'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
+        'idCategoria', 'titulo', 'descricao', 'localizacao', 'bairro', 'remuneracao', 'dataLimite', 'dataServico', 'horario', 'duracao', 'observacoes'
     ));
-
-    // Serviço fixo não tem duração
-        $duracao = '';
-    }
 
     if ($validador->temErros()) {
         $this->view('vaga/vaga_form', [
@@ -215,14 +221,14 @@ public function criar(): void
         ]);
         return;
     }
-    try {
 
+    try {
         $id = $this->vagaService->criar(
             $usuario->getIdUsuario(),
             $idCategoria,
             $titulo,
             $descricao,
-            $localizacao ?: null,
+            $bairro ?: null,
             $remuneracao !== '' ? (float)$remuneracao : null,
             $dataLimite ?: null,
             (int)$trabalhadoresLimite,
@@ -235,7 +241,6 @@ public function criar(): void
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $id);
 
     } catch (\Exception $e) {
-
         $this->view('vaga/vaga_form', [
             'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar o anúncio agora. Tente novamente em instantes.'),
             'acao' => 'criar'
@@ -244,8 +249,7 @@ public function criar(): void
 }
 
 /**
- * Valida os campos do formulário de vaga. Criação e edição compartilham as mesmas regras
- * (UC04.1), sempre no servidor; o HTML só ajuda a pessoa a preencher.
+ * Valida os campos do formulário de vaga. Criação e edição compartilham as mesmas regras.
  */
 private function validarDadosVaga(array $d): Validador
 {
@@ -254,35 +258,30 @@ private function validarDadosVaga(array $d): Validador
     $validador
         ->obrigatorio('titulo', $d['titulo'], 'Informe a função (título) da vaga.')
         ->obrigatorio('descricao', $d['descricao'], 'Informe a descrição da vaga.')
-        ->obrigatorio('localizacao', $d['localizacao'], 'Informe o local do serviço.')
+        ->obrigatorio('bairro', $d['bairro'], 'Informe o bairro.')
         ->obrigatorio('id_categoria', $d['idCategoria'], 'Selecione a categoria.')
         ->obrigatorio('remuneracao', $d['remuneracao'], 'Informe a remuneração.')
         ->monetario('remuneracao', $d['remuneracao'])
         ->obrigatorio('data_servico', $d['dataServico'], 'Informe a data do serviço.')
         ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
-        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.', $d['dataServicoAtual'] ?? null)
+        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.')
         ->dataValida('data_limite', $d['dataLimite'], false, 'O prazo para candidatura deve ser uma data válida (aaaa-mm-dd).')
         ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
         ->horaValida('horario', $d['horario'], 'O horário deve estar no formato hh:mm.')
+        ->obrigatorio('duracao', $d['duracao'], 'Informe a duração do serviço (ex.: 3 dias).')
         ->tamanhoMax('duracao', $d['duracao'], 50, 'A duração deve ter no máximo 50 caracteres.')
         ->tamanhoMax('observacoes', $d['observacoes'], 500, 'As observações devem ter no máximo 500 caracteres.');
 
-    // Função (título): 2 a 100 caracteres
     if ($d['titulo'] !== '') {
         $validador->tamanhoMinMax('titulo', $d['titulo'], 2, 100, 'A função (título) deve ter entre 2 e 100 caracteres.');
     }
 
-    // Local: 2 a 150 caracteres
-    if ($d['localizacao'] !== '') {
-        $validador->tamanhoMinMax('localizacao', $d['localizacao'], 2, 150, 'O local deve ter entre 2 e 150 caracteres.');
+    if ($d['bairro'] !== '') {
+        $validador->tamanhoMinMax('bairro', $d['bairro'], 2, 100, 'O bairro deve ter entre 2 e 100 caracteres.');
     }
 
-    // Descrição: 10 a 1000 caracteres
     if ($d['descricao'] !== '') {
         $validador->tamanhoMinMax('descricao', $d['descricao'], 10, 1000, 'A descrição deve ter entre 10 e 1000 caracteres.');
-    }
-
-        $validador->obrigatorio('duracao', $d['duracao'], 'Informe a duração do serviço temporário (ex.: 3 dias).');
     }
 
     return $validador;
@@ -336,14 +335,13 @@ public function exibirFormEditar(): void
 }
 
 /**
- * Editar vaga
+ * Editar vaga (RN 17)
  */
 public function editar(): void
 {
     $this->contratanteRequired();
 
     $usuario = $this->usuarioLogado();
-
     $idVaga = (int)($_POST['id'] ?? 0);
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
@@ -356,7 +354,7 @@ public function editar(): void
     $titulo = trim($_POST['titulo'] ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $localizacao = trim($_POST['localizacao'] ?? '');
-    // Aceita vírgula ou ponto como separador decimal; a validação é feita sobre o valor normalizado
+    $bairro = trim($_POST['bairro'] ?? '');
     $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
     $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
@@ -365,34 +363,39 @@ public function editar(): void
     $observacoes = trim($_POST['observacoes'] ?? '');
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
-    // A data do serviço já gravada continua aceita mesmo que hoje esteja no passado
-    $dataServicoAtual = $vaga->getDataServico();
-
-    $validador = $this->validarDadosVaga(compact(
-        'idCategoria', 'titulo', 'descricao', 'localizacao', 'remuneracao', 'dataLimite',
-    ));
-
-    // Serviço fixo não tem duração
-        $duracao = '';
+    // RN 17: Validar edição (título e categoria travados com candidaturas)
+    try {
+        $this->validador->validarEdicaoVaga($vaga, $titulo, $idCategoria);
+        $this->validador->validarNovoLimite((int)$trabalhadoresLimite, $vaga->getTotalAceitos());
+    } catch (\Exception $e) {
+        $this->view('vaga/vaga_form', [
+            'vaga' => $vaga,
+            'erro' => $e->getMessage(),
+            'acao' => 'editar',
+            'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
+        ]);
+        return;
     }
 
-    if ($validador->temErros()) {
+    $validador = $this->validarDadosVaga(compact(
+        'idCategoria', 'titulo', 'descricao', 'localizacao', 'bairro', 'remuneracao', 'dataLimite', 'dataServico', 'horario', 'duracao', 'observacoes'
+    ));
 
+    if ($validador->temErros()) {
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
             'erros' => $validador->getErros(),
             'acao' => 'editar',
             'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);
-
         return;
     }
 
     try {
-
         $vaga->setTitulo($titulo);
         $vaga->setDescricao($descricao);
         $vaga->setLocalizacao($localizacao ?: null);
+        $vaga->setBairro($bairro ?: null);
         $vaga->setRemuneracao($remuneracao !== '' ? (float)$remuneracao : null);
         $vaga->setDataLimite($dataLimite ?: null);
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
@@ -400,7 +403,6 @@ public function editar(): void
         $vaga->setDuracao($duracao ?: null);
         $vaga->setObservacoes($observacoes ?: null);
         $vaga->setDataServico($dataServico ?: null);
-
         $vaga->setIdCategoria($idCategoria);
 
         $this->vagaService->atualizar($vaga);
@@ -408,7 +410,6 @@ public function editar(): void
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
 
     } catch (\Exception $e) {
-
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
             'erro' => $this->mensagemAmigavel($e, 'Não foi possível salvar as alterações agora. Tente novamente em instantes.'),
@@ -416,7 +417,7 @@ public function editar(): void
             'temCandidaturas' => $this->vagaService->possuiCandidaturas($idVaga)
         ]);
     }
-    }
+}
     /**
  * Excluir vaga
  */
@@ -447,14 +448,13 @@ public function excluir(): void
 }
 
 /**
- * Encerrar vaga
+ * Encerrar vaga (RN 05)
  */
 public function encerrar(): void
 {
     $this->contratanteRequired();
 
     $usuario = $this->usuarioLogado();
-
     $idVaga = (int)($_POST['id'] ?? 0);
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
@@ -463,12 +463,12 @@ public function encerrar(): void
         $this->redirect(URL_BASE . '/403');
     }
 
+    // RN 05: Validar que limite de aceitos foi atingido
     try {
-
+        $this->validador->validarEncerramentoVaga($vaga);
         $this->vagaService->encerrar($idVaga);
-
     } catch (\Exception $e) {
-        // Opcional: registrar log
+        error_log("Erro ao encerrar vaga: " . $e->getMessage());
     }
 
     $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
@@ -482,7 +482,6 @@ public function reabrir(): void
     $this->contratanteRequired();
 
     $usuario = $this->usuarioLogado();
-
     $idVaga = (int)($_POST['id'] ?? 0);
 
     $vaga = $this->vagaService->buscarPorId($idVaga);
@@ -492,11 +491,9 @@ public function reabrir(): void
     }
 
     try {
-
         $this->vagaService->reabrir($idVaga);
-
     } catch (\Exception $e) {
-        // Opcional: registrar log
+        error_log("Erro ao reabrir vaga: " . $e->getMessage());
     }
 
     $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);

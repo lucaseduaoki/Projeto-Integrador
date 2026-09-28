@@ -52,15 +52,15 @@ $router->post('/vagas/excluir',      'VagaController@excluir');
 $router->get('/vagas/minhas',        'VagaController@minhas');
 
 // ============================================================================
-// INTERESSES
+// CANDIDATURAS
 // ============================================================================
-$router->post('/interesse/demonstrar',      'InteresseController@demonstrar');
-$router->get('/interesse/candidato',        'InteresseController@visualizarCandidato');
-$router->get('/interesse/interessados',     'InteresseController@listarInteressados');
-$router->get('/interesse/historico',     'InteresseController@historico');
-$router->get('/interesse/historico/visualizar',     'InteresseController@visualizarHistorico');
-$router->post('/interesse/aceitar',      'InteresseController@aceitar');
-$router->get('/interesse/aceitos',      'InteresseController@listarAceitos');
+$router->post('/candidatura/demonstrar',      'InteresseController@demonstrar');
+$router->get('/candidatura/candidato',        'InteresseController@visualizarCandidato');
+$router->get('/candidatura/interessados',     'InteresseController@listarInteressados');
+$router->get('/candidatura/historico',     'InteresseController@historico');
+$router->get('/candidatura/historico/visualizar',     'InteresseController@visualizarHistorico');
+$router->post('/candidatura/aceitar',      'InteresseController@aceitar');
+$router->get('/candidatura/aceitos',      'InteresseController@listarAceitos');
 
 
 

@@ -101,10 +101,11 @@ class DenunciaController extends Controller
 
         $motivos = Denuncia::motivosPara($tipo);
 
-        // Validar
+        // RN 12: Validar motivo e descrição obrigatórios
         $validador = new Validador();
         $validador->obrigatorio('motivo', $motivo, 'Selecione o motivo da denúncia.')
                   ->emLista('motivo', $motivo, array_keys($motivos), 'Motivo inválido: escolha uma das opções.')
+                  ->obrigatorio('descricao', $descricao, 'Descreva os detalhes da denúncia.')
                   ->tamanhoMax('descricao', $descricao, 1000, 'A descrição deve ter no máximo 1000 caracteres.');
 
         $dadosForm = ['denunciado' => $denunciado, 'vaga' => $vaga, 'motivos' => $motivos];
@@ -154,7 +155,7 @@ class DenunciaController extends Controller
     }
 
     /**
-     * Registrar não comparecimento (RN17). As regras vivem no DenunciaService.
+     * Registrar não comparecimento (RN 16)
      */
     public function registrarNaoComparecimento(): void
     {
@@ -164,8 +165,10 @@ class DenunciaController extends Controller
         $idInteresse = (int)($_POST['id_interesse'] ?? 0);
         $descricao = trim($_POST['descricao'] ?? '');
 
+        // RN 16: Descrição obrigatória
         $validador = new Validador();
-        $validador->tamanhoMax('descricao', $descricao, 1000, 'A descrição deve ter no máximo 1000 caracteres.');
+        $validador->obrigatorio('descricao', $descricao, 'Descreva o motivo do não comparecimento.')
+                  ->tamanhoMax('descricao', $descricao, 1000, 'A descrição deve ter no máximo 1000 caracteres.');
 
         try {
             $interesse = $this->service->validarNaoComparecimento($idInteresse, $usuario->getIdUsuario());
