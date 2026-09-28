@@ -24,20 +24,17 @@ include __DIR__ . '/../shared/navbar.php';
                 </div>
             </div>
 
-            <!-- Alvo da denúncia: anúncio ou usuário -->
-            <?php if ($denunciandoAnuncio): ?>
-                <div class="mb-8 pb-8 border-b border-red-200">
-                    <p class="text-xs uppercase font-semibold text-red-800 mb-1">Anúncio denunciado</p>
-                    <h2 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') ?></h2>
+            <!-- Alvo da denúncia: anúncio ou usuário (readonly) -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Alvo da denúncia</label>
+                <div class="bg-gray-50 border border-gray-300 rounded px-4 py-3 text-gray-700">
+                    <?php if ($denunciandoAnuncio): ?>
+                        <p><?= htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php else: ?>
+                        <p><?= htmlspecialchars($denunciado->getNome(), ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
                 </div>
-            <?php else: ?>
-                <div class="text-center mb-8 pb-8 border-b border-red-200">
-                    <div class="w-20 h-20 rounded-full bg-red-600 text-white flex items-center justify-center text-3xl font-bold mx-auto mb-3">
-                        <?= htmlspecialchars(strtoupper(substr($denunciado->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($denunciado->getNome(), ENT_QUOTES, 'UTF-8') ?></h2>
-                </div>
-            <?php endif; ?>
+            </div>
 
             <!-- Erro Geral -->
             <?php if (isset($erros['geral'])): ?>
