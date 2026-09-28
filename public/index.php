@@ -50,6 +50,7 @@ $router->get('/vagas/editar',        'VagaController@exibirFormEditar');
 $router->post('/vagas/editar/submit','VagaController@editar');
 $router->post('/vagas/excluir',      'VagaController@excluir');
 $router->get('/vagas/minhas',        'VagaController@minhas');
+$router->post('/vagas/encerrar',      'VagaController@encerrar');
 
 // ============================================================================
 // CANDIDATURAS

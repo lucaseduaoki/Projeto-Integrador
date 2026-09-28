@@ -3,7 +3,7 @@
 namespace app\repositories;
 
 use app\database\ConnectionFactory;
-use app\models\Interesse;
+use app\models\Candidatura;
 use PDO;
 
 class InteresseRepository
@@ -15,7 +15,7 @@ class InteresseRepository
         $this->conn = ConnectionFactory::getConnection();
     }
 
-    public function buscarPorId(int $id): ?Interesse
+    public function buscarPorId(int $id): ?Candidatura
     {
         $sql = "SELECT * FROM candidatura WHERE id_candidatura = :id";
 
@@ -25,10 +25,10 @@ class InteresseRepository
 
         $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $resultado ? Interesse::arrayParaObjeto($resultado) : null;
+        return $resultado ? Candidatura::arrayParaObjeto($resultado) : null;
     }
 
-    public function buscarPorVagaETrabalhador(int $idVaga, int $idTrabalhador): ?Interesse
+    public function buscarPorVagaETrabalhador(int $idVaga, int $idTrabalhador): ?Candidatura
     {
         $sql = "SELECT *
                 FROM candidatura
@@ -43,7 +43,7 @@ class InteresseRepository
         $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (!empty($resultado)) {
-            return Interesse::arrayParaObjeto($resultado[0]);
+            return Candidatura::arrayParaObjeto($resultado[0]);
         }
 
         return null;
@@ -54,7 +54,6 @@ class InteresseRepository
         $sql = "
             SELECT
                 u.nome,
-                u.email,
                 u.telefone
             FROM candidatura i
             INNER JOIN usuario u
@@ -71,29 +70,26 @@ class InteresseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function criar(Interesse $interesse): int
+    public function criar(Candidatura $candidatura): int
     {
         $sql = "INSERT INTO candidatura (id_vaga, id_trabalhador, status, data_candidatura)
                 VALUES (:vaga, :trabalhador, :status, :data)";
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':vaga', $interesse->getIdVaga(), PDO::PARAM_INT);
-        $stmt->bindValue(':trabalhador', $interesse->getIdTrabalhador(), PDO::PARAM_INT);
-        $stmt->bindValue(':status', $interesse->getStatus(), PDO::PARAM_STR);
-        $stmt->bindValue(':data', $interesse->getDataInteresse(), PDO::PARAM_STR);
+        $stmt->bindValue(':vaga', $candidatura->getIdVaga(), PDO::PARAM_INT);
+        $stmt->bindValue(':trabalhador', $candidatura->getIdTrabalhador(), PDO::PARAM_INT);
+        $stmt->bindValue(':status', $candidatura->getStatus(), PDO::PARAM_STR);
+        $stmt->bindValue(':data', $candidatura->getDataInteresse(), PDO::PARAM_STR);
         $stmt->execute();
 
         $id = (int)$this->conn->lastInsertId();
-
-
-
 
         return $id;
     }
 
     public function listarPorVaga(int $idVaga): array
     {
-        $sql = "SELECT i.*, u.nome AS nome_trabalhador
+        $sql = "SELECT i.*, u.nome AS nome_trabalhador, u.telefone AS telefone_trabalhador
                 FROM candidatura i
                 INNER JOIN usuario u ON u.id_usuario = i.id_trabalhador
                 WHERE i.id_vaga = :vaga
@@ -106,7 +102,7 @@ class InteresseRepository
         $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(
-            fn($row) => Interesse::arrayParaObjeto($row),
+            fn($row) => Candidatura::arrayParaObjeto($row),
             $dados
         );
     }
@@ -126,7 +122,7 @@ class InteresseRepository
         $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(
-            fn($row) => Interesse::arrayParaObjeto($row),
+            fn($row) => Candidatura::arrayParaObjeto($row),
             $dados
         );
     }
@@ -183,7 +179,7 @@ class InteresseRepository
         $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(
-            fn($row) => Interesse::arrayParaObjeto($row),
+            fn($row) => Candidatura::arrayParaObjeto($row),
             $dados
         );
     }

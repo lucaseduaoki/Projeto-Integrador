@@ -2,7 +2,7 @@
 
 namespace app\services;
 
-use app\models\Interesse;
+use app\models\Candidatura;
 use app\repositories\InteresseRepository;
 use app\repositories\VagaRepository;
 use Exception;
@@ -25,19 +25,19 @@ class InteresseService
         int $idVaga,
         int $idTrabalhador
     ): int {
-        error_log("ENTROU NO SERVICE demonstrarInteresse com idVaga=$idVaga e idTrabalhador=$idTrabalhador"); // Log the input values
+        error_log("ENTROU NO SERVICE demonstrarInteresse com idVaga=$idVaga e idTrabalhador=$idTrabalhador");
         $vaga = $this->vagaRepository->buscarPorId($idVaga);
         if (!$vaga) {
             throw new Exception("Vaga não encontrada.");
         }
-        error_log("Vaga encontrada: " . print_r($vaga, true)); // Log the vaga object
+        error_log("Vaga encontrada: " . print_r($vaga, true));
         if (!$vaga->isUserActive() || !$vaga->estaVisivel()) {
             throw new Exception("Esta vaga não está mais disponível.");
         }
         if ($vaga->getStatus() !== 'ATIVA') {
             throw new Exception("Esta vaga já foi encerrada.");
         }
-        error_log("Data limite da vaga: " . $vaga->getDataLimite()); // Log the data limite of the vaga
+        error_log("Data limite da vaga: " . $vaga->getDataLimite());
         if (
             $vaga->getDataLimite() !== null &&
             strtotime($vaga->getDataLimite()) < strtotime(date('Y-m-d'))
@@ -53,23 +53,21 @@ class InteresseService
             $idVaga,
             $idTrabalhador
         );
-        error_log("Verificando se já existe interesse: " . ($jaExiste ? 'Sim' : 'Não')); // Log whether the interest already exists
+        error_log("Verificando se já existe interesse: " . ($jaExiste ? 'Sim' : 'Não'));
         if ($jaExiste) {
             throw new Exception("Você já demonstrou interesse nesta vaga.");
         }
 
-        $interesse = new Interesse(
+        $candidatura = new Candidatura(
             $idVaga,
             $idTrabalhador,
             'PENDENTE',
             date('Y-m-d H:i:s')
-
-
         );
-        return $this->repository->criar($interesse);
+        return $this->repository->criar($candidatura);
     }
 
-    public function buscarPorId(int $idInteresse): ?Interesse
+    public function buscarPorId(int $idInteresse): ?Candidatura
     {
         return $this->repository->buscarPorId($idInteresse);
     }
@@ -148,26 +146,6 @@ public function aceitarInteressado(
     $this->repository->aceitar($idInteressado);
 
     error_log("[ACEITAR] Interesse aceito.");
-
-    // Conta novamente após aceitar
-    $totalAceitos = $this->repository->contarAceitos(
-        $vaga->getIdVaga()
-    );
-
-    error_log("[ACEITAR] Total após aceite: {$totalAceitos}");
-
-    // Se acabou de atingir o limite, encerra a vaga
-    if ($totalAceitos >= $vaga->getTrabalhadoresLimite()) {
-
-        error_log("[ACEITAR] Limite atingido. Encerrando vaga.");
-
-        $this->vagaRepository->mudarStatus(
-            $vaga->getIdVaga(),
-            'ENCERRADA'
-        );
-    }
-
-    error_log("[ACEITAR] Processo finalizado com sucesso.");
 
     return true;
 }

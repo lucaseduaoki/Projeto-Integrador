@@ -113,9 +113,9 @@ class Controller
     public function contratanteRequired(): void
     {
         $this->autenticacaoRequired();
-        
+
         $usuario = $_SESSION['usuario_logado'];
-        if (!$usuario->isContratante() && !$usuario->isAdmin()) {
+        if (!$usuario->isContratante()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }
@@ -127,9 +127,9 @@ class Controller
     public function trabalhadorRequired(): void
     {
         $this->autenticacaoRequired();
-        
+
         $usuario = $_SESSION['usuario_logado'];
-        if (!$usuario->isTrabalhador() && !$usuario->isAdmin()) {
+        if (!$usuario->isTrabalhador()) {
             $this->redirect(URL_BASE . '/403');
             exit;
         }

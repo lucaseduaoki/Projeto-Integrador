@@ -159,6 +159,7 @@ class Validador {
 
     /**
      * Papéis escolhidos no cadastro. Ao menos um; empresa (PJ) atua em um único papel (RN02).
+     * RN01/02: CPF (PF) pode ser trabalhador ou contratante; CNPJ (PJ) DEVE ser contratante.
      */
     public function papeis(string $campo, array $papeis, string $tipoPessoa): self
     {
@@ -168,8 +169,12 @@ class Validador {
             $this->erros[$campo] = 'Selecione ao menos um papel: trabalhador ou contratante.';
         } elseif (array_diff($papeis, $validos)) {
             $this->erros[$campo] = 'Papel inválido.';
-        } elseif ($tipoPessoa === 'PJ' && count($papeis) > 1) {
-            $this->erros[$campo] = 'Empresas atuam em um único papel. Só pessoa física pode ser trabalhador e contratante.';
+        } elseif ($tipoPessoa === 'PJ') {
+            if (count($papeis) > 1) {
+                $this->erros[$campo] = 'Empresas atuam em um único papel.';
+            } elseif (!in_array('CONTRATANTE', $papeis, true)) {
+                $this->erros[$campo] = 'Empresas (CNPJ) devem atuar como contratante.';
+            }
         }
 
         return $this;

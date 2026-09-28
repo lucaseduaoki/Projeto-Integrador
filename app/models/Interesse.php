@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-class Interesse
+class Candidatura
 {
     private ?int $idInteresse;
     private int $idVaga;
@@ -106,16 +106,16 @@ class Interesse
 
     public static function arrayParaObjeto(array $dados): self
     {
-        $interesse = new self(
+        $candidatura = new self(
             $dados['id_vaga'],
             $dados['id_trabalhador'],
             $dados['status'],
             $dados['data_interesse'],
-            $dados['id_interesse']
+            $dados['id_candidatura'] ?? $dados['id_interesse'] ?? null
         );
 
-        $interesse->setNomeTrabalhador($dados['nome_trabalhador'] ?? null);
+        $candidatura->setNomeTrabalhador($dados['nome_trabalhador'] ?? null);
 
-        return $interesse;
+        return $candidatura;
     }
 }
