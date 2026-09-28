@@ -42,9 +42,21 @@ include __DIR__ . '/../shared/navbar.php';
                 </div>
 
                 <div class="flex gap-4 items-center">
-                    <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                        Aceitos: <?= $vaga->getTotalAceitos() ?? 0 ?> / <?= $vaga->getTrabalhadoresLimite() ?? 0 ?>
-                    </span>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-700">
+                            Trabalhadores aceitos: <?= $vaga->getTotalAceitos() ?? 0 ?> / <?= $vaga->getTrabalhadoresLimite() ?? 0 ?>
+                        </span>
+                        <div class="bg-gray-200 rounded-full h-2 w-48">
+                            <div
+                                class="bg-green-600 h-2 rounded-full"
+                                style="width: <?php
+                                    $aceitos = $vaga->getTotalAceitos() ?? 0;
+                                    $limite = $vaga->getTrabalhadoresLimite() ?? 1;
+                                    echo min(100, ($aceitos / $limite) * 100);
+                                ?>%">
+                            </div>
+                        </div>
+                    </div>
 
                     <?php if($ehDono): ?>
                         <?php $aceitos = $vaga->getTotalAceitos() ?? 0; $limite = $vaga->getTrabalhadoresLimite() ?? 0; ?>
