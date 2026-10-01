@@ -59,6 +59,7 @@ class CandidaturaService
         }
 
         $candidatura = new Candidatura(
+            0,
             $idVaga,
             $idTrabalhador,
             'PENDENTE',

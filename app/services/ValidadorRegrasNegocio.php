@@ -95,11 +95,6 @@ class ValidadorRegrasNegocio
             throw new Exception('Esta vaga não está disponível.');
         }
         
-        // RN 06: Vaga não deve estar excluída
-        if ($vaga->getExcluidaEm() !== null) {
-            throw new Exception('Esta vaga foi removida.');
-        }
-        
         // RN 06: Vaga deve estar dentro do prazo (data_limite)
         if ($vaga->getDataLimite() !== null && $vaga->getDataLimite() < date('Y-m-d')) {
             throw new Exception('O prazo para se candidatar a esta vaga já expirou.');
@@ -111,7 +106,7 @@ class ValidadorRegrasNegocio
         }
         
         // RN 15: Uma candidatura por vaga
-        $candidaturaExistente = $this->candidaturaRepository->buscarPorVagaDeTrabalhador(
+        $candidaturaExistente = $this->candidaturaRepository->buscarPorVagaETrabalhador(
             $vaga->getIdVaga(),
             $trabalhador->getIdUsuario()
         );
