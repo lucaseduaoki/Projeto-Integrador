@@ -1,10 +1,6 @@
 # FreelaJá: guia para entender e defender o código
 
-**Versão:** 2.0 (Alinhado à Especificação)  
-**Data:** 2026-09-28  
-**Status:** Completo e testado
-
-Este documento existe para que você consiga explicar o sistema de cabeça, sem decorar arquivo por arquivo. Tudo o que está aqui foi conferido no código do repositório; onde algo não pôde ser confirmado, está escrito "não confirmado". As referências entre parênteses (`arquivo:linha` ou só `arquivo`) servem para você abrir e conferir.
+Este documento existe para que você consiga explicar o sistema de cabeça, sem decorar arquivo por arquivo. Tudo o que está aqui foi conferido direto no código do repositório e testado rodando a aplicação de verdade; onde algo não pôde ser confirmado, está escrito "não confirmado". As referências entre parênteses (`arquivo:linha` ou só `arquivo`) servem para você abrir e conferir.
 
 Uma advertência de método: os números de linha mudam quando alguém edita o arquivo. Se uma linha citada não bater, procure o nome do método ao lado dela.
 
@@ -12,292 +8,181 @@ Uma advertência de método: os números de linha mudam quando alguém edita o a
 
 ## 1. Visão geral em uma página
 
-**O que é.** O FreelaJá é uma plataforma web que conecta quem precisa de um serviço pontual (o **contratante**) a quem presta esse serviço (o **trabalhador**). O contratante publica uma **vaga** (anúncio), trabalhadores se **candidatam**, o contratante **seleciona** quem quiser e só então recebe o contato do escolhido. Um **administrador** modera a plataforma por meio de **denúncias**. O sistema não tem pagamento: ele apenas aproxima as partes.
+**O que é.** O FreelaJá é uma plataforma web que conecta quem precisa de um serviço pontual (o **contratante**) a quem presta esse serviço (o **trabalhador**). O contratante publica uma **vaga** (anúncio), trabalhadores se **candidatam**, o contratante **aceita** quem quiser (respeitando um limite de vagas) e só então os dados de contato ficam visíveis entre as partes. Um **administrador** modera a plataforma por meio de **denúncias**. O sistema não tem pagamento: ele apenas aproxima as partes.
 
-**Decisão arquitetural central.** É um monólito em **PHP puro** com **MVC próprio**, sem framework, sem Composer e sem ORM. O roteador, o carregador de classes e o controller base foram escritos pela equipe (`app/core/`). A regra que organiza tudo é a divisão em cinco camadas com uma responsabilidade cada: o **controller** recebe a requisição e valida a entrada, o **service** decide as regras de negócio, o **repository** fala SQL, o **model** carrega os dados, e a **view** só desenha HTML. O banco é **MySQL** acessado por **PDO** com consultas parametrizadas. Um **validador centralizado** (`ValidadorRegrasNegocio`) garante que todas as regras de negócio sejam aplicadas.
+**Regra de papéis (importante, foi reforçada recentemente).** O cadastro não deixa mais o usuário escolher livremente: **pessoa física (CPF) é sempre trabalhador**, **pessoa jurídica (CNPJ) é sempre contratante**. Essa é uma regra de negócio explícita — não existe mais acúmulo de papéis nem conversão de um para o outro depois do cadastro.
 
-**Tamanho.** São ~70 arquivos PHP com cerca de 10,5 mil linhas, mais o `script.sql` com ~500 linhas. Há 33 rotas, 8 tabelas e 2 triggers. Aproximadamente 1,4 mil linhas (13%) são código morto que não roda; a seção 9 diz exatamente quais.
+**Decisão arquitetural central.** É um monólito em **PHP puro** com **MVC próprio**, sem framework, sem Composer e sem ORM. O roteador, o carregador de classes e o controller base foram escritos pela equipe (`app/core/`). A regra que organiza tudo é a divisão em camadas com uma responsabilidade cada: o **controller** recebe a requisição, autentica/autoriza e valida a entrada; o **service** decide as regras de negócio (RN); o **repository** fala SQL; o **model** representa os dados; e a **view** só desenha HTML. O banco é **MySQL** acessado por **PDO** com consultas parametrizadas.
 
-**Se a banca pedir "descreva seu sistema", uma resposta de cabeça:** *"É uma plataforma de vagas de serviços pontuais em PHP com MVC próprio. Toda requisição entra por um único arquivo, `public/index.php`, que registra as rotas; o roteador escolhe um controller; o controller confere quem é o usuário e valida a entrada; o service aplica as regras de negócio, como limite de trabalhadores, candidatura única por vaga e liberação de contato só após a seleção; o repository executa SQL parametrizado no MySQL; e uma view renderiza o resultado. Um usuário pode ser trabalhador, contratante, ambos ou administrador, representado por três flags no banco. A moderação é feita por denúncias, com bloqueio de conta, ocultação, remoção, sem apagar dados. Todas as regras de negócio são validadas centralmente em um service dedicado."*
+**Tamanho (conferido em 2026-10-01).** 53 arquivos PHP, cerca de 9.000 linhas. 33 rotas, 7 tabelas, 2 triggers. 6 controllers, 6 services, 4 repositories, 5 models, 23 views. Não há testes automatizados.
+
+**Se a banca pedir "descreva seu sistema", uma resposta de cabeça:** *"É uma plataforma de vagas de serviços pontuais em PHP com MVC próprio. Toda requisição entra por um único arquivo, `public/index.php`, que registra as rotas; o roteador escolhe um controller; o controller confere quem é o usuário e valida a entrada; o service aplica as regras de negócio, como limite de trabalhadores aceitos, candidatura duplicada e liberação de contato só depois da seleção; o repository executa SQL parametrizado no MySQL; e uma view renderiza o resultado. Pessoa física só pode ser trabalhador, pessoa jurídica só pode ser contratante — sem acúmulo. A moderação é feita por denúncias: bloqueio de conta, remoção lógica de anúncio ou arquivamento sem sanção, sem apagar dados."*
 
 ---
 
 ## 2. O caminho de uma requisição
 
-O melhor jeito de entender a estrutura é seguir uma requisição real do começo ao fim. Vamos acompanhar este caso: **um trabalhador clica em "Se candidatar" na página de uma vaga**.
+O melhor jeito de entender a estrutura é seguir uma requisição real do começo ao fim. Vamos acompanhar este caso: **um trabalhador clica em "Candidatar-se" na página de uma vaga**.
 
 ### 2.1 Da porta de entrada ao roteador
 
 1. O navegador envia `POST /candidatura/demonstrar` com o campo `id_vaga`. O formulário está em `app/views/vaga/vaga_show.php`.
-2. **`.htaccess` da raiz.** O Apache reescreve tudo para a pasta `public/`. Só `public/` fica exposta como raiz do site; o resto do código (`app/`) não é servido diretamente.
-3. **`public/.htaccess`.** Se o caminho pedido não for um arquivo ou diretório real (como uma imagem ou um upload), a requisição é reescrita para `public/index.php`. Por isso existe um único ponto de entrada.
-4. **`public/index.php`** faz, nesta ordem: carrega o autoload (`app/core/Autoload.php`), carrega a configuração (`app/config/Config.php`), registra um tratador global de exceções, cria o `Router`, declara as 33 rotas e chama `$router->run()`.
-5. **`app/core/Router.php`.** O método `run()` normaliza a URI, procura uma rota cujo caminho **e** método HTTP batam exatamente, e chama `dispatch()`. O roteador só faz correspondência exata. Se nada casar, renderiza `errors/404.php`. Ao casar, `dispatch()` faz `new InteresseController` e chama o método `demonstrar`.
+2. **`public/.htaccess`** reescreve qualquer caminho que não seja um arquivo/diretório real para `public/index.php`. Por isso existe um único ponto de entrada.
+3. **`public/index.php`** faz, nesta ordem: carrega o autoload (`app/core/Autoload.php`), carrega a configuração (`app/config/Config.php`), registra um tratador global de exceções (`set_exception_handler`), cria o `Router`, declara as 33 rotas e chama `$router->run()`.
+   - O **autoload** converte um nome de classe em caminho de arquivo: `app\services\VagaService` vira `app/services/VagaService.php`. É por isso que os namespaces espelham as pastas.
+   - O **`Config.php`** define as constantes de banco **diretamente no código** (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` — não há mais `.env`, foi removido de propósito), configura a sessão (cookie `httponly`, `secure` só se a requisição for HTTPS, `use_strict_mode`), define o fuso `America/Sao_Paulo`, inicia a sessão e calcula `URL_BASE` a partir do host da requisição.
+4. **`app/core/Router.php`.** O método `run()` normaliza a URI, procura uma rota cujo caminho **e** método HTTP batam exatamente, e chama `dispatch()`. O roteador só faz correspondência exata: **não existe parâmetro na URL**. Por isso os identificadores viajam sempre na query string (`?id=3`) ou no corpo do POST (`id_vaga`). Se nada casar, renderiza `errors/404.php`. Ao casar, `dispatch()` faz `new CandidaturaController` e chama o método `demonstrar`.
 
 ### 2.2 Controller: autenticação e permissão
 
-O construtor do controller (`app/controllers/InteresseController.php`) cria seus services, e cada service cria seus repositories; o repository pega a conexão PDO única em `ConnectionFactory::getConnection()`.
+O construtor do controller (`app/controllers/CandidaturaController.php`) cria seus services, e cada service cria seus repositories; o repository pega a conexão PDO única em `ConnectionFactory::getConnection()` (singleton: uma única conexão por processo, reaproveitada por todos os repositories). Ou seja, a conexão com o banco nasce na primeira vez que algum repository precisa dela.
 
-O método `demonstrar()` começa com `$this->trabalhadorRequired()`. Esse é o **ponto onde autenticação e permissão são verificadas** (`app/core/Controller.php`):
+O método `demonstrar()` começa com `$this->trabalhadorRequired()`. Esse é o **ponto onde autenticação e permissão são verificadas**, e ele vive no controller base (`app/core/Controller.php`):
 
-- `trabalhadorRequired()` chama primeiro `autenticacaoRequired()`, que faz três coisas: confere se há usuário na sessão; confere se o IP e o navegador da sessão são os mesmos do login; e **recarrega o usuário do banco** para ver se a conta ainda está ativa. Se falhar em qualquer uma, redireciona para `/login`.
-- Depois, `trabalhadorRequired()` verifica o **papel**: passa quem é trabalhador ou administrador. Caso contrário, redireciona para `/403`.
+- `autenticacaoRequired()` confere se há um `Usuario` na sessão e **recarrega o usuário do banco a cada requisição** para ver se a conta ainda está ativa (RN04). Se a conta foi desativada/bloqueada desde o login, a sessão é destruída e a pessoa é mandada para `/login?motivo=conta_inativa`. Se passar, o usuário da sessão é substituído pelo recém-lido — por isso um papel alterado por um admin passa a valer sem a pessoa precisar logar de novo.
+- `trabalhadorRequired()` chama `autenticacaoRequired()` e depois verifica o **papel**: só passa quem é trabalhador. Caso contrário, redireciona para `/403`.
 
-Em seguida o controller lê `id_vaga`, converte para inteiro e chama o service. Ele **não decide nenhuma regra**; só entrega a entrada.
+Em seguida o controller lê `id_vaga`, converte para inteiro, confere se a vaga existe e delega para o service. Ele **não decide nenhuma regra de negócio**; só entrega a entrada e escolhe a resposta.
 
-### 2.3 Service: as regras
+### 2.3 Service: a regra de negócio
 
-`InteresseService::demonstrarInteresse` (`app/services/InteresseService.php`) é onde a decisão acontece. Ele busca a vaga e aplica, em ordem: a vaga existe; o contratante está ativo; a vaga está `ATIVA` e visível; o prazo de candidatura não passou; o trabalhador não é o dono da vaga (RN 07); e ele ainda não se candidatou (RN 15). Qualquer falha lança uma exceção com mensagem de negócio.
+`CandidaturaController::demonstrar()` chama duas coisas, nessa ordem:
 
-Depois disso, `ValidadorRegrasNegocio::validarCandidatura` (`app/services/ValidadorRegrasNegocio.php`) executa todas as validações de negócio em um único ponto: vaga ativa, vaga visível, prazo não expirado, limite não atingido, candidatura única.
+1. `ValidadorRegrasNegocio::validarCandidatura($usuario, $vaga)` — confere, em sequência: é trabalhador; a vaga está `ATIVA`; a vaga está `visível` (não oculta/removida pela moderação); está dentro do prazo (`data_limite`); ainda há vaga disponível (`total_aceitos < trabalhadores_limite`); e que o trabalhador **ainda não se candidatou** a essa vaga (RN15, unicidade). Qualquer falha lança uma `Exception` com uma mensagem já pronta para a tela.
+2. `CandidaturaService::demonstrarInteresse($idVaga, $idTrabalhador)` — repete parte dessas checagens (vaga ativa, visível, dentro do prazo, não é o dono se candidatando na própria vaga, não duplicada) e, se tudo OK, monta um objeto `Candidatura` e manda `CandidaturaRepository::criar()` persistir.
 
-### 2.4 Repository e banco
+Por que a mesma coisa é checada duas vezes (no validador e no service)? Não há uma razão de design documentada — são duas camadas de validação que foram crescendo em paralelo. Funciona porque as duas concordam, mas é redundância, não defesa em profundidade deliberada.
 
-Só se todas as regras passam, o service monta uma `Candidatura` e a entrega a `CandidaturaRepository::criar`, que executa o **`INSERT` com parâmetros nomeados** e devolve o id. É o **único lugar onde o SQL acontece** nesse fluxo. Como rede de segurança final, o banco tem `UNIQUE(id_vaga, id_trabalhador)` na tabela `candidatura`: mesmo que duas requisições passassem juntas pela checagem do service, a segunda seria rejeitada pelo MySQL.
+Se qualquer exceção for lançada, o controller captura e grava a mensagem na sessão via `flashErro()`; se der certo, `flashSucesso('Candidatura enviada com sucesso!')`. Os dois casos **redirecionam** (padrão Post-Redirect-Get) para `/vagas/visualizar?id=X`.
 
-### 2.5 De volta: a resposta
+### 2.4 Repository: o SQL
 
-O controller captura qualquer exceção e faz `redirect` para `/vagas/visualizar?id=...` (o padrão do projeto é *Post/Redirect/Get*). O GET seguinte cai em `VagaController::visualizar`, que repete `autenticacaoRequired()`, carrega a vaga e chama `$this->view('vaga/vaga_show', [...])`.
+`CandidaturaRepository::criar(Candidatura $candidatura)` monta um `INSERT INTO candidatura (...) VALUES (...)` com `PDO::prepare()` e `bindValue()` — **toda consulta do projeto é parametrizada**, não há concatenação de SQL com entrada do usuário em lugar nenhum do código atual. Depois do insert, devolve `lastInsertId()`.
 
-### 2.6 O caminho, resumido
+### 2.5 De volta pra view
+
+O redirect leva a um novo `GET /vagas/visualizar?id=X`, que passa por todo o ciclo de novo (rota → `VagaController::visualizar()` → busca a vaga, o contratante e se o trabalhador logado já se candidatou → `view('vaga/vaga_show', [...])`). A view inclui `shared/header.php`, `shared/navbar.php` (que agora também inclui `shared/flash.php` — ver seção 7) e `shared/footer.php`, e usa só variáveis extraídas pelo `Controller::view()` via `extract($data)`.
+
+---
+
+## 3. As cinco camadas, uma por uma
+
+| Camada | Pasta | Responsabilidade | Não faz |
+|---|---|---|---|
+| Core | `app/core/` | Router, autoload, Controller base (auth, redirect, flash, sanitização) | Regra de negócio |
+| Controller | `app/controllers/` | Lê `$_GET`/`$_POST`, chama `autenticacaoRequired()`/`contratanteRequired()`/etc., delega pro service, escolhe a view/redirect | SQL, regra de negócio complexa |
+| Service | `app/services/` | Regras de negócio (RN), transações (`beginTransaction`/`commit`/`rollBack`), orquestra repositories | HTML, `$_GET`/`$_POST` direto |
+| Repository | `app/repositories/` | Uma classe por tabela principal, só SQL parametrizado via PDO | Regra de negócio |
+| Model | `app/models/` | Objetos simples (getters/setters, `arrayParaObjeto()` para montar a partir de uma linha do banco) | SQL, HTML |
+| View | `app/views/` | HTML + Tailwind (via CDN) + um pouco de JS inline. Recebe dados prontos do controller | Consulta ao banco, regra de negócio |
+
+Os 6 controllers: `AutenticacaoController`, `UsuarioController`, `VagaController`, `CandidaturaController`, `DenunciaController`, `ErroController` (só a página 403).
+
+Os 6 services: `AutenticacaoService`, `UsuarioService`, `VagaService`, `CandidaturaService`, `DenunciaService`, e `ValidadorRegrasNegocio` (concentra as regras numeradas RN04 a RN17 — ver seção 5).
+
+Os 4 repositories: `UsuarioRepository`, `VagaRepository`, `CandidaturaRepository`, `DenunciaRepository`. Repare que **não existe um `CategoriaRepository` nem `HabilidadeRepository` dedicados** — consultas de categoria/habilidade vivem dentro de `VagaRepository`/`UsuarioRepository` mesmo.
+
+Os 5 models: `Usuario`, `Vaga`, `Candidatura`, `Denuncia`, `Habilidade`. Todos seguem o mesmo padrão: construtor posicional, getters/setters, e um `arrayParaObjeto(array $linhaDoBanco): static` estático que o repository usa para montar o objeto a partir do `PDO::fetch()`.
+
+---
+
+## 4. Autenticação e sessão
+
+- Senha: `password_hash()`/`password_verify()` com bcrypt (`PASSWORD_BCRYPT`, custo 12 no cadastro).
+- Sessão: cookie `httponly` sempre; `secure` só quando a requisição é HTTPS (em `http://localhost` ele seria descartado se fosse sempre `secure`); `session.use_strict_mode` ligado; `session_regenerate_id(true)` no login (previne session fixation).
+- `AutenticacaoService` grava `$_SESSION['ip']` e `$_SESSION['user_agent']` no login, e tem um método estático `validarIntegridade()` que compara esses valores com a requisição atual — **mas esse método não é chamado em nenhum lugar do fluxo real** (`Controller::autenticacaoRequired()` não o usa). Ou seja: existe a validação de IP/user-agent escrita, mas ela está desconectada do fluxo de autenticação.
+- A cada requisição autenticada, `autenticacaoRequired()` relê o usuário do banco (RN04) — é assim que uma conta bloqueada por um admin é desconectada na próxima ação da pessoa, não instantaneamente.
+
+---
+
+## 5. Regras de negócio (RN) — onde cada uma mora
+
+A numeração "RN04", "RN17" etc. aparece em comentários espalhados pelo código; não há uma lista central numerada de RN01 a RNxx em nenhum arquivo. O que existe de fato, por função:
+
+**`app/services/ValidadorRegrasNegocio.php`** (classe dedicada, usada por `VagaController` e `CandidaturaController`):
+- `validarCriadorVaga()` — só contratante ativo cria vaga (RN04).
+- `validarEncerramentoVaga()` — só encerra se `total_aceitos >= trabalhadores_limite` (RN05).
+- `validarAceitacaoCandidato()` — não aceita além do limite (RN10).
+- `validarNovoLimite()` — ao editar, não reduz o limite abaixo da quantidade já aceita (RN10).
+- `validarCandidatura()` — a cadeia de checagens da seção 2.3 (RN06/07/15).
+- `validarEdicaoVaga()` — com candidaturas existentes, título e categoria ficam travados (RN17).
+
+**`app/helpers/Validador.php`** (helper genérico de validação de formulário, não é regra de negócio pura — mistura validação de campo com algumas RN):
+- `papeis()` — aplica a regra PF-só-trabalhador / PJ-só-contratante no cadastro.
+- `documentoPorTipoPessoa()` — CPF para PF, CNPJ para PJ, com dígito verificador real (`cpf()`/`cnpj()` calculam os dígitos, não é só tamanho).
+- `responsavelPrestadora()` — ainda existe no código mas hoje é inatingível: só dispara para "PJ que presta serviço", estado que a regra de papéis atual não permite mais criar. Ver seção 8.
+
+**Dentro dos services** (`CandidaturaService`, `DenunciaService`, `VagaService`): regras mais específicas de cada ação — por exemplo, `CandidaturaService::aceitarInteressado()` confere dono da vaga, vaga ativa/visível, candidato ainda não aceito, e limite — em parte repetindo o que `ValidadorRegrasNegocio` já confere antes de chamar o service.
+
+---
+
+## 6. Vaga: ciclo de vida
 
 ```
-navegador
-  → .htaccess (raiz)            reescreve para public/
-  → public/.htaccess            tudo que não é arquivo vai para index.php
-  → public/index.php            autoload, Config, rotas
-  → app/core/Router.php         casa método + caminho, instancia o controller
-  → InteresseController         trabalhadorRequired           ← autenticação e permissão
-  → ValidadorRegrasNegocio      validarCandidatura           ← validações centralizadas
-  → InteresseService            regras de negócio            ← decisão
-  → CandidaturaRepository       INSERT parametrizado         ← SQL
-  → MySQL                        UNIQUE(id_vaga, id_trabalhador) ← última barreira
+ATIVA ──encerrar (RN05: aceitos >= limite)──> ENCERRADA ──reabrir──> ATIVA
 ```
 
----
+Independente de `status`, a vaga também tem `visibilidade`: `VISIVEL` (padrão) ou `REMOVIDA` (exclusão lógica pela moderação — ver seção 7). **Não existe mais o estado `OCULTA`** no fluxo normal: só sobrou um caminho de moderação para anúncio, "Remover anúncio", que já bloqueia edição e some da listagem — ocultar-mas-deixar-editar foi removido de propósito para não ter duas ações fazendo quase a mesma coisa.
 
-## 3. As camadas e a regra de ouro de cada uma
+Dois campos são mantidos por **trigger** no MySQL, não em PHP:
+- `trg_vaga_define_is_user_active` (BEFORE INSERT) — copia `usuario.ativo` do contratante pra `vaga.is_user_active` na criação.
+- `trg_usuario_ativo_atualiza_vagas` (AFTER UPDATE em `usuario`) — se o contratante for ativado/desativado, atualiza `is_user_active` de todas as vagas dele.
 
-| Camada | Pergunta que responde | Nunca deve aparecer |
-|---|---|---|
-| Controller | "O que chegou e quem pediu? O que respondo?" | SQL; regra de negócio |
-| Service | "Isto é permitido pelas regras do negócio?" | `$_POST`, `$_SESSION`, HTML, SQL |
-| ValidadorRegrasNegocio | "Isto satisfaz as restrições de negócio?" | Qualquer lógica fora de validação |
-| Repository | "Como isso é lido ou gravado no banco?" | Regra de negócio; HTML |
-| Model | "Que dados isto carrega?" | SQL; conhecimento de tela |
-| View | "Como isso aparece?" | SQL; regra de negócio |
+Isso existe para que `VagaRepository::listar()`/`buscar()` consigam filtrar `is_user_active = 1` sem precisar de um JOIN com `usuario` toda vez.
+
+**Campos da vaga** (tabela `vaga`): categoria, título, descrição, **bairro** + localização (endereço livre — dois campos distintos, não confundir), remuneração, data de publicação, prazo para candidatura (`data_limite`, opcional), data do serviço (`data_servico`), horário, duração, observações, limite de trabalhadores, status, visibilidade. O sistema trata **só trabalho temporário** — não existe mais a distinção fixo/temporário que existia numa versão anterior do schema (coluna `tipo_servico` foi removida).
 
 ---
 
-## 4. Autenticação, sessão e permissão
+## 7. Candidatura e moderação de denúncias
 
-### 4.1 Cadastro e armazenamento da senha
-`AutenticacaoController::cadastrar` valida os campos e chama `UsuarioService::registrar`, que grava a senha com `password_hash($senha, PASSWORD_BCRYPT, ['cost' => 12])`. O bcrypt gera um hash com **sal embutido e custo ajustável**. A senha em texto puro nunca é gravada.
+**Candidatura:** `PENDENTE` → `ACEITO` (contratante aceita, respeitando o limite) — não há estado de "recusado" explícito; o contratante simplesmente não aceita.
 
-### 4.2 Login
-`AutenticacaoController::logar` → `AutenticacaoService::logar`:
-1. busca o usuário **ativo** pelo e-mail;
-2. compara com `password_verify`;
-3. chama `session_regenerate_id(true)`, que troca o identificador da sessão para evitar *session fixation*;
-4. guarda na sessão o objeto do usuário, o IP e o `User-Agent`.
+**Denúncia:** `PENDENTE` → `ANALISADA`, com `acao_moderacao` registrando o que foi feito: `NENHUMA` (arquivada sem sanção), `BLOQUEIO` (conta bloqueada), `VAGA_OCULTA`/`VAGA_REMOVIDA` (só `VAGA_REMOVIDA` é alcançável hoje — ver acima). O botão no painel do admin (`/admin/denuncias`) chama isso de **"Arquivar"** (antes era rotulado "Analisar"; o nome foi trocado, o valor interno `acao_moderacao = 'NENHUMA'` continua o mesmo).
 
-### 4.3 O mecanismo de guardas
-O controller base (`app/core/Controller.php`) tem quatro guardas, todas no início do método do controller:
+Denúncia pode ser de **anúncio** (`id_vaga_denunciada` preenchido, `id_usuario_denunciado` nulo) ou de **usuário** (o contrário) — nunca os dois ao mesmo tempo, exceto num terceiro caso: **não comparecimento** (RN17), onde o contratante denuncia o trabalhador que ele mesmo aceitou e que não apareceu — aí sim os dois campos vêm preenchidos (usuário + vaga), com motivo fixo `NAO_COMPARECIMENTO`. Esse fluxo não tem mais a trava de "só depois da data do serviço" — foi removida de propósito, a pedido explícito, para o contratante poder registrar a qualquer momento depois de aceitar.
 
-| Guarda | Deixa passar |
-|---|---|
-| `autenticacaoRequired()` | qualquer usuário logado e ativo |
-| `trabalhadorRequired()` | trabalhador ou admin |
-| `contratanteRequired()` | contratante ou admin |
-| `adminRequired()` | somente admin |
+A lista do admin (`/admin/denuncias`) mostra **nome** do denunciante/denunciado (não mais o ID cru), buscados em lote por `UsuarioRepository::buscarPorIds()`/`VagaRepository::buscarPorIds()` para não gerar uma consulta por linha.
 
 ---
 
-## 5. O modelo de dados
+## 8. Pontos que merecem atenção (não são lendas, foram conferidos)
 
-### 5.1 A história em uma frase
-Um **usuário** (contratante) publica uma **vaga** de uma **categoria**; outros **usuários** (trabalhadores) se **candidatam** a ela; a plataforma modera por **denúncias**; e trabalhadores têm **habilidades**.
+Esta seção é sincera de propósito — é o tipo de coisa que, se a banca perguntar "e isso aqui?", você quer já saber a resposta em vez de ser pego de surpresa.
 
-### 5.2 As entidades centrais
-- **`usuario`**: a pessoa (ou empresa). Guarda identidade, papéis (flags), tipo de pessoa (PF/PJ) e se está ativa.
-- **`vaga`**: o anúncio. Tem `data_servico` (quando acontece), `data_limite` (prazo para se candidatar, opcional), `status` (ATIVA/ENCERRADA), `is_user_active` (espelho do contratante), `visibilidade` (VISIVEL/OCULTA/REMOVIDA), e `excluida_em` (exclusão lógica).
-- **`candidatura`**: a relação entre um trabalhador e uma vaga (renomeada de "interesse"). Tem um status próprio (PENDENTE/ACEITO) e garante uma candidatura por par (trabalhador, vaga) via UNIQUE.
-- **`denuncia`**: o registro de uma queixa e da decisão da moderação sobre ela. Tem `acao_moderacao` (NENHUMA, BLOQUEIO, VAGA_OCULTA, VAGA_REMOVIDA), e campos de rastreabilidade (`id_admin`, `analisada_em`).
-
-### 5.3 Decisões de modelagem que você precisa saber justificar
-
-**(a) `data_servico` separada de `data_limite`.** São dois conceitos diferentes. `data_servico` é o **dia em que o trabalho acontece**. `data_limite` é o **prazo para se candidatar** (opcional, RN 06). Separar também permite filtrar a busca e permite regras como "só registrar não comparecimento depois da data do serviço".
-
-**(b) `UNIQUE(id_vaga, id_trabalhador)` em `candidatura`.** Impede a candidatura duplicada **no próprio banco**. O service também confere antes, mas a garantia de verdade é a do banco.
-
-**(c) Os estados de moderação da vaga:** Três eixos independentes:
-- `status`: a **vontade do contratante** ou o limite atingido;
-- `is_user_active`: o **dono está ativo?** (espelho do banco);
-- `visibilidade`: a **decisão da moderação**.
-- `excluida_em`: **exclusão lógica** pelo dono (RN 17).
-
-A vaga só aparece na listagem se os três estiverem favoráveis. Separar os eixos evita que uma ação desfaça outra.
+- **`Usuario::getLocalizacao()` é hardcoded.** Sempre devolve a string `"Foz do Iguaçu, PR"`, não importa o que o usuário cadastrou (`app/models/Usuario.php:58-61`). O campo "Localização" foi removido dos formulários de perfil porque editá-lo não tinha efeito nenhum na tela.
+- **`Usuario::setLocalizacao()` está morto e quebrado.** Atribui a `$this->localizacao`, uma propriedade que **não existe** na classe (`app/models/Usuario.php:159-163`). Não quebra nada hoje porque nenhum código chama esse método — mas se alguém chamar, é erro de propriedade dinâmica (aviso no PHP 8.2+).
+- **`Validador::responsavelPrestadora()` está desconectado.** Só faz sentido para "PJ que presta serviço", um estado que a regra atual (PF-trabalhador / PJ-contratante, sem exceção) não deixa mais criar por nenhum fluxo da aplicação. O método continua ali, sem uso.
+- **`AutenticacaoService::validarIntegridade()` nunca é chamado** pelo fluxo real de autenticação (ver seção 4) — existe, grava os dados na sessão no login, mas ninguém lê para invalidar a sessão.
+- **Muito `error_log()` de debug espalhado**, principalmente em `CandidaturaService` (fluxo de aceitar candidato) e `AutenticacaoService` (login) — escrevem o estado inteiro de objetos a cada requisição. Não quebram nada, mas são ruído de performance e de log; foram deixados de uma fase de depuração.
+- **Banco de dev sem persistência de schema fora do `script.sql`.** Não há sistema de migrations versionado — `app/database/scripts/script.sql` é a fonte única da verdade do schema e dos dados de exemplo; recriar o banco é "DROP DATABASE + rodar o script inteiro de novo", não um histórico incremental.
 
 ---
 
-## 6. Os fluxos principais
+## 9. Banco de dados
 
-### 6.1 Publicação de uma vaga (RN 04, RN 05, RN 17)
-1. `contratanteRequired()` → autenticação, conta ativa e papel;
-2. `ValidadorRegrasNegocio::validarCriadorVaga()` → contratante ativo;
-3. Validações de campo (título, remuneração, data, duração obrigatória);
-4. `VagaService::criar` → `VagaRepository::criar` → `INSERT`;
-5. Trigger `BEFORE INSERT` define `is_user_active`.
+7 tabelas: `usuario`, `categoria`, `habilidade`, `usuario_habilidade` (N:N), `vaga`, `candidatura`, `denuncia`. 2 triggers (seção 6).
 
-### 6.2 Candidatura do trabalhador (RN 07, RN 15)
-1. `trabalhadorRequired()` → autenticação, conta ativa e papel;
-2. `ValidadorRegrasNegocio::validarCandidatura()` → vaga ativa, visível, dentro do prazo, limite não atingido, sem duplicidade;
-3. `InteresseService::demonstrarInteresse` → verifica se já existe;
-4. `CandidaturaRepository::criar` → `INSERT`;
-5. Banco recusa a segunda tentativa via `UNIQUE`.
-
-### 6.3 Aceite de candidato (RN 10, RN 13)
-1. `contratanteRequired()` + `podeGerenciarVaga()` → só o dono da vaga;
-2. `ValidadorRegrasNegocio::validarAceitacaoCandidato()` → limite não atingido;
-3. `InteresseService::aceitarInteressado` → `UPDATE candidatura SET status = 'ACEITO'`;
-4. Se com esse aceite o limite foi atingido, `VagaService::encerrar` → `UPDATE vaga SET status = 'ENCERRADA'` (RN 05).
-
-### 6.4 Denúncia e moderação (RN 12, RN 13, RN 16)
-1. `autenticacaoRequired()` → qualquer usuário;
-2. `DenunciaController::denunciar` → valida motivo e descrição (obrigatórios);
-3. `DenunciaService::criar` → `INSERT denuncia (status = 'PENDENTE')`;
-4. Admin modera: `DenunciaController::moderar` → `DenunciaService` executa ação em transação;
-5. Ações: **bloquear** (desativa conta), **ocultar/remover** (muda `visibilidade` da vaga), **analisar** (encerra sem sanção);
-6. Registra `id_admin` e `analisada_em` na denúncia.
+Pontos de design que valem explicar numa arguição:
+- **Uma pessoa é um único `usuario`, com até três flags booleanas** (`is_admin`, `is_trabalhador`, `is_contratante`) em vez de uma tabela de papéis separada. Duas constraints de banco reforçam isso: `chk_usuario_tem_papel` (pelo menos um papel) e `chk_usuario_pj_papel_unico` (PJ nunca pode ser trabalhador **e** contratante ao mesmo tempo). A regra mais nova — PF só trabalhador, PJ só contratante — é aplicada na camada de aplicação (`Validador::papeis()`), não como constraint de banco.
+- **`documento`** guarda CPF (PF) ou CNPJ (PJ) no mesmo campo; `tipo_pessoa` diz qual é qual.
+- **Candidaturas e denúncias nunca são apagadas fisicamente** — ficam como histórico/evidência. Vagas removidas pela moderação também: viram `visibilidade = 'REMOVIDA'`, nunca um `DELETE`.
+- Senhas de todos os usuários de exemplo no `script.sql`: `senha123` (hash bcrypt já gravado).
 
 ---
 
-## 7. As regras de negócio no código
+## 10. Como o usuário sabe o que aconteceu (mensagens flash)
 
-| Regra | Validação | Camada |
-|---|---|---|
-| RN 04 | Contratante ativo cria vaga | ValidadorRegrasNegocio + Controller |
-| RN 05 | Encerramento condicionado ao limite | ValidadorRegrasNegocio |
-| RN 06 | Busca com filtros (bairro, categoria, data, remuneração) | VagaRepository |
-| RN 07 | Candidatura apenas para trabalhador | ValidadorRegrasNegocio |
-| RN 08 | Contratante vê candidatos das próprias vagas | Controller + Repository |
-| RN 09 | Telefone visível desde candidatura | Repository (coluna selecionada) |
-| RN 10 | Limite de aceitos não pode ser excedido | ValidadorRegrasNegocio |
-| RN 12 | Motivo e descrição obrigatórios em denúncias | DenunciaController |
-| RN 13 | Moderação: bloqueio, ocultação, remoção | DenunciaService |
-| RN 14 | Permissões por papel no servidor | Controller guardas |
-| RN 15 | Uma candidatura por vaga | ValidadorRegrasNegocio + UNIQUE no banco |
-| RN 16 | Não-comparecimento com descrição | DenunciaController |
-| RN 17 | Edição com restrições (título/categoria) | ValidadorRegrasNegocio |
+Boa parte do trabalho recente foi garantir que toda ação com `POST` + redirect avise a pessoa do resultado — antes, várias ações falhavam ou tinham sucesso em silêncio, sem nada visível na tela. O mecanismo:
 
-**O princípio.** Regra de negócio mora no **service** (e, quando é de integridade, também no banco) por três razões. Primeiro, o service é o **único caminho comum**. Segundo, controller e view mudam com a tela; a regra não deveria mudar. Terceiro, e mais importante: **o navegador é território do usuário**. Qualquer regra que exista só no HTML ou no JavaScript pode ser burlada. Por isso o código repete a verificação no servidor: o HTML só melhora a experiência, mas quem garante é o service.
+- `Controller::flashSucesso(string $msg)` / `Controller::flashErro(string $msg)` gravam a mensagem em `$_SESSION['flash_sucesso']`/`$_SESSION['flash_erro']`.
+- `app/views/shared/flash.php`, incluído logo após a navbar em toda página (`navbar.php`), lê e **apaga** essas chaves da sessão — por isso a mensagem aparece uma única vez, na primeira página carregada depois do redirect.
+- Está conectado em: aceitar/recusar candidato, candidatar-se, criar/editar/excluir/encerrar/reabrir vaga, moderação de denúncia (bloquear/remover/arquivar), formulário de não comparecimento.
 
 ---
 
-## 8. Validador centralizado de regras (`ValidadorRegrasNegocio.php`)
+## 11. Se a banca pedir para rodar o sistema
 
-Arquivo novo que concentra em um único place todas as validações de regras de negócio:
-
-- `validarCriadorVaga(usuario)` - RN 04: contratante autenticado e ativo;
-- `validarEncerramentoVaga(vaga)` - RN 05: limite de aceitos atingido;
-- `validarCandidatura(usuario, vaga)` - RN 07 + 15: trabalhador, vaga ativa, prazo, sem duplicidade;
-- `validarAceitacaoCandidato(vaga, idCandidato)` - RN 10: não exceder limite;
-- `validarNovoLimite(novoLimite, aceitos)` - RN 10: edição não reduz abaixo de aceitos;
-- `validarEdicaoVaga(vagaAntiga, novoTitulo, novaCategoria)` - RN 17: título e categoria travados com candidaturas.
-
-**Benefício:** toda regra de negócio em um só arquivo, fácil de auditar e manter.
-
----
-
-## 9. Estrutura do repositório
-
-### 9.1 Setup e banco de dados
-```bash
-# Uma única linha instala o banco completo:
-mysql -u freelaja -proot freelaja < app/database/scripts/script.sql
-
-# Já inclui:
-# - Schema completo (todas as tabelas)
-# - Triggers (is_user_active)
-# - Dados de teste
-# - Admin seed (admin@freelaja.com / admin123)
-```
-
-### 9.2 Onde cada coisa vive
-| Caminho | O que vive ali |
-|---|---|
-| `app/services/ValidadorRegrasNegocio.php` | **Validações centralizadas de RN** |
-| `app/controllers/VagaController.php` | Fluxo de vaga (RN 04, 05, 17) |
-| `app/controllers/InteresseController.php` | Fluxo de candidatura (RN 07, 15, 10) |
-| `app/controllers/DenunciaController.php` | Fluxo de denúncia (RN 12, 16, 13) |
-| `app/repositories/CandidaturaRepository.php` | SQL de candidatura (tabela renomeada de "interesse") |
-| `app/repositories/VagaRepository.php` | SQL de vaga |
-| `app/database/scripts/script.sql` | Schema completo + dados + triggers (ÚNICO arquivo SQL) |
-
-### 9.3 Código morto ou sem rota
-Cerca de 1,4 mil linhas do repositório não rodam:
-
-| Arquivo | Situação |
-|---|---|
-| `app/controllers/CandidaturaController.php`, `app/services/CandidaturaService.php` | módulo antigo, substituído por `Interesse*`; nenhuma rota chama |
-| `app/services/HumoristaService.php` | referencia classe inexistente; sobra de outro projeto |
-| `app/views/usuarios/`, `app/views/interesse/confirmada.php` | telas antigas, sem rota |
-| `VagaController::encerrar`, `VagaController::reabrir` | métodos completos, sem rota |
-
----
-
-## 10. Limitações conhecidas
-
-1. **Sem proteção CSRF.** Nenhum formulário POST tem token. *Correção:* token por sessão em cada formulário.
-
-2. **Login diferencia "usuário inexistente" de "senha errada".** *Correção:* mensagem única.
-
-3. **Dados gravados já escapados.** Alguns campos são gravados com `htmlspecialchars` antes de ir para o banco, o que é um defeito de exibição.
-
-4. **Histórico do trabalhador faz N+1 (uma consulta por candidatura).** *Correção:* `JOIN` em bloco.
-
-5. **Busca por texto usa `LIKE '%termo%'`, não usa índice.** *Correção:* índice `FULLTEXT`.
-
-6. **Front-end depende de CDN em tempo de execução.** Tailwind e fontes do Google são carregados de fora.
-
-7. **Sem testes automatizados** e cerca de 13% de código morto.
-
----
-
-## 11. Perguntas prováveis da banca
-
-**1. Por que existe um ValidadorRegrasNegocio separado?**  
-Para centralizar todas as regras de negócio em um único lugar, fácil de auditar. Cada validação é um método que corresponde a uma RN. Evita código espalhado pelos services.
-
-**2. A tabela `candidatura` é a mesma que era `interesse`?**  
-Sim, foi renomeada. O schema usa `candidatura`, mas alguns arquivos ainda usam o nome da classe `Interesse` (`app/models/Interesse.php`). É uma limitação de nomenclatura, mas o funcionamento está correto. O banco é a fonte da verdade.
-
-**3. Por que remover a tabela `advertencia`?**  
-A especificação define que o sistema só tem bloqueio e moderação de vagas (ocultar/remover). Advertência não faz parte do escopo final. Bloqueio é mais drástico mas mais claro: impede o login.
-
-**4. Como o sistema escalaria?**  
-Hoje há limites: sem paginação de verdade, histórico com N+1. Para escalar: `JOIN`s no histórico, índice `FULLTEXT` na busca, paginação com offset limitado. A estrutura em camadas facilita porque o SQL está isolado nos repositories.
-
----
-
-## 12. Glossário
-
-- **Vaga / anúncio**: a oferta de serviço publicada pelo contratante. Tabela `vaga`.
-- **Candidatura / interesse**: a manifestação de um trabalhador por uma vaga. Tabela `candidatura` (renomeada).
-- **Aceito / selecionado**: candidato escolhido pelo contratante (`candidatura.status = 'ACEITO'`); só então o contato é liberado.
-- **Contato**: e-mail e telefone do trabalhador; liberado apenas ao contratante da vaga e apenas após a seleção.
-- **`data_servico`**: dia em que o serviço acontece (obrigatória, não pode estar no passado).
-- **`data_limite`**: prazo opcional para se candidatar.
-- **`status` da vaga**: `ATIVA` ou `ENCERRADA` (vontade do contratante ou limite atingido).
-- **`is_user_active`**: espelho de `usuario.ativo` na vaga, mantido por trigger.
-- **`visibilidade`**: decisão da moderação: `VISIVEL`, `OCULTA` ou `REMOVIDA`.
-- **`excluida_em`**: exclusão lógica da vaga pelo dono (RN 17).
-- **Denúncia**: queixa contra um usuário ou um anúncio. Tabela `denuncia`.
-- **Moderação**: análise do administrador sobre uma denúncia, com uma ação (bloqueio, ocultação, remoção).
-- **Soft delete**: tirar algo de circulação sem apagar o registro (ocultação/remoção).
-- **Não comparecimento**: falta do trabalhador selecionado, registrada como denúncia (RN 16).
-
----
-
-**Última atualização:** 2026-09-28  
-**Autoria:** Claude Haiku 4.5
+- **Credenciais do admin:** `admin@freelaja.com` / `senha123`.
+- O schema + dados de exemplo inteiros estão em `app/database/scripts/script.sql`; rodar esse script contra um banco `freelaja` vazio recria tudo.
+- `app/config/Config.php` tem as credenciais do banco direto no código (não há `.env`).
