@@ -2,21 +2,88 @@
 
 namespace app\services;
 
+use app\models\Usuario;
 use app\models\Vaga;
 use app\repositories\VagaRepository;
 use app\repositories\UsuarioRepository;
+use app\repositories\CandidaturaRepository;
 use Exception;
 
 class VagaService
 {
     private VagaRepository $repository;
     private UsuarioRepository $usuarioRepository;
+    private CandidaturaRepository $candidaturaRepository;
 
     public function __construct()
     {
         $this->repository = new VagaRepository();
         $this->usuarioRepository = new UsuarioRepository();
+        $this->candidaturaRepository = new CandidaturaRepository();
 
+    }
+
+    /**
+     * RN 04: Só contratante autenticado e ATIVO pode criar vaga
+     */
+    public function validarCriadorVaga(Usuario $usuario): void
+    {
+        if (!$usuario->isContratante()) {
+            throw new Exception('Apenas contratantes podem criar vagas.');
+        }
+        if (!$usuario->isAtivo()) {
+            throw new Exception('Sua conta está desativada. Entre em contato com o suporte.');
+        }
+    }
+
+    /**
+     * RN 05: Encerramento condicionado ao limite de aceitos atingido
+     */
+    public function validarEncerramentoVaga(Vaga $vaga): void
+    {
+        $aceitos = $vaga->getTotalAceitos();
+        $limite = $vaga->getTrabalhadoresLimite();
+
+        if ($aceitos < $limite) {
+            throw new Exception(
+                "A vaga não pode ser encerrada. Você precisa de $limite trabalhador(es) aceito(s). " .
+                "Atualmente tem $aceitos aceito(s)."
+            );
+        }
+    }
+
+    /**
+     * RN 10: Validar edição de limite (não pode reduzir abaixo de aceitos)
+     */
+    public function validarNovoLimite(int $novoLimite, int $aceitos): void
+    {
+        if ($novoLimite < $aceitos) {
+            throw new Exception(
+                "Não é possível reduzir o limite para $novoLimite. Você tem $aceitos " .
+                "trabalhador(es) já aceito(s). O limite deve ser no mínimo $aceitos."
+            );
+        }
+    }
+
+    /**
+     * RN 17: Edição de vaga com restrições (título e categoria travados se houver candidaturas)
+     */
+    public function validarEdicaoVaga(Vaga $vagaAntiga, string $novoTitulo, int $novaCategoria): void
+    {
+        $temCandidaturas = $this->candidaturaRepository->listarPorVaga($vagaAntiga->getIdVaga()) !== [];
+
+        if ($temCandidaturas) {
+            if ($novoTitulo !== $vagaAntiga->getTitulo()) {
+                throw new Exception(
+                    'Você não pode alterar o título da vaga depois que trabalhadores se candidataram.'
+                );
+            }
+            if ($novaCategoria !== $vagaAntiga->getIdCategoria()) {
+                throw new Exception(
+                    'Você não pode alterar a categoria da vaga depois que trabalhadores se candidataram.'
+                );
+            }
+        }
     }
 
     /**

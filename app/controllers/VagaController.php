@@ -6,7 +6,6 @@ use app\core\Controller;
 use app\services\VagaService;
 use app\services\UsuarioService;
 use app\services\CandidaturaService;
-use app\services\ValidadorRegrasNegocio;
 use app\helpers\Validador;
 
 class VagaController extends Controller
@@ -14,14 +13,12 @@ class VagaController extends Controller
     private VagaService $vagaService;
     private UsuarioService $usuarioService;
     private CandidaturaService $candidaturaService;
-    private ValidadorRegrasNegocio $validador;
 
     public function __construct()
     {
         $this->vagaService = new VagaService();
         $this->usuarioService = new UsuarioService();
         $this->candidaturaService = new CandidaturaService();
-        $this->validador = new ValidadorRegrasNegocio();
     }
 
     /**
@@ -184,7 +181,7 @@ public function criar(): void
 
     // RN 04: Validar que contratante está ativo
     try {
-        $this->validador->validarCriadorVaga($usuario);
+        $this->vagaService->validarCriadorVaga($usuario);
     } catch (\Exception $e) {
         $this->view('vaga/vaga_form', [
             'erro' => $e->getMessage(),
@@ -366,8 +363,8 @@ public function editar(): void
 
     // RN 17: Validar edição (título e categoria travados com candidaturas)
     try {
-        $this->validador->validarEdicaoVaga($vaga, $titulo, $idCategoria);
-        $this->validador->validarNovoLimite((int)$trabalhadoresLimite, $vaga->getTotalAceitos());
+        $this->vagaService->validarEdicaoVaga($vaga, $titulo, $idCategoria);
+        $this->vagaService->validarNovoLimite((int)$trabalhadoresLimite, $vaga->getTotalAceitos());
     } catch (\Exception $e) {
         $this->view('vaga/vaga_form', [
             'vaga' => $vaga,
@@ -472,7 +469,7 @@ public function encerrar(): void
 
     // RN 05: Validar que limite de aceitos foi atingido
     try {
-        $this->validador->validarEncerramentoVaga($vaga);
+        $this->vagaService->validarEncerramentoVaga($vaga);
         $this->vagaService->encerrar($idVaga);
         $this->flashSucesso('Vaga encerrada com sucesso!');
     } catch (\Exception $e) {
