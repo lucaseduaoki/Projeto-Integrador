@@ -138,28 +138,8 @@ class Validador {
     }
 
     /**
-     * Empresa (PJ) que presta serviço deve indicar o responsável pela execução.
-     */
-    public function responsavelPrestadora(string $campo, ?string $valor, string $tipoPessoa, bool $prestador): self
-    {
-        if ($tipoPessoa !== 'PJ' || !$prestador) {
-            return $this;
-        }
-
-        $valor = trim((string)$valor);
-
-        if ($valor === '') {
-            $this->erros[$campo] = 'Informe o nome do responsável pela execução do serviço.';
-        } elseif (mb_strlen($valor) < 3 || mb_strlen($valor) > 100) {
-            $this->erros[$campo] = 'O nome do responsável deve ter entre 3 e 100 caracteres.';
-        }
-
-        return $this;
-    }
-
-    /**
-     * Papéis escolhidos no cadastro. Ao menos um; empresa (PJ) atua em um único papel (RN02).
-     * RN01/02: CPF (PF) pode ser trabalhador ou contratante; CNPJ (PJ) DEVE ser contratante.
+     * Papéis escolhidos no cadastro. Mapeamento estrito e único: CNPJ (PJ) só pode ser
+     * contratante; CPF (PF) só pode ser trabalhador. Não há acúmulo nem exceção.
      */
     public function papeis(string $campo, array $papeis, string $tipoPessoa): self
     {
@@ -169,12 +149,10 @@ class Validador {
             $this->erros[$campo] = 'Selecione ao menos um papel: trabalhador ou contratante.';
         } elseif (array_diff($papeis, $validos)) {
             $this->erros[$campo] = 'Papel inválido.';
-        } elseif ($tipoPessoa === 'PJ') {
-            if (count($papeis) > 1) {
-                $this->erros[$campo] = 'Empresas atuam em um único papel.';
-            } elseif (!in_array('CONTRATANTE', $papeis, true)) {
-                $this->erros[$campo] = 'Empresas (CNPJ) devem atuar como contratante.';
-            }
+        } elseif ($tipoPessoa === 'PJ' && $papeis !== ['CONTRATANTE']) {
+            $this->erros[$campo] = 'Empresas (CNPJ) só podem atuar como contratante.';
+        } elseif ($tipoPessoa === 'PF' && $papeis !== ['TRABALHADOR']) {
+            $this->erros[$campo] = 'Pessoas físicas (CPF) só podem atuar como trabalhador.';
         }
 
         return $this;

@@ -27,6 +27,26 @@ class Denuncia
     public const TIPO_ANUNCIO = 'ANUNCIO';
     public const TIPO_USUARIO = 'USUARIO';
 
+    // Ação tomada pela moderação (RN13), gravada em denuncia.acao_moderacao ao sair de PENDENTE.
+    public const ACOES_MODERACAO = [
+        'NENHUMA' => 'Arquivada (sem ação)',
+        'BLOQUEIO' => 'Conta bloqueada',
+        'VAGA_OCULTA' => 'Anúncio ocultado',
+        'VAGA_REMOVIDA' => 'Anúncio removido',
+    ];
+
+    /**
+     * Texto legível da ação de moderação aplicada.
+     */
+    public static function rotuloAcaoModeracao(?string $acao): string
+    {
+        if ($acao === null) {
+            return 'Analisada';
+        }
+
+        return self::ACOES_MODERACAO[$acao] ?? $acao;
+    }
+
     /**
      * Motivos válidos para o tipo de alvo da denúncia (ANUNCIO ou USUARIO).
      */

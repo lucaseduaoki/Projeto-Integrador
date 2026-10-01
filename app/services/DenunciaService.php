@@ -90,10 +90,6 @@ class DenunciaService
             throw new Exception('Só é possível registrar não comparecimento de um trabalhador selecionado.');
         }
 
-        if ($vaga->getDataServico() !== null && $vaga->getDataServico() > date('Y-m-d')) {
-            throw new Exception('O não comparecimento só pode ser registrado a partir da data do serviço.');
-        }
-
         if ($this->repository->existeNaoComparecimento($candidatura->getIdTrabalhador(), $vaga->getIdVaga())) {
             throw new Exception('O não comparecimento deste trabalhador nesta vaga já foi registrado.');
         }
@@ -223,17 +219,11 @@ class DenunciaService
     }
 
     /**
-     * Moderar denúncia de anúncio (admin): oculta ou remove o anúncio, sem apagá-lo (RN14).
-     * $visibilidade: 'OCULTA' ou 'REMOVIDA'.
+     * Moderar denúncia de anúncio (admin): remove o anúncio (exclusão lógica), sem apagá-lo (RN14).
+     * O anúncio some da listagem e o dono não pode mais editá-lo nem excluí-lo.
      */
-    public function moderarAnuncio(int $idDenuncia, string $visibilidade, int $idAdmin): bool
+    public function moderarAnuncio(int $idDenuncia, int $idAdmin): bool
     {
-        $acoes = ['OCULTA' => 'ANUNCIO_OCULTO', 'REMOVIDA' => 'ANUNCIO_REMOVIDO'];
-
-        if (!isset($acoes[$visibilidade])) {
-            throw new Exception('Ação de moderação inválida.');
-        }
-
         $denuncia = $this->denunciaPendente($idDenuncia);
 
         if ($denuncia->getIdVagaDenunciada() === null || $denuncia->getIdUsuarioDenunciado() !== null) {
@@ -244,8 +234,8 @@ class DenunciaService
         $pdo->beginTransaction();
 
         try {
-            $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), $visibilidade);
-            $this->repository->registrarModeracao($idDenuncia, $acoes[$visibilidade], $idAdmin);
+            $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), 'REMOVIDA');
+            $this->repository->registrarModeracao($idDenuncia, 'VAGA_REMOVIDA', $idAdmin);
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
@@ -258,7 +248,7 @@ class DenunciaService
     /**
      * Moderar denúncia (admin) - apenas marcar como analisada, sem sanção
      */
-    public function analisar(int $idDenuncia, int $idAdmin): bool
+    public function arquivar(int $idDenuncia, int $idAdmin): bool
     {
         $this->denunciaPendente($idDenuncia);
 

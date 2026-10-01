@@ -4,7 +4,6 @@ include __DIR__ . '/../shared/header.php';
 include __DIR__ . '/../shared/navbar.php';
 
 $erros = $erros ?? [];
-$papeis = isset($_POST['papeis']) ? (array)$_POST['papeis'] : ['TRABALHADOR'];
 $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
 ?>
 
@@ -130,24 +129,12 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                         <?php endif; ?>
                     </fieldset>
 
-                    <!-- Papéis -->
-                    <fieldset>
-                        <legend class="block text-sm font-medium text-gray-700 mb-1">Como você vai usar a plataforma</legend>
-                        <div class="space-y-1">
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="papeis[]" value="TRABALHADOR" onchange="atualizarPapeis(this)" <?= in_array('TRABALHADOR', $papeis, true) ? 'checked' : '' ?>>
-                                Sou trabalhador/prestador de serviço
-                            </label>
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="papeis[]" value="CONTRATANTE" onchange="atualizarPapeis(this)" <?= in_array('CONTRATANTE', $papeis, true) ? 'checked' : '' ?>>
-                                Sou contratante (publico vagas)
-                            </label>
-                        </div>
-                        <p class="text-gray-500 text-xs mt-1">Pessoa física pode marcar os dois. Empresa atua em um único papel.</p>
-                        <?php if (isset($erros['papeis'])): ?>
-                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['papeis'], ENT_QUOTES, 'UTF-8') ?></p>
-                        <?php endif; ?>
-                    </fieldset>
+                    <p class="text-gray-500 text-xs -mt-2">
+                        Pessoa física se cadastra como trabalhador (candidata-se a vagas). Empresa se cadastra como contratante (publica vagas).
+                    </p>
+                    <?php if (isset($erros['papeis'])): ?>
+                        <p class="text-red-600 text-sm -mt-2"><?= htmlspecialchars($erros['papeis'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
 
                     <!-- Documento (CPF/CNPJ) - Dinâmico conforme tipo -->
                     <div id="documentoDiv">
@@ -165,23 +152,6 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                         >
                         <?php if (isset($erros['documento'])): ?>
                             <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['documento'], ENT_QUOTES, 'UTF-8') ?></p>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Responsável (empresa prestadora de serviço) -->
-                    <div id="responsavelDiv" class="<?= ($tipoPessoa === 'PJ' && in_array('TRABALHADOR', $papeis, true)) ? '' : 'hidden' ?>">
-                        <label for="nome_responsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável pela execução do serviço</label>
-                        <input
-                            type="text"
-                            id="nome_responsavel"
-                            name="nome_responsavel"
-                            maxlength="100"
-                            placeholder="Nome da pessoa que executará o serviço"
-                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            value="<?= htmlspecialchars($_POST['nome_responsavel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                        >
-                        <?php if (isset($erros['nome_responsavel'])): ?>
-                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['nome_responsavel'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -249,35 +219,10 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
 </main>
 
 <script>
-// Responsável só aparece para empresa que presta serviço; a regra é validada no servidor.
-function atualizarFormulario() {
-    const trabalhador = document.querySelector('input[name="papeis[]"][value=TRABALHADOR]').checked;
-    const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
-    const mostrar = pj && trabalhador;
-    document.getElementById('responsavelDiv').classList.toggle('hidden', !mostrar);
-    document.getElementById('nome_responsavel').required = mostrar;
-}
-
-// Empresa atua em um único papel: marcar um desmarca o outro.
-function atualizarPapeis(marcado) {
-    const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
-    if (pj && marcado.checked) {
-        document.querySelectorAll('input[name="papeis[]"]').forEach(function (c) {
-            if (c !== marcado) c.checked = false;
-        });
-    }
-    atualizarFormulario();
-}
-
 function atualizarDocumento() {
     const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
     document.getElementById('documentoLabel').textContent = pj ? 'CNPJ' : 'CPF';
     document.getElementById('documento').placeholder = pj ? '00.000.000/0000-00' : '000.000.000-00';
-    if (pj) {
-        const marcados = document.querySelectorAll('input[name="papeis[]"]:checked');
-        for (let i = 1; i < marcados.length; i++) marcados[i].checked = false;
-    }
-    atualizarFormulario();
 }
 
 // REMOVÍVEL: Função para preencher formulário com dados fictícios
@@ -299,10 +244,9 @@ function preencherCadastroExemplo() {
         if (campo) campo.value = valor;
     });
 
-    // Seleciona Pessoa Física e Trabalhador
+    // Seleciona Pessoa Física (trabalhador)
     document.querySelector('input[value="PF"]').checked = true;
-    document.querySelector('input[value="is_trabalhador"]').checked = true;
-    atualizarFormulario();
+    atualizarDocumento();
 }
 </script>
 

@@ -50,9 +50,6 @@ class VagaController extends Controller
         $this->autenticacaoRequired();
 
         $idVaga = (int)($_GET['id'] ?? 0);
-        error_log("Visualizando objeto vaga com ID: $idVaga"); // Log the idVaga value
-        error_log("objeto vaga: " . print_r($this->vagaService->buscarPorId($idVaga), true)); // Log the vaga object
-        error_log("verificando se usuario já demonstrou interesse: " . print_r($this->candidaturaService->jaDemonstrouInteresse($idVaga, $this->usuarioLogado()->getIdUsuario()), true));
         if ($idVaga <= 0) {
             $this->redirect(URL_BASE . '/vagas');
         }
@@ -227,15 +224,18 @@ public function criar(): void
             $idCategoria,
             $titulo,
             $descricao,
-            $bairro ?: null,
+            $localizacao ?: null,
             $remuneracao !== '' ? (float)$remuneracao : null,
             $dataLimite ?: null,
             (int)$trabalhadoresLimite,
             $horario,
             $duracao ?: null,
             $observacoes ?: null,
-            $dataServico ?: null
+            $dataServico ?: null,
+            $bairro ?: null
         );
+
+        $this->flashSucesso('Vaga publicada com sucesso!');
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $id);
 
@@ -323,7 +323,9 @@ public function exibirFormEditar(): void
     }
 
     if ($vaga->foiRemovidaPelaModeracao()) {
+        $this->flashErro('Este anúncio foi removido pela moderação e não pode ser editado.');
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
+        return;
     }
 
     $this->view('vaga/vaga_form', [
@@ -406,6 +408,8 @@ public function editar(): void
 
         $this->vagaService->atualizar($vaga);
 
+        $this->flashSucesso('Vaga atualizada com sucesso!');
+
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
 
     } catch (\Exception $e) {
@@ -438,9 +442,13 @@ public function excluir(): void
 
         $this->vagaService->deletar($idVaga);
 
+        $this->flashSucesso('Vaga excluída com sucesso!');
+
         $this->redirect(URL_BASE . '/vagas');
 
     } catch (\Exception $e) {
+
+        $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível excluir a vaga agora. Tente novamente em instantes.'));
 
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
     }
@@ -466,8 +474,10 @@ public function encerrar(): void
     try {
         $this->validador->validarEncerramentoVaga($vaga);
         $this->vagaService->encerrar($idVaga);
+        $this->flashSucesso('Vaga encerrada com sucesso!');
     } catch (\Exception $e) {
         error_log("Erro ao encerrar vaga: " . $e->getMessage());
+        $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível encerrar a vaga agora. Tente novamente em instantes.'));
     }
 
     $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
@@ -491,8 +501,10 @@ public function reabrir(): void
 
     try {
         $this->vagaService->reabrir($idVaga);
+        $this->flashSucesso('Vaga reaberta com sucesso!');
     } catch (\Exception $e) {
         error_log("Erro ao reabrir vaga: " . $e->getMessage());
+        $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível reabrir a vaga agora. Tente novamente em instantes.'));
     }
 
     $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);

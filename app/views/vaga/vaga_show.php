@@ -123,11 +123,7 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                             <p class="text-gray-900 font-medium"><?= date('d/m/Y', strtotime($vaga->getDataServico())) ?></p>
                         </div>
                         <?php endif; ?>
-                        <div>
-                            <p class="text-xs text-gray-600 uppercase font-semibold">Tipo de serviço</p>
-                            <p class="text-gray-900 font-medium"><?= $vaga->isTemporario() ? 'Temporário' : 'Fixo' ?></p>
-                        </div>
-                        <?php if ($vaga->isTemporario() && $vaga->getDuracao()): ?>
+                        <?php if ($vaga->getDuracao()): ?>
                         <div>
                             <p class="text-xs text-gray-600 uppercase font-semibold">Duração</p>
                             <p class="text-gray-900 font-medium"><?= htmlspecialchars($vaga->getDuracao(), ENT_QUOTES, 'UTF-8') ?></p>

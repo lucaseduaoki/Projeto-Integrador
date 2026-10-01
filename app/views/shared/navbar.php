@@ -111,6 +111,8 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
 <!-- Espaço para compensar navbar fixa -->
 <div class="h-16"></div>
 
+<?php include __DIR__ . '/flash.php'; ?>
+
 <script>
     document.getElementById('mobileMenuBtn').addEventListener('click', function() {
         const menu = document.getElementById('mobileMenu');

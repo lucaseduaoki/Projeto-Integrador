@@ -35,6 +35,7 @@ $router->post('/cadastro/submit','AutenticacaoController@cadastrar');
 // PERFIL DE USUÁRIO
 // ============================================================================
 $router->get('/perfil',         'UsuarioController@exibirPerfil');
+$router->get('/perfil/ver',       'UsuarioController@exibirPerfilPublico');
 $router->get('/perfil/editar',    'UsuarioController@exibirFormEditarPerfil');
 $router->post('/perfil/editar', 'UsuarioController@editarPerfil');
 
@@ -59,7 +60,6 @@ $router->post('/candidatura/demonstrar',      'CandidaturaController@demonstrar'
 $router->get('/candidatura/candidato',        'CandidaturaController@visualizarCandidato');
 $router->get('/candidatura/interessados',     'CandidaturaController@listarInteressados');
 $router->get('/candidatura/historico',     'CandidaturaController@historico');
-$router->get('/candidatura/historico/visualizar',     'CandidaturaController@visualizarHistorico');
 $router->post('/candidatura/aceitar',      'CandidaturaController@aceitar');
 $router->get('/candidatura/aceitos',      'CandidaturaController@listarAceitos');
 

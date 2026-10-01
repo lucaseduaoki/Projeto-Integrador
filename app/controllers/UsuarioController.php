@@ -50,6 +50,35 @@ class UsuarioController extends Controller
     }
 
     /**
+     * Exibir perfil público de outro usuário (ex.: contratante de uma vaga)
+     */
+    public function exibirPerfilPublico(): void
+    {
+        $this->autenticacaoRequired();
+
+        $idUsuario = (int)($_GET['id'] ?? 0);
+
+        if ($idUsuario <= 0) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
+
+        $usuario = $this->service->buscarPorId($idUsuario);
+
+        if (!$usuario) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
+
+        $habilidades = $this->service->buscarHabilidades($usuario->getIdUsuario());
+
+        $this->view('usuario/perfil_publico', [
+            'perfil' => $usuario,
+            'habilidades' => $habilidades
+        ]);
+    }
+
+    /**
      * Editar perfil do usuário
      */
     public function editarPerfil(): void
@@ -65,27 +94,12 @@ class UsuarioController extends Controller
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
         $descricao = htmlspecialchars(trim($_POST['descricao'] ?? ''), ENT_QUOTES, 'UTF-8');
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
-        $novosPapeis = array_values(array_intersect(
-            array_filter((array)($_POST['adicionar_papeis'] ?? []), 'is_string'),
-            ['TRABALHADOR', 'CONTRATANTE']
-        ));
-        $localizacao = htmlspecialchars(trim($_POST['localizacao'] ?? ''), ENT_QUOTES, 'UTF-8');
-        
-        // Pessoa física pode passar a atuar também no outro papel (RN02); empresa não acumula,
-        // administrador não recebe papéis por aqui e ninguém remove papel pelo perfil.
-        $validador = new Validador();
-        if (!empty($novosPapeis) && ($usuario->isPessoaJuridica() || $usuario->isAdmin())) {
-            $validador->erro('adicionar_papeis', 'Somente pessoa física pode acumular os papéis de trabalhador e contratante.');
-            $novosPapeis = [];
-        }
 
-        $trabalhadorFinal = $usuario->isTrabalhador() || in_array('TRABALHADOR', $novosPapeis, true);
-        $contratanteFinal = $usuario->isContratante() || in_array('CONTRATANTE', $novosPapeis, true);
+        // Contratante é sempre PJ e trabalhador é sempre PF: papéis não mudam pelo perfil.
+        $validador = new Validador();
 
         // Validar
         $validador->documentoPorTipoPessoa('documento', $documento, $usuario->getTipoPessoa());
-        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $usuario->getTipoPessoa(), $trabalhadorFinal);
         $documento = preg_replace('/\D/', '', $documento);
 
         $validador->obrigatorio('nome', $nome)
@@ -93,8 +107,7 @@ class UsuarioController extends Controller
             ->maximo('nome', $nome, 100)
             ->maximo('telefone', $telefone, 20)
             ->maximo('descricao', $descricao, 500)
-            ->maximo('documento', $documento, 20)
-            ->maximo('localizacao', $localizacao, 100);
+            ->maximo('documento', $documento, 20);
 
         if ($validador->temErros()) {
             $this->view('usuario/perfil', [
@@ -120,9 +133,6 @@ class UsuarioController extends Controller
                 $novaFoto = $this->service->salvarFotoPerfil($_FILES['foto_perfil']);
                 $usuario->setFotoPerfil($novaFoto);
             }
-            $usuario->setIsTrabalhador($trabalhadorFinal);
-            $usuario->setIsContratante($contratanteFinal);
-            $usuario->setNomeResponsavel(($usuario->isPessoaJuridica() && $trabalhadorFinal) ? $nomeResponsavel : null);
             error_log("Print Usuario antes de atualizar: " . print_r($usuario, true));
             $this->service->atualizarPerfil($usuario);
 

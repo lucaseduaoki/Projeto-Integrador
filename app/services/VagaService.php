@@ -34,7 +34,8 @@ class VagaService
         ?string $horario = null,
         ?string $duracao = null,
         ?string $observacoes = null,
-        ?string $dataServico = null
+        ?string $dataServico = null,
+        ?string $bairro = null
     ): int {
 
         $vaga = new Vaga(
@@ -51,7 +52,8 @@ class VagaService
             horario: $horario,
             duracao: $duracao,
             observacoes: $observacoes,
-            dataServico: $dataServico
+            dataServico: $dataServico,
+            bairro: $bairro
         );
 
         return $this->repository->criar($vaga);
@@ -65,6 +67,14 @@ class VagaService
     public function buscarPorId(int $id): ?Vaga
     {
         return $this->repository->buscarPorId($id);
+    }
+
+    /**
+     * Buscar várias vagas de uma vez, indexado por id_vaga.
+     */
+    public function buscarPorIds(array $ids): array
+    {
+        return $this->repository->buscarPorIds($ids);
     }
 
     /**
@@ -119,9 +129,6 @@ class VagaService
         if ($this->repository->possuiCandidaturas($vaga->getIdVaga())) {
             if ($vaga->getTitulo() !== $vagaExistente->getTitulo()) {
                 throw new Exception("Esta vaga já tem candidaturas: a função (título) não pode ser alterada.");
-            }
-
-            if ($vaga->getTipoServico() !== $vagaExistente->getTipoServico()) {
             }
         }
 

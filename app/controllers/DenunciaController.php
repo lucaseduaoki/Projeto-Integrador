@@ -37,8 +37,16 @@ class DenunciaController extends Controller
             $vaga = $this->vagaService->buscarPorId($idVaga);
 
             // Anúncio precisa existir e não pode ser do próprio denunciante
-            if ($vaga === null || $vaga->getIdContratante() === $usuario->getIdUsuario()) {
+            if ($vaga === null) {
+                $this->flashErro('Anúncio não encontrado.');
                 $this->redirect(URL_BASE . '/vagas');
+                return;
+            }
+
+            if ($vaga->getIdContratante() === $usuario->getIdUsuario()) {
+                $this->flashErro('Você não pode denunciar o seu próprio anúncio.');
+                $this->redirect(URL_BASE . '/vagas');
+                return;
             }
 
             $this->view('denuncia/denuncia_form', [
@@ -51,8 +59,16 @@ class DenunciaController extends Controller
         $idDenunciado = (int)($_GET['id'] ?? 0);
         $denunciado = $idDenunciado > 0 ? $this->usuarioService->buscarPorId($idDenunciado) : null;
 
-        if ($denunciado === null || $idDenunciado === $usuario->getIdUsuario()) {
+        if ($denunciado === null) {
+            $this->flashErro('Usuário não encontrado.');
             $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
+
+        if ($idDenunciado === $usuario->getIdUsuario()) {
+            $this->flashErro('Você não pode denunciar a si mesmo.');
+            $this->redirect(URL_BASE . '/vagas');
+            return;
         }
 
         $this->view('denuncia/denuncia_form', [
@@ -144,7 +160,9 @@ class DenunciaController extends Controller
         try {
             $candidatura = $this->service->validarNaoComparecimento($idCandidatura, $this->usuarioLogado()->getIdUsuario());
         } catch (\Exception $e) {
+            $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível abrir o registro de não comparecimento agora.'));
             $this->redirect(URL_BASE . '/vagas/minhas');
+            return;
         }
 
         $this->view('denuncia/nao_comparecimento', [
@@ -173,7 +191,9 @@ class DenunciaController extends Controller
         try {
             $candidatura = $this->service->validarNaoComparecimento($idInteresse, $usuario->getIdUsuario());
         } catch (\Exception $e) {
+            $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível registrar o não comparecimento agora.'));
             $this->redirect(URL_BASE . '/vagas/minhas');
+            return;
         }
 
         $dadosForm = [
@@ -213,8 +233,23 @@ class DenunciaController extends Controller
             $denuncias = $this->service->listarTodas();
         }
 
+        // Nomes de denunciante/denunciado e título do anúncio, buscados em lote (evita N+1)
+        $idsUsuarios = [];
+        $idsVagas = [];
+        foreach ($denuncias as $denuncia) {
+            $idsUsuarios[] = $denuncia->getIdDenunciante();
+            if ($denuncia->getIdUsuarioDenunciado() !== null) {
+                $idsUsuarios[] = $denuncia->getIdUsuarioDenunciado();
+            }
+            if ($denuncia->getIdVagaDenunciada() !== null) {
+                $idsVagas[] = $denuncia->getIdVagaDenunciada();
+            }
+        }
+
         $this->view('denuncia/listar', [
             'denuncias' => $denuncias,
+            'usuarios' => $this->usuarioService->buscarPorIds($idsUsuarios),
+            'vagas' => $this->vagaService->buscarPorIds($idsVagas),
             'status' => $status,
             'erroModeracao' => trim((string)($_GET['erro'] ?? '')),
         ]);
@@ -231,19 +266,26 @@ class DenunciaController extends Controller
         $acao = htmlspecialchars(trim($_POST['acao'] ?? ''), ENT_QUOTES, 'UTF-8');
         $idAdmin = $this->usuarioLogado()->getIdUsuario();
 
-        if ($idDenuncia <= 0 || !in_array($acao, ['bloquear', 'analisar', 'ocultar', 'remover'], true)) {
+        if ($idDenuncia <= 0 || !in_array($acao, ['bloquear', 'arquivar', 'remover'], true)) {
             $this->redirect(URL_BASE . '/admin/denuncias');
         }
+
+        $mensagens = [
+            'bloquear' => 'Conta bloqueada com sucesso!',
+            'remover' => 'Anúncio removido com sucesso!',
+            'arquivar' => 'Denúncia arquivada com sucesso!',
+        ];
 
         try {
             if ($acao === 'bloquear') {
                 $this->service->bloquearPorDenuncia($idDenuncia, $idAdmin);
-            } elseif ($acao === 'ocultar' || $acao === 'remover') {
-                $this->service->moderarAnuncio($idDenuncia, $acao === 'ocultar' ? 'OCULTA' : 'REMOVIDA', $idAdmin);
+            } elseif ($acao === 'remover') {
+                $this->service->moderarAnuncio($idDenuncia, $idAdmin);
             } else {
-                $this->service->analisar($idDenuncia, $idAdmin);
+                $this->service->arquivar($idDenuncia, $idAdmin);
             }
 
+            $this->flashSucesso($mensagens[$acao]);
             $this->redirect(URL_BASE . '/admin/denuncias?status=pendentes');
         } catch (\Exception $e) {
             $this->redirect(URL_BASE . '/admin/denuncias?erro=' . urlencode($this->mensagemAmigavel($e, 'Não foi possível concluir a moderação agora. Tente novamente em instantes.')));

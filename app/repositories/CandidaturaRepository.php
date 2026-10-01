@@ -79,7 +79,7 @@ class CandidaturaRepository
         $stmt->bindValue(':vaga', $candidatura->getIdVaga(), PDO::PARAM_INT);
         $stmt->bindValue(':trabalhador', $candidatura->getIdTrabalhador(), PDO::PARAM_INT);
         $stmt->bindValue(':status', $candidatura->getStatus(), PDO::PARAM_STR);
-        $stmt->bindValue(':data', $candidatura->getDataInteresse(), PDO::PARAM_STR);
+        $stmt->bindValue(':data', $candidatura->getDataCandidatura(), PDO::PARAM_STR);
         $stmt->execute();
 
         $id = (int)$this->conn->lastInsertId();

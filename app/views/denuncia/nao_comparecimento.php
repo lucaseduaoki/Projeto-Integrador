@@ -27,7 +27,7 @@ include __DIR__ . '/../shared/navbar.php';
             <?php endif; ?>
 
             <form method="POST" action="<?= URL_BASE ?>/denuncia/nao-comparecimento/submit" class="space-y-6">
-                <input type="hidden" name="id_interesse" value="<?= $candidatura->getIdInteresse() ?>">
+                <input type="hidden" name="id_interesse" value="<?= $candidatura->getIdCandidatura() ?>">
 
                 <div>
                     <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição <span class="text-gray-500 font-normal">(opcional)</span></label>

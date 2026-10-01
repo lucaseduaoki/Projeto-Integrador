@@ -72,6 +72,14 @@ class UsuarioService
     }
 
     /**
+     * Buscar vários usuários de uma vez, indexado por id_usuario.
+     */
+    public function buscarPorIds(array $ids): array
+    {
+        return $this->repository->buscarPorIds($ids);
+    }
+
+    /**
      * Buscar usuário por email
      */
     public function buscarPorEmail(string $email): ?Usuario

@@ -177,7 +177,7 @@ include __DIR__ . '/../shared/navbar.php';
 
 
                                         <a
-                                            href="<?= URL_BASE ?>/candidatura/candidato?id=<?= $interesse->getIdInteresse() ?>"
+                                            href="<?= URL_BASE ?>/candidatura/candidato?id=<?= $interesse->getIdCandidatura() ?>"
                                             class="text-sm text-blue-600 hover:text-blue-800">
 
                                             Ver perfil
@@ -200,7 +200,7 @@ include __DIR__ . '/../shared/navbar.php';
 
                                 <?= date(
                                     'd/m/Y H:i',
-                                    strtotime($interesse->getDataInteresse())
+                                    strtotime($interesse->getDataCandidatura())
                                 ) ?>
 
 
@@ -233,7 +233,7 @@ include __DIR__ . '/../shared/navbar.php';
                                         <input
                                             type="hidden"
                                             name="id"
-                                            value="<?= $interesse->getIdInteresse() ?>"
+                                            value="<?= $interesse->getIdCandidatura() ?>"
                                         >
 
 
@@ -253,7 +253,7 @@ include __DIR__ . '/../shared/navbar.php';
                                 <?php if($ehDono && $status === 'ACEITO'): ?>
 
                                     <a
-                                        href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdInteresse() ?>"
+                                        href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdCandidatura() ?>"
                                         class="text-red-600 hover:text-red-800 font-medium text-sm">
 
                                         Registrar não comparecimento

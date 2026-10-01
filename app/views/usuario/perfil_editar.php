@@ -140,37 +140,6 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                             >
                         </div>
 
-                        <?php if (!$usuario->isPessoaJuridica() && !$usuario->isAdmin() && !($usuario->isTrabalhador() && $usuario->isContratante())): ?>
-                        <!-- Pessoa física pode acumular os dois papéis -->
-                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="adicionar_papeis[]" value="<?= $usuario->isTrabalhador() ? 'CONTRATANTE' : 'TRABALHADOR' ?>">
-                                Também quero atuar como <?= $usuario->isTrabalhador() ? 'contratante (publicar vagas)' : 'trabalhador (me candidatar a vagas)' ?>
-                            </label>
-                            <?php if (isset($erros['adicionar_papeis'])): ?>
-                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['adicionar_papeis'], ENT_QUOTES, 'UTF-8') ?></p>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
-
-                        <?php if ($usuario->isPessoaJuridica() && $usuario->isTrabalhador()): ?>
-                        <!-- Responsável (empresa prestadora) -->
-                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <label for="nome_responsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável pela execução do serviço</label>
-                            <input
-                                type="text"
-                                id="nome_responsavel"
-                                name="nome_responsavel"
-                                maxlength="100"
-                                required
-                                value="<?= htmlspecialchars($usuario->getNomeResponsavel() ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                            <?php if (isset($erros['nome_responsavel'])): ?>
-                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['nome_responsavel'], ENT_QUOTES, 'UTF-8') ?></p>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
 
                     </div>
                 </div>
@@ -188,18 +157,6 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                     <?php if (isset($erros['descricao'])): ?>
                         <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
                     <?php endif; ?>
-                </div>
-
-                <!-- Localização -->
-                <div>
-                    <label for="localizacao" class="block text-sm font-medium text-gray-700 mb-1">Localização</label>
-                    <input 
-                        type="text" 
-                        id="localizacao" 
-                        name="localizacao" 
-                        placeholder="Cidade, Estado"
-                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
                 </div>
 
                 <!-- Habilidades (apenas trabalhadores) -->

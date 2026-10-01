@@ -28,21 +28,6 @@ $erros = $erros ?? [];
             <?php endif; ?>
 
 
-            <!-- REMOVÍVEL: Botão para preencher com dados fictícios (apenas para apresentação) -->
-            <?php if (!$modoEdicao): ?>
-                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded flex items-center justify-between">
-                    <span class="text-sm text-blue-700">💡 Preencher com dados de exemplo para teste</span>
-                    <button
-                        type="button"
-                        id="btnPreencherExemplo"
-                        class="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition"
-                        onclick="preencherVagaExemplo()"
-                    >
-                        📋 Preencher Exemplo
-                    </button>
-                </div>
-            <?php endif; ?>
-
             <form method="POST"
                   action="<?= URL_BASE ?><?= $modoEdicao ? '/vagas/editar/submit' : '/vagas/criar/submit' ?>"
                   class="space-y-6"
@@ -117,6 +102,10 @@ $erros = $erros ?? [];
 
 </select>
 
+                    <?php if (isset($erros['id_categoria'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['id_categoria'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
                 </div>
 
 
@@ -173,33 +162,8 @@ $erros = $erros ?? [];
 
 
 
-                <!-- Tipo de serviço -->
-                <fieldset>
-
-                    <legend class="block text-sm font-medium text-gray-700 mb-1">
-                        Tipo de serviço
-                    </legend>
-
-
-                    <?php if ($travado): ?>
-                        <!-- radios desabilitados não são enviados: mantém o valor atual -->
-                    <?php endif; ?>
-
-                    <div class="flex gap-6">
-                        <label class="inline-flex items-center gap-2">
-                            Fixo
-                        </label>
-                        <label class="inline-flex items-center gap-2">
-                            Temporário
-                        </label>
-                    </div>
-
-                    <?php endif; ?>
-
-                </fieldset>
-
-
-                <!-- Duração (só para serviço temporário) -->
+                <!-- Duração -->
+                <div>
 
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Duração
@@ -245,6 +209,29 @@ $erros = $erros ?? [];
 
                         <?php if (isset($erros['localizacao'])): ?>
                             <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['localizacao'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+
+                    </div>
+
+                    <!-- Bairro -->
+                    <div>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Bairro
+                        </label>
+
+                        <input
+                            type="text"
+                            id="bairro"
+                            name="bairro"
+                            required
+                            maxlength="100"
+                            value="<?= htmlspecialchars($_POST['bairro'] ?? ($vaga ? ($vaga->getBairro() ?? '') : ''), ENT_QUOTES, 'UTF-8') ?>"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
+                        >
+
+                        <?php if (isset($erros['bairro'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['bairro'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
 
                     </div>
@@ -400,7 +387,7 @@ $erros = $erros ?? [];
                     <!-- Botão teste -->
                     <button
                         type="button"
-                        onclick="preencherFormularioTeste()"
+                        onclick="preencherVagaExemplo()"
                         class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded"
                     >
                         Preencher teste
@@ -436,13 +423,6 @@ $erros = $erros ?? [];
 
 
 <script>
-// Duração só aparece (e só é exigida no HTML) quando o serviço é temporário.
-radio.addEventListener('change', function () {
-    document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
-    document.getElementById('duracao').required = temporario;
-});
-});
-
 // REMOVÍVEL: Função para preencher formulário com dados fictícios
 // Delete this function when removing the example data feature
 function preencherVagaExemplo() {

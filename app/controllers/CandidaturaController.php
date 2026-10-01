@@ -51,10 +51,12 @@ class CandidaturaController extends Controller
                 $idVaga,
                 $usuario->getIdUsuario()
             );
-            $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
+            $this->flashSucesso('Candidatura enviada com sucesso!');
         } catch (\Exception $e) {
-            $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
+            $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível enviar sua candidatura agora. Tente novamente em instantes.'));
         }
+
+        $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
     }
 
     /**
@@ -123,11 +125,14 @@ public function aceitar(): void
             $usuario->getIdUsuario()
         );
 
+        $this->flashSucesso('Candidato aceito com sucesso!');
+
     } catch (\Exception $e) {
         error_log("Erro ao aceitar: " . $e->getMessage());
+        $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível aceitar o candidato agora. Tente novamente em instantes.'));
     }
 
-    $this->redirect(URL_BASE . '/vagas');
+    $this->redirect(URL_BASE . '/vagas/minhas');
 }
 
 /**
@@ -194,40 +199,6 @@ public function listarAceitos(): void
     }
 
     /**
-     * Visualizar histórico de candidatura (trabalhador)
-     */
-    public function visualizarHistorico(): void
-    {
-        $this->trabalhadorRequired();
-
-        $usuario = $this->usuarioLogado();
-        $idInteresse = (int)($_GET['id'] ?? 0);
-
-        if ($idInteresse <= 0) {
-            $this->redirect(URL_BASE . '/candidatura/historico');
-            return;
-        }
-
-        $candidatura = $this->service->buscarPorId($idInteresse);
-
-        if (!$candidatura) {
-            $this->redirect(URL_BASE . '/candidatura/historico');
-            return;
-        }
-
-        // RN 14: Trabalhador só vê suas próprias candidaturas
-        if ($candidatura->getIdTrabalhador() !== $usuario->getIdUsuario()) {
-            $this->redirect(URL_BASE . '/403');
-            return;
-        }
-
-        $this->view('interesse/visualizar_historico', [
-            'interesse' => $candidatura,
-            'usuario' => $usuario
-        ]);
-    }
-
-    /**
      * Histórico de candidaturas (trabalhador)
      */
     public function historico(): void
@@ -237,11 +208,22 @@ public function listarAceitos(): void
         $usuario = $this->usuarioLogado();
         $interesses = $this->service->listarHistorico($usuario->getIdUsuario());
 
-        $candidaturas = array_map(function ($candidatura) {
+        // Busca vagas e contratantes em lote (evita N+1: antes eram até 2 queries por candidatura)
+        $vagas = $this->vagaService->buscarPorIds(array_map(
+            fn($candidatura) => $candidatura->getIdVaga(),
+            $interesses
+        ));
+        $contratantes = $this->usuarioService->buscarPorIds(array_map(
+            fn($vaga) => $vaga->getIdContratante(),
+            $vagas
+        ));
+
+        $candidaturas = array_map(function ($candidatura) use ($vagas, $contratantes) {
+            $vaga = $vagas[$candidatura->getIdVaga()] ?? null;
             return [
                 'candidatura' => $candidatura,
-                'vaga' => $this->vagaService->buscarPorId($candidatura->getIdVaga()),
-                'contratante' => $this->vagaService->buscarContratantePorVaga($candidatura->getIdVaga())
+                'vaga' => $vaga,
+                'contratante' => $vaga ? ($contratantes[$vaga->getIdContratante()] ?? null) : null
             ];
         }, $interesses);
 

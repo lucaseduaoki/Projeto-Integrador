@@ -35,19 +35,6 @@ $totalResultados = $totalResultados ?? count($vagas);
                             >
                         </div>
 
-                        <!-- Localização -->
-                        <div>
-                            <label for="localizacao" class="block text-sm font-medium text-gray-700 mb-1">Localização</label>
-                            <input 
-                                type="text" 
-                                id="localizacao" 
-                                name="localizacao" 
-                                value="<?= htmlspecialchars($filtros['localizacao'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                placeholder="Cidade"
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            >
-                        </div>
-
                         <!-- Tipo de Serviço -->
                         <div>
                             <select 

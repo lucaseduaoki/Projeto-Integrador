@@ -113,7 +113,7 @@ $interesses = $interesses ?? [];
 
                                     <?= date(
                                         'd/m/Y H:i',
-                                        strtotime($candidatura->getDataInteresse())
+                                        strtotime($candidatura->getDataCandidatura())
                                     ) ?>
 
                                 </div>

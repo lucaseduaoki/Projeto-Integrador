@@ -39,7 +39,8 @@ return new Vaga(
     $row['observacoes'] ?? null,
     $row['data_servico'] ?? null,
     $row['visibilidade'] ?? 'VISIVEL',
-    $row['categoria_nome'] ?? null
+    $row['categoria_nome'] ?? null,
+    $row['bairro'] ?? null
 );
     }
 
@@ -65,6 +66,40 @@ return new Vaga(
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ? $this->mapear($row) : null;
+    }
+
+    /**
+     * Buscar várias vagas de uma vez (evita N+1 ao listar itens que referenciam vagas).
+     * Retorna indexado por id_vaga.
+     */
+    public function buscarPorIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "
+            SELECT v.*, c.nome AS categoria_nome, COUNT(i.id_candidatura) AS total_aceitos
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
+            LEFT JOIN candidatura i
+                ON i.id_vaga = v.id_vaga
+                AND i.status = 'ACEITO'
+            WHERE v.id_vaga IN ($placeholders)
+            GROUP BY v.id_vaga
+        ";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($ids);
+
+        $resultado = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $resultado[(int)$row['id_vaga']] = $this->mapear($row);
+        }
+
+        return $resultado;
     }
 
     public function listar(int $limit = 50, int $offset = 0): array
@@ -138,7 +173,6 @@ return new Vaga(
               AND v.is_user_active = 1
               AND v.visibilidade = 'VISIVEL'
               AND (v.data_limite IS NULL OR v.data_limite >= CURDATE())
-              AND (v.trabalhadores_limite > COUNT(i.id_candidatura))
         ";
 
         $params = [];
@@ -168,7 +202,7 @@ return new Vaga(
             $params['remuneracao_max'] = $filtros['remuneracao_max'];
         }
 
-        $sql .= " GROUP BY v.id_vaga ORDER BY v.data_publicacao DESC";
+        $sql .= " GROUP BY v.id_vaga HAVING v.trabalhadores_limite > COUNT(i.id_candidatura) ORDER BY v.data_publicacao DESC";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -197,6 +231,7 @@ return new Vaga(
                 titulo,
                 descricao,
                 localizacao,
+                bairro,
                 remuneracao,
                 data_limite,
                 data_servico,
@@ -213,6 +248,7 @@ return new Vaga(
                 :titulo,
                 :descricao,
                 :localizacao,
+                :bairro,
                 :remuneracao,
                 :data_limite,
                 :data_servico,
@@ -231,6 +267,7 @@ return new Vaga(
         $stmt->bindValue(':titulo', $vaga->getTitulo());
         $stmt->bindValue(':descricao', $vaga->getDescricao());
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
+        $stmt->bindValue(':bairro', $vaga->getBairro());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
         $stmt->bindValue(':data_servico', $vaga->getDataServico());
@@ -253,6 +290,7 @@ return new Vaga(
                 titulo = :titulo,
                 descricao = :descricao,
                 localizacao = :localizacao,
+                bairro = :bairro,
                 remuneracao = :remuneracao,
                 data_limite = :data_limite,
                 data_servico = :data_servico,
@@ -270,6 +308,7 @@ return new Vaga(
         $stmt->bindValue(':titulo', $vaga->getTitulo());
         $stmt->bindValue(':descricao', $vaga->getDescricao());
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
+        $stmt->bindValue(':bairro', $vaga->getBairro());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
         $stmt->bindValue(':data_servico', $vaga->getDataServico());

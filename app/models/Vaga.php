@@ -23,6 +23,7 @@ class Vaga
     private ?string $dataServico = null;
     private string $visibilidade = 'VISIVEL';
     private ?string $categoriaNome = null;
+    private ?string $bairro = null;
 
 public function __construct(
     int $idVaga,
@@ -43,7 +44,8 @@ public function __construct(
     ?string $observacoes = null,
     ?string $dataServico = null,
     string $visibilidade = 'VISIVEL',
-    ?string $categoriaNome = null
+    ?string $categoriaNome = null,
+    ?string $bairro = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -64,32 +66,7 @@ public function __construct(
         $this->dataServico = $dataServico;
         $this->visibilidade = $visibilidade;
         $this->categoriaNome = $categoriaNome;
-    }
-
-    public static function arrayParaObjeto(array $dados): Vaga
-    {
-        return new Vaga(
-            (int)$dados['id_vaga'],
-            (int)$dados['id_contratante'],
-            (int)$dados['id_categoria'],
-            $dados['titulo'],
-            $dados['descricao'],
-            $dados['localizacao'] ?? null,
-            isset($dados['remuneracao']) ? (float)$dados['remuneracao'] : null,
-            $dados['data_publicacao'] ?? null,
-            $dados['data_limite'] ?? null,
-            isset($dados['trabalhadores_limite']) ? (int)$dados['trabalhadores_limite'] : null,
-            $dados['status'] ?? 'ATIVA',
-            isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0,
-            (bool)($dados['is_user_active'] ?? true),
-            isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null,
-            $dados['tipo_servico'] ?? 'FIXO',
-            $dados['duracao'] ?? null,
-            $dados['observacoes'] ?? null,
-            $dados['data_servico'] ?? null,
-            $dados['visibilidade'] ?? 'VISIVEL',
-            $dados['categoria_nome'] ?? null
-        );
+        $this->bairro = $bairro;
     }
 
     /**
@@ -146,6 +123,16 @@ public function __construct(
     public function getLocalizacao(): ?string
     {
         return $this->localizacao;
+    }
+
+    public function getBairro(): ?string
+    {
+        return $this->bairro;
+    }
+
+    public function setBairro(?string $bairro): void
+    {
+        $this->bairro = $bairro;
     }
 
     public function getRemuneracao(): ?float
@@ -209,11 +196,6 @@ public function __construct(
     public function setObservacoes(?string $observacoes): void
     {
         $this->observacoes = $observacoes;
-    }
-
-    public function isTemporario(): bool
-    {
-        return $this->tipoServico === 'TEMPORARIO';
     }
 
     public function getHorario(): ?string
@@ -290,6 +272,7 @@ public function __construct(
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
             'localizacao' => $this->localizacao,
+            'bairro' => $this->bairro,
             'remuneracao' => $this->remuneracao,
             'dataPublicacao' => $this->dataPublicacao,
             'dataLimite' => $this->dataLimite,
@@ -297,7 +280,6 @@ public function __construct(
             'status' => $this->status,
             'isUserActive' => $this->isUserActive,
             'horario' => $this->horario,
-            'tipoServico' => $this->tipoServico,
             'duracao' => $this->duracao,
             'observacoes' => $this->observacoes,
             'dataServico' => $this->dataServico,

@@ -56,6 +56,22 @@ class Controller
     }
 
     /**
+     * Mensagem de sucesso a mostrar na próxima página (sobrevive ao redirect via sessão).
+     */
+    protected function flashSucesso(string $mensagem): void
+    {
+        $_SESSION['flash_sucesso'] = $mensagem;
+    }
+
+    /**
+     * Mensagem de erro a mostrar na próxima página (sobrevive ao redirect via sessão).
+     */
+    protected function flashErro(string $mensagem): void
+    {
+        $_SESSION['flash_erro'] = $mensagem;
+    }
+
+    /**
      * Verificar se usuário está autenticado
      */
     public function autenticacaoRequired(): void

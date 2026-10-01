@@ -39,7 +39,7 @@ class ValidadorRegrasNegocio
     public function validarEncerramentoVaga(Vaga $vaga): void
     {
         $aceitos = $vaga->getTotalAceitos();
-        $limite = $vaga->getTrabalhadores_limite();
+        $limite = $vaga->getTrabalhadoresLimite();
         
         if ($aceitos < $limite) {
             throw new Exception(
@@ -55,7 +55,7 @@ class ValidadorRegrasNegocio
     public function validarAceitacaoCandidato(Vaga $vaga, int $idCandidato): void
     {
         $aceitos = $vaga->getTotalAceitos();
-        $limite = $vaga->getTrabalhadores_limite();
+        $limite = $vaga->getTrabalhadoresLimite();
         
         if ($aceitos >= $limite) {
             throw new Exception('Esta vaga já atingiu o limite de trabalhadores aceitos.');
@@ -106,7 +106,7 @@ class ValidadorRegrasNegocio
         }
         
         // RN 06: Deve ter vagas disponíveis (aceitos < limite)
-        if ($vaga->getTotalAceitos() >= $vaga->getTrabalhadores_limite()) {
+        if ($vaga->getTotalAceitos() >= $vaga->getTrabalhadoresLimite()) {
             throw new Exception('Esta vaga já atingiu o limite de candidatos aceitos.');
         }
         
