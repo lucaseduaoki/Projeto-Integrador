@@ -31,6 +31,31 @@ class UsuarioRepository
     }
 
     /**
+     * Buscar vários usuários de uma vez (evita N+1 ao listar itens que referenciam usuários).
+     * Retorna indexado por id_usuario.
+     */
+    public function buscarPorIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT * FROM usuario WHERE id_usuario IN ($placeholders)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($ids);
+
+        $resultado = [];
+        while ($row = $stmt->fetch()) {
+            $resultado[(int)$row['id_usuario']] = Usuario::arrayParaObjeto($row);
+        }
+
+        return $resultado;
+    }
+
+    /**
      * Buscar usuário por email
      */
     public function buscarPorEmail(string $email): ?Usuario

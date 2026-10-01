@@ -3,8 +3,8 @@
 namespace app\services;
 
 use app\models\Candidatura;
-use app\repositories\VagaRepository;
 use app\repositories\CandidaturaRepository;
+use app\repositories\VagaRepository;
 use Exception;
 
 class CandidaturaService
@@ -19,158 +19,203 @@ class CandidaturaService
     }
 
     /**
-     * Candidatar trabalhador a vaga
-     * RN21: impede candidatura duplicada
-     * RN08: trabalhador não pode se candidatar à própria vaga
+     * Trabalhador demonstra interesse em uma vaga.
      */
-    public function candidatar(int $idVaga, int $idTrabalhador): int
-    {
-        // Verificar se anúncio existe
+    public function demonstrarInteresse(
+        int $idVaga,
+        int $idTrabalhador
+    ): int {
+        error_log("ENTROU NO SERVICE demonstrarInteresse com idVaga=$idVaga e idTrabalhador=$idTrabalhador");
         $vaga = $this->vagaRepository->buscarPorId($idVaga);
         if (!$vaga) {
-            throw new Exception('Anúncio não encontrado.');
+            throw new Exception("Vaga não encontrada.");
+        }
+        error_log("Vaga encontrada: " . print_r($vaga, true));
+        if (!$vaga->isUserActive() || !$vaga->estaVisivel()) {
+            throw new Exception("Esta vaga não está mais disponível.");
+        }
+        if ($vaga->getStatus() !== 'ATIVA') {
+            throw new Exception("Esta vaga já foi encerrada.");
+        }
+        error_log("Data limite da vaga: " . $vaga->getDataLimite());
+        if (
+            $vaga->getDataLimite() !== null &&
+            strtotime($vaga->getDataLimite()) < strtotime(date('Y-m-d'))
+        ) {
+            throw new Exception("O prazo para candidatura terminou.");
         }
 
-        // RN08: Trabalhador não pode se candidatar à própria vaga
-        if ($vaga->getIdContratante() === $idTrabalhador) {
-            throw new Exception('Você não pode se candidatar à sua própria vaga.');
+        if ($vaga->getIdContratante() == $idTrabalhador) {
+            throw new Exception("Você não pode demonstrar interesse na própria vaga.");
         }
 
-        // RN21: Candidatura duplicada é proibida
-        $existente = $this->repository->buscarPorVagaDeTrabalhador($idVaga, $idTrabalhador);
-        if ($existente) {
-            throw new Exception('Você já se candidatou a esta vaga.');
+        $jaExiste = $this->repository->buscarPorVagaETrabalhador(
+            $idVaga,
+            $idTrabalhador
+        );
+        error_log("Verificando se já existe interesse: " . ($jaExiste ? 'Sim' : 'Não'));
+        if ($jaExiste) {
+            throw new Exception("Você já demonstrou interesse nesta vaga.");
         }
 
-        // Criar candidatura
         $candidatura = new Candidatura(
-            0,
             $idVaga,
             $idTrabalhador,
-            'PENDENTE'
+            'PENDENTE',
+            date('Y-m-d H:i:s')
         );
-
         return $this->repository->criar($candidatura);
     }
 
-    /**
-     * Buscar candidatura por ID
-     */
-    public function buscarPorId(int $id): ?Candidatura
+    public function buscarPorId(int $idInteresse): ?Candidatura
     {
-        return $this->repository->buscarPorId($id);
+        return $this->repository->buscarPorId($idInteresse);
     }
 
     /**
-     * Verificar se um trabalhador já se candidatou a um anúncio
+     * Lista interessados de uma vaga.
      */
-    public function verificarCandidatura(int $idTrabalhador, int $idVaga): bool
+    public function listarInteressados(int $idVaga): array
     {
-        return $this->repository->buscarPorVagaDeTrabalhador($idVaga, $idTrabalhador) !== null;
-    }
-
-    /**
-     * Listar candidatos de um anúncio
-     * RN10: Contratante visualiza apenas candidatos das próprias vagas
-     */
-    public function listarCandidatos(int $idVaga, int $idContratanteLogado): array
-    {
-        $vaga = $this->vagaRepository->buscarPorId($idVaga);
-        if (!$vaga) {
-            throw new Exception('Anúncio não encontrado.');
-        }
-
-        // RN10: Verificar propriedade
-        if ($vaga->getIdContratante() !== $idContratanteLogado) {
-            throw new Exception('Acesso negado. Você não é o contratante desta vaga.');
-        }
-
         return $this->repository->listarPorVaga($idVaga);
     }
 
+public function aceitarInteressado(
+    int $idInteressado,
+    int $idContratante
+): bool {
+
+    error_log("[ACEITAR] Iniciando aceite. Interesse={$idInteressado} Contratante={$idContratante}");
+
+    $interesse = $this->repository->buscarPorId($idInteressado);
+
+    error_log("[ACEITAR] Interesse encontrado: " . ($interesse ? "SIM" : "NÃO"));
+
+    if (!$interesse) {
+        throw new Exception("Interesse não encontrado.");
+    }
+
+    $vaga = $this->vagaRepository->buscarPorId(
+        $interesse->getIdVaga()
+    );
+
+    error_log("[ACEITAR] Vaga encontrada: " . ($vaga ? "SIM" : "NÃO"));
+
+    if (!$vaga) {
+        throw new Exception("Vaga não encontrada.");
+    }
+
+    error_log("[ACEITAR] Dono da vaga: {$vaga->getIdContratante()}");
+    error_log("[ACEITAR] Usuário logado: {$idContratante}");
+
+    if ($vaga->getIdContratante() !== $idContratante) {
+        throw new Exception("Sem permissão.");
+    }
+
+    error_log("[ACEITAR] Status da vaga: {$vaga->getStatus()}");
+
+    if ($vaga->getStatus() !== 'ATIVA') {
+        throw new Exception("A vaga está encerrada.");
+    }
+
+    if (!$vaga->estaVisivel()) {
+        throw new Exception("O anúncio está oculto ou foi removido pela moderação.");
+    }
+
+    // Impede aceitar o mesmo trabalhador duas vezes
+    if ($interesse->getStatus() === 'ACEITO') {
+        throw new Exception("Este trabalhador já foi aceito.");
+    }
+
+    // Verifica se ainda há vagas disponíveis
+    $totalAceitos = $this->repository->contarAceitos(
+        $vaga->getIdVaga()
+    );
+
+    error_log("[ACEITAR] Aceitos atualmente: {$totalAceitos}");
+    error_log("[ACEITAR] Limite da vaga: {$vaga->getTrabalhadoresLimite()}");
+
+    if ($totalAceitos >= $vaga->getTrabalhadoresLimite()) {
+        throw new Exception(
+            "Esta vaga já atingiu o número máximo de trabalhadores."
+        );
+    }
+
+    error_log("[ACEITAR] Aceitando interesse...");
+
+    $this->repository->aceitar($idInteressado);
+
+    error_log("[ACEITAR] Interesse aceito.");
+
+    return true;
+}
+
+    public function listarContatosAceitos(
+    int $idVaga,
+    int $idContratante
+): array {
+
+    $vaga = $this->vagaRepository->buscarPorId($idVaga);
+
+    if (!$vaga) {
+        throw new Exception("Vaga não encontrada.");
+    }
+
+    if ($vaga->getIdContratante() !== $idContratante) {
+        throw new Exception("Sem permissão.");
+    }
+
+    return $this->repository->listarContatosAceitos($idVaga);
+}
+
+
     /**
-     * Listar candidaturas de um trabalhador
+     * Lista somente os aceitos.
      */
-    public function listarPorTrabalhador(int $idTrabalhador): array
+    public function listarAceitos(int $idVaga, int $idContratante): array
+    {
+        $vaga = $this->vagaRepository->buscarPorId($idVaga);
+
+        if (!$vaga) {
+            throw new Exception("Vaga não encontrada.");
+        }
+
+        if ($vaga->getIdContratante() !== $idContratante) {
+            throw new Exception("Sem permissão.");
+        }
+
+        return $this->repository->listarAceitos($idVaga);
+    }
+    
+    /**
+     * Lista histórico de candidaturas de um trabalhador.
+     */
+    public function listarHistorico(int $idTrabalhador): array
     {
         return $this->repository->listarPorTrabalhador($idTrabalhador);
     }
 
     /**
-     * Selecionar candidato
-     * RN11: Uma vaga só pode ter um candidato ACEITO por vez
+     * Verifica se um trabalhador já demonstrou interesse.
      */
-    public function selecionar(int $idCandidatura, int $idContratanteLogado): bool
-    {
-        $candidatura = $this->repository->buscarPorId($idCandidatura);
-        if (!$candidatura) {
-            throw new Exception('Candidatura não encontrada.');
-        }
+    public function jaDemonstrouInteresse(
+        int $idVaga,
+        int $idTrabalhador
+    ): bool {
 
-        $vaga = $this->vagaRepository->buscarPorId($candidatura->getIdVaga());
-        
-        // Verificar propriedade
-        if ($vaga->getIdContratante() !== $idContratanteLogado) {
-            throw new Exception('Acesso negado.');
-        }
-
-        // RN11: Verificar se já existe outro aceito
-        $aceitos = $this->repository->buscarAceitosPorVaga($candidatura->getIdVaga());
-        if (!empty($aceitos)) {
-            throw new Exception('Já existe um candidato aceito nesta vaga.');
-        }
-
-        // Atualizar status
-        $candidatura->setStatus('ACEITO');
-        $candidatura->setDataSelecao(date('Y-m-d H:i:s'));
-        
-        return $this->repository->atualizar($candidatura);
+        return $this->repository
+            ->buscarPorVagaETrabalhador(
+                $idVaga,
+                $idTrabalhador
+                
+            ) !== null;
     }
 
     /**
-     * Rejeitar candidato
+     * Quantidade de trabalhadores aceitos.
      */
-    public function rejeitar(int $idCandidatura, int $idContratanteLogado): bool
+    public function quantidadeAceitos(int $idVaga): int
     {
-        $candidatura = $this->repository->buscarPorId($idCandidatura);
-        if (!$candidatura) {
-            throw new Exception('Candidatura não encontrada.');
-        }
-
-        $vaga = $this->vagaRepository->buscarPorId($candidatura->getIdVaga());
-        
-        // Verificar propriedade
-        if ($vaga->getIdContratante() !== $idContratanteLogado) {
-            throw new Exception('Acesso negado.');
-        }
-
-        $candidatura->setStatus('RECUSADO');
-        return $this->repository->atualizar($candidatura);
-    }
-
-    /**
-     * Confirmar candidatura (trabalhador aceita proposta)
-     */
-    public function confirmar(int $idCandidatura, int $idTrabalhadorLogado): bool
-    {
-        $candidatura = $this->repository->buscarPorId($idCandidatura);
-        if (!$candidatura) {
-            throw new Exception('Candidatura não encontrada.');
-        }
-
-        // Verificar se é o trabalhador correto
-        if ($candidatura->getIdTrabalhador() !== $idTrabalhadorLogado) {
-            throw new Exception('Acesso negado.');
-        }
-
-        // Trabalhadoreador deve estar em status ACEITO
-        if ($candidatura->getStatus() !== 'ACEITO') {
-            throw new Exception('Esta candidatura não está em status para confirmar.');
-        }
-
-        // Encerrar anúncio (RN06)
-        $this->vagaRepository->mudarStatus($candidatura->getIdVaga(), 'ENCERRADO');
-
-        return true;
+        return $this->repository->contarAceitos($idVaga);
     }
 }

@@ -27,7 +27,7 @@ include __DIR__ . '/../shared/navbar.php';
             <?php endif; ?>
 
             <form method="POST" action="<?= URL_BASE ?>/denuncia/nao-comparecimento/submit" class="space-y-6">
-                <input type="hidden" name="id_interesse" value="<?= $interesse->getIdInteresse() ?>">
+                <input type="hidden" name="id_interesse" value="<?= $candidatura->getIdCandidatura() ?>">
 
                 <div>
                     <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição <span class="text-gray-500 font-normal">(opcional)</span></label>
@@ -48,7 +48,7 @@ include __DIR__ . '/../shared/navbar.php';
                     <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
                         Registrar
                     </button>
-                    <a href="<?= URL_BASE ?>/interesse/interessados?id=<?= $vaga->getIdVaga() ?>" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded text-center">
+                    <a href="<?= URL_BASE ?>/candidatura/interessados?id=<?= $vaga->getIdVaga() ?>" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded text-center">
                         Cancelar
                     </a>
                 </div>

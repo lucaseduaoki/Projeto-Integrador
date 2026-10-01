@@ -35,30 +35,12 @@ $totalResultados = $totalResultados ?? count($vagas);
                             >
                         </div>
 
-                        <!-- Localização -->
-                        <div>
-                            <label for="localizacao" class="block text-sm font-medium text-gray-700 mb-1">Localização</label>
-                            <input 
-                                type="text" 
-                                id="localizacao" 
-                                name="localizacao" 
-                                value="<?= htmlspecialchars($filtros['localizacao'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                placeholder="Cidade"
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            >
-                        </div>
-
                         <!-- Tipo de Serviço -->
                         <div>
-                            <label for="tipo_servico" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Serviço</label>
                             <select 
-                                id="tipo_servico" 
-                                name="tipo_servico" 
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                                 <option value="">Todos</option>
-                                <option value="TEMPORARIO" <?= isset($filtros['tipo_servico']) && $filtros['tipo_servico'] === 'TEMPORARIO' ? 'selected' : '' ?>>Temporário</option>
-                                <option value="FIXO" <?= isset($filtros['tipo_servico']) && $filtros['tipo_servico'] === 'FIXO' ? 'selected' : '' ?>>Fixo</option>
                             </select>
                         </div>
 

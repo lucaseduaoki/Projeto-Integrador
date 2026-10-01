@@ -30,7 +30,8 @@ $erros = $erros ?? [];
 
             <form method="POST"
                   action="<?= URL_BASE ?><?= $modoEdicao ? '/vagas/editar/submit' : '/vagas/criar/submit' ?>"
-                  class="space-y-6">
+                  class="space-y-6"
+                  id="formVaga">
 
 
                 <?php if ($modoEdicao): ?>
@@ -101,6 +102,10 @@ $erros = $erros ?? [];
 
 </select>
 
+                    <?php if (isset($erros['id_categoria'])): ?>
+                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['id_categoria'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
                 </div>
 
 
@@ -157,40 +162,8 @@ $erros = $erros ?? [];
 
 
 
-                <!-- Tipo de serviço -->
-                <fieldset>
-
-                    <legend class="block text-sm font-medium text-gray-700 mb-1">
-                        Tipo de serviço
-                    </legend>
-
-                    <?php $tipoAtual = $vaga ? $vaga->getTipoServico() : ($_POST['tipo_servico'] ?? ''); ?>
-
-                    <?php if ($travado): ?>
-                        <!-- radios desabilitados não são enviados: mantém o valor atual -->
-                        <input type="hidden" name="tipo_servico" value="<?= htmlspecialchars($tipoAtual, ENT_QUOTES, 'UTF-8') ?>">
-                    <?php endif; ?>
-
-                    <div class="flex gap-6">
-                        <label class="inline-flex items-center gap-2">
-                            <input type="radio" name="tipo_servico" value="FIXO" required <?= $tipoAtual === 'FIXO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
-                            Fixo
-                        </label>
-                        <label class="inline-flex items-center gap-2">
-                            <input type="radio" name="tipo_servico" value="TEMPORARIO" <?= $tipoAtual === 'TEMPORARIO' ? 'checked' : '' ?> <?= $travado ? 'disabled' : '' ?>>
-                            Temporário
-                        </label>
-                    </div>
-
-                    <?php if (isset($erros['tipo_servico'])): ?>
-                        <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['tipo_servico'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <?php endif; ?>
-
-                </fieldset>
-
-
-                <!-- Duração (só para serviço temporário) -->
-                <div id="bloco_duracao" class="<?= $tipoAtual === 'TEMPORARIO' ? '' : 'hidden' ?>">
+                <!-- Duração -->
+                <div>
 
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Duração
@@ -236,6 +209,29 @@ $erros = $erros ?? [];
 
                         <?php if (isset($erros['localizacao'])): ?>
                             <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['localizacao'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+
+                    </div>
+
+                    <!-- Bairro -->
+                    <div>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Bairro
+                        </label>
+
+                        <input
+                            type="text"
+                            id="bairro"
+                            name="bairro"
+                            required
+                            maxlength="100"
+                            value="<?= htmlspecialchars($_POST['bairro'] ?? ($vaga ? ($vaga->getBairro() ?? '') : ''), ENT_QUOTES, 'UTF-8') ?>"
+                            class="w-full border border-gray-300 rounded px-3 py-2"
+                        >
+
+                        <?php if (isset($erros['bairro'])): ?>
+                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['bairro'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
 
                     </div>
@@ -391,7 +387,7 @@ $erros = $erros ?? [];
                     <!-- Botão teste -->
                     <button
                         type="button"
-                        onclick="preencherFormularioTeste()"
+                        onclick="preencherVagaExemplo()"
                         class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded"
                     >
                         Preencher teste
@@ -427,47 +423,29 @@ $erros = $erros ?? [];
 
 
 <script>
+// REMOVÍVEL: Função para preencher formulário com dados fictícios
+// Delete this function when removing the example data feature
+function preencherVagaExemplo() {
+    const dados = {
+        'id_categoria': '2',
+        'titulo': 'Garçom para Evento Corporativo',
+        'descricao': 'Necessário profissional experiente para atuar em evento corporativo. Uniforme fornecido, treinamento no local. Experiência com atendimento premium é um diferencial.',
+        'bairro': 'Centro',
+        'localizacao': 'Rua das Flores, 456 - Centro de Eventos',
+        'remuneracao': '350.00',
+        'data_servico': new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        'horario': '18:00',
+        'duracao': '5 horas',
+        'trabalhadores_limite': '2',
+        'data_limite': new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        'observacoes': 'Preferencialmente com experiência em eventos corporativos. Uniforme e materiais fornecidos.'
+    };
 
-// Duração só aparece (e só é exigida no HTML) quando o serviço é temporário.
-// A regra de verdade é validada no servidor.
-document.querySelectorAll('input[name=tipo_servico]').forEach(function (radio) {
-    radio.addEventListener('change', function () {
-        var temporario = document.querySelector('input[name=tipo_servico]:checked').value === 'TEMPORARIO';
-        document.getElementById('bloco_duracao').classList.toggle('hidden', !temporario);
-        document.getElementById('duracao').required = temporario;
+    Object.entries(dados).forEach(([id, valor]) => {
+        const campo = document.getElementById(id);
+        if (campo) campo.value = valor;
     });
-});
-
-function preencherFormularioTeste() {
-
-    document.getElementById('id_categoria').value = '2';
-
-    document.getElementById('titulo').value =
-        'Garçom para evento corporativo';
-
-    document.getElementById('descricao').value =
-        'Necessário auxiliar no atendimento de convidados durante evento corporativo.';
-
-    document.getElementById('localizacao').value =
-        'Foz do Iguaçu - PR';
-
-    document.getElementById('remuneracao').value =
-        '250.00';
-
-    document.getElementById('data_servico').value = '2027-01-10';
-
-    document.getElementById('data_limite').value =
-        '2026-08-15';
-
-    document.getElementById('horario').value = '08:00';
-
-    document.querySelector('input[name=tipo_servico][value=FIXO]').checked = true;
-
-    document.getElementById('trabalhadores_limite').value =
-        '2';
-
 }
-
 </script>
 
 

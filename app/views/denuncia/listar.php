@@ -4,6 +4,8 @@ include __DIR__ . '/../shared/header.php';
 include __DIR__ . '/../shared/navbar.php';
 
 $denuncias = $denuncias ?? [];
+$usuarios = $usuarios ?? [];
+$vagas = $vagas ?? [];
 $statusFiltro = $status ?? '';
 $erroModeracao = $erroModeracao ?? '';
 
@@ -59,7 +61,6 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Denunciante</th>
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Denunciado</th>
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Motivo</th>
@@ -74,45 +75,40 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                                 $statusBadge = $statusDenuncia === 'PENDENTE'
                                     ? 'bg-yellow-100 text-yellow-800'
                                     : 'bg-blue-100 text-blue-800';
+
+                                $denunciante = $usuarios[$denuncia->getIdDenunciante()] ?? null;
+                                $nomeDenunciante = $denunciante ? $denunciante->getNome() : 'Usuário #' . $denuncia->getIdDenunciante();
+
+                                $idUsuarioDenunciado = $denuncia->getIdUsuarioDenunciado();
+                                $idVagaDenunciada = $denuncia->getIdVagaDenunciada();
+                                $vagaDenunciada = $idVagaDenunciada !== null ? ($vagas[$idVagaDenunciada] ?? null) : null;
+                                $usuarioDenunciado = $idUsuarioDenunciado !== null ? ($usuarios[$idUsuarioDenunciado] ?? null) : null;
+
+                                if ($idUsuarioDenunciado === null) {
+                                    $nomeDenunciado = $vagaDenunciada ? $vagaDenunciada->getTitulo() : 'Anúncio #' . $idVagaDenunciada;
+                                } elseif ($idVagaDenunciada !== null) {
+                                    $nomeAlvo = $usuarioDenunciado ? $usuarioDenunciado->getNome() : 'Usuário #' . $idUsuarioDenunciado;
+                                    $tituloVaga = $vagaDenunciada ? $vagaDenunciada->getTitulo() : 'vaga #' . $idVagaDenunciada;
+                                    $nomeDenunciado = $nomeAlvo . ' (' . $tituloVaga . ')';
+                                } else {
+                                    $nomeDenunciado = $usuarioDenunciado ? $usuarioDenunciado->getNome() : 'Usuário #' . $idUsuarioDenunciado;
+                                }
                             ?>
                                 <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm text-gray-700">#<?= $denuncia->getIdDenuncia() ?></td>
-                                    <td class="px-6 py-4 text-sm text-gray-700">Usuário #<?= $denuncia->getIdDenunciante() ?></td>
-                                    <td class="px-6 py-4 text-sm text-gray-700"><?php
-                                        if ($denuncia->getIdUsuarioDenunciado() === null) {
-                                            echo 'Anúncio #' . $denuncia->getIdVagaDenunciada();
-                                        } elseif ($denuncia->getIdVagaDenunciada() !== null) {
-                                            echo 'Usuário #' . $denuncia->getIdUsuarioDenunciado() . ' (vaga #' . $denuncia->getIdVagaDenunciada() . ')';
-                                        } else {
-                                            echo 'Usuário #' . $denuncia->getIdUsuarioDenunciado();
-                                        }
-                                    ?></td>
+                                    <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars($nomeDenunciante, ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars($nomeDenunciado, ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars(\app\models\Denuncia::rotuloMotivo($denuncia->getMotivo()), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($denuncia->getDataDenuncia())), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="px-6 py-4">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $statusBadge ?>">
-                                            <?= $statusDenuncia === 'PENDENTE' ? 'Pendente' : 'Analisada' ?>
+                                            <?= $statusDenuncia === 'PENDENTE' ? 'Pendente' : htmlspecialchars(\app\models\Denuncia::rotuloAcaoModeracao($denuncia->getAcaoModeracao()), ENT_QUOTES, 'UTF-8') ?>
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-sm">
                                         <?php if ($statusDenuncia === 'PENDENTE'): ?>
                                             <div class="flex items-start gap-3">
-                                                <details>
-                                                    <summary class="cursor-pointer text-amber-700 hover:text-amber-800 font-medium text-xs">Advertir</summary>
-                                                    <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="mt-2 w-56 space-y-2">
-                                                        <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
-                                                        <input type="hidden" name="acao" value="advertir">
-                                                        <textarea name="mensagem" required minlength="5" maxlength="500" rows="3" placeholder="Mensagem para o advertido" class="w-full border border-gray-300 rounded px-2 py-1 text-xs"></textarea>
-                                                        <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs py-1 px-2 rounded">Enviar advertência</button>
-                                                    </form>
-                                                </details>
                                                 <?php if ($denuncia->getIdVagaDenunciada() !== null && $denuncia->getIdUsuarioDenunciado() === null): ?>
                                                     <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $denuncia->getIdVagaDenunciada() ?>" class="text-gray-600 hover:text-gray-900 font-medium text-xs">Ver anúncio</a>
-                                                    <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
-                                                        <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
-                                                        <input type="hidden" name="acao" value="ocultar">
-                                                        <button type="submit" onclick="return confirm('Ocultar este anúncio? Ele some da listagem, mas o dono ainda pode vê-lo e corrigi-lo.')" class="text-orange-600 hover:text-orange-700 font-medium text-xs">Ocultar anúncio</button>
-                                                    </form>
                                                     <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                         <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
                                                         <input type="hidden" name="acao" value="remover">
@@ -126,8 +122,8 @@ $analisadas = count(array_filter($denuncias, fn($denuncia) => $denuncia->getStat
                                                 </form>
                                                 <form method="POST" action="<?= URL_BASE ?>/admin/denuncias/moderar" class="inline">
                                                     <input type="hidden" name="id" value="<?= $denuncia->getIdDenuncia() ?>">
-                                                    <input type="hidden" name="acao" value="analisar">
-                                                    <button type="submit" class="text-blue-600 hover:text-blue-700 font-medium text-xs">Analisar</button>
+                                                    <input type="hidden" name="acao" value="arquivar">
+                                                    <button type="submit" class="text-blue-600 hover:text-blue-700 font-medium text-xs">Arquivar</button>
                                                 </form>
                                             </div>
                                         <?php else: ?>

@@ -32,10 +32,10 @@ class VagaService
         ?string $dataLimite = null,
         ?string $trabalhadoresLimite = null,
         ?string $horario = null,
-        string $tipoServico = 'FIXO',
         ?string $duracao = null,
         ?string $observacoes = null,
-        ?string $dataServico = null
+        ?string $dataServico = null,
+        ?string $bairro = null
     ): int {
 
         $vaga = new Vaga(
@@ -50,10 +50,10 @@ class VagaService
             $dataLimite,
             $trabalhadoresLimite,
             horario: $horario,
-            tipoServico: $tipoServico,
             duracao: $duracao,
             observacoes: $observacoes,
-            dataServico: $dataServico
+            dataServico: $dataServico,
+            bairro: $bairro
         );
 
         return $this->repository->criar($vaga);
@@ -67,6 +67,14 @@ class VagaService
     public function buscarPorId(int $id): ?Vaga
     {
         return $this->repository->buscarPorId($id);
+    }
+
+    /**
+     * Buscar várias vagas de uma vez, indexado por id_vaga.
+     */
+    public function buscarPorIds(array $ids): array
+    {
+        return $this->repository->buscarPorIds($ids);
     }
 
     /**
@@ -118,14 +126,9 @@ class VagaService
             throw new Exception("Este anúncio foi removido pela moderação e não pode ser editado.");
         }
 
-        // RN18: com candidaturas, a função (título) e o tipo de serviço não podem mudar
         if ($this->repository->possuiCandidaturas($vaga->getIdVaga())) {
             if ($vaga->getTitulo() !== $vagaExistente->getTitulo()) {
                 throw new Exception("Esta vaga já tem candidaturas: a função (título) não pode ser alterada.");
-            }
-
-            if ($vaga->getTipoServico() !== $vagaExistente->getTipoServico()) {
-                throw new Exception("Esta vaga já tem candidaturas: o tipo de serviço não pode ser alterado.");
             }
         }
 

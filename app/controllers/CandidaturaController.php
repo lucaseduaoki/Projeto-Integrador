@@ -3,23 +3,30 @@
 namespace app\controllers;
 
 use app\core\Controller;
-use app\helpers\Validador;
-use app\models\Candidatura;
 use app\services\CandidaturaService;
+use app\services\UsuarioService;
+use app\services\VagaService;
+use app\services\ValidadorRegrasNegocio;
 
 class CandidaturaController extends Controller
 {
     private CandidaturaService $service;
+    private VagaService $vagaService;
+    private UsuarioService $usuarioService;
+    private ValidadorRegrasNegocio $validador;
 
     public function __construct()
     {
+        $this->usuarioService = new UsuarioService();
         $this->service = new CandidaturaService();
+        $this->vagaService = new VagaService();
+        $this->validador = new ValidadorRegrasNegocio();
     }
 
     /**
-     * Candidatar a um anúncio
+     * Candidatura (RN 07, RN 15)
      */
-    public function candidatar(): void
+    public function demonstrar(): void
     {
         $this->trabalhadorRequired();
 
@@ -28,25 +35,34 @@ class CandidaturaController extends Controller
 
         if ($idVaga <= 0) {
             $this->redirect(URL_BASE . '/vagas');
+            return;
         }
 
-        try {
-            $this->service->candidatar($idVaga, $usuario->getIdUsuario());
-            $this->view('candidatura/sucesso', [
-                'mensagem' => 'Candidatura realizada com sucesso!'
-            ]);
-        } catch (\Exception $e) {
-            $this->view('candidatura/erro', [
-                'erro' => $e->getMessage(),
-                'idVaga' => $idVaga
-            ]);
+        $vaga = $this->vagaService->buscarPorId($idVaga);
+        if (!$vaga) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
         }
+
+        // RN 07, RN 15: Validar candidatura
+        try {
+            $this->validador->validarCandidatura($usuario, $vaga);
+            $this->service->demonstrarInteresse(
+                $idVaga,
+                $usuario->getIdUsuario()
+            );
+            $this->flashSucesso('Candidatura enviada com sucesso!');
+        } catch (\Exception $e) {
+            $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível enviar sua candidatura agora. Tente novamente em instantes.'));
+        }
+
+        $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
     }
 
     /**
-     * Listar candidatos de um anúncio (para contratante)
+     * Listar candidatos de uma vaga (RN 08)
      */
-    public function listarCandidatos(): void
+    public function listarInteressados(): void
     {
         $this->contratanteRequired();
 
@@ -55,128 +71,164 @@ class CandidaturaController extends Controller
 
         if ($idVaga <= 0) {
             $this->redirect(URL_BASE . '/vagas');
+            return;
         }
 
-        try {
-            $candidatos = $this->service->listarCandidatos($idVaga, $usuario->getIdUsuario());
-            $vagaService = new \app\services\VagaService();
-            $usuarioService = new \app\services\UsuarioService();
-            $vaga = $vagaService->buscarPorId($idVaga);
+        $vaga = $this->vagaService->buscarPorId($idVaga);
 
-            $candidaturasFormatadas = [];
-            foreach ($candidatos as $candidatura) {
-                $trabalhador = $usuarioService->buscarPorId($candidatura->getIdTrabalhador());
-
-                $candidaturasFormatadas[] = [
-                    'candidatura' => $candidatura,
-                    'trabalhador' => $trabalhador,
-                    'vaga' => $vaga,
-                ];
-            }
-
-            $this->view('candidatura/candidatos_list', [
-                'candidatos' => $candidaturasFormatadas,
-                'candidaturas' => $candidaturasFormatadas,
-                'vaga' => $vaga,
-                'idVaga' => $idVaga,
-            ]);
-        } catch (\Exception $e) {
+        if (!$vaga) {
             $this->redirect(URL_BASE . '/vagas');
+            return;
         }
+
+        // RN 14: Só o dono da vaga vê os candidatos
+        if (!$this->podeGerenciarVaga($vaga)) {
+            $this->redirect(URL_BASE . '/403');
+            return;
+        }
+
+        $candidatos = $this->service->listarInteressados($idVaga);
+
+        $this->view('interesse/candidatos_list', [
+            'vaga' => $vaga,
+            'interessados' => $candidatos,
+            'usuario' => $usuario
+        ]);
     }
 
+/**
+ * Aceitar candidato (RN 10)
+ */
+public function aceitar(): void
+{
+    $this->contratanteRequired();
+
+    $idInteresse = (int)($_POST['id'] ?? 0);
+    $usuario = $this->usuarioLogado();
+
+    try {
+        $candidatura = $this->service->buscarPorId($idInteresse);
+        if (!$candidatura) {
+            throw new \Exception('Candidatura não encontrada.');
+        }
+
+        $vaga = $this->vagaService->buscarPorId($candidatura->getIdVaga());
+        if (!$vaga) {
+            throw new \Exception('Vaga não encontrada.');
+        }
+
+        // RN 10: Validar aceitação (não exceder limite)
+        $this->validador->validarAceitacaoCandidato($vaga, $candidatura->getIdTrabalhador());
+
+        $this->service->aceitarInteressado(
+            $idInteresse,
+            $usuario->getIdUsuario()
+        );
+
+        $this->flashSucesso('Candidato aceito com sucesso!');
+
+    } catch (\Exception $e) {
+        error_log("Erro ao aceitar: " . $e->getMessage());
+        $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível aceitar o candidato agora. Tente novamente em instantes.'));
+    }
+
+    $this->redirect(URL_BASE . '/vagas/minhas');
+}
+
+/**
+ * Contatos dos candidatos aceitos (RN 09, RN 11, RN 16)
+ */
+public function listarAceitos(): void
+{
+    $this->contratanteRequired();
+
+    $usuario = $this->usuarioLogado();
+    $idVaga = (int)($_GET['id'] ?? 0);
+
+    if ($idVaga <= 0) {
+        http_response_code(400);
+        echo json_encode(['erro' => 'ID da vaga inválido.']);
+        return;
+    }
+
+    try {
+        $aceitos = $this->service->listarContatosAceitos(
+            $idVaga,
+            $usuario->getIdUsuario()
+        );
+
+        header('Content-Type: application/json');
+        echo json_encode($aceitos);
+
+    } catch (\Exception $e) {
+        http_response_code(403);
+        echo json_encode([
+            'erro' => $this->mensagemAmigavel($e, 'Não foi possível carregar os contatos.')
+        ]);
+    }
+}
     /**
-     * Selecionar candidato
+     * Perfil de um candidato (RN 08, RN 14)
      */
-    public function selecionar(): void
+    public function visualizarCandidato(): void
     {
         $this->contratanteRequired();
 
-        $usuario = $this->usuarioLogado();
-        $idCandidatura = (int)($_POST['id'] ?? 0);
+        $candidatura = $this->service->buscarPorId((int)($_GET['id'] ?? 0));
+        $vaga = $candidatura ? $this->vagaService->buscarPorId($candidatura->getIdVaga()) : null;
 
-        try {
-            $this->service->selecionar($idCandidatura, $usuario->getIdUsuario());
-            $this->json(['sucesso' => true, 'mensagem' => 'Candidato selecionado!']);
-        } catch (\Exception $e) {
-            $this->json(['sucesso' => false, 'erro' => $e->getMessage()], 400);
+        if (!$candidatura || !$vaga) {
+            $this->redirect(URL_BASE . '/vagas/minhas');
+            return;
         }
+
+        // RN 14: Só o contratante daquela vaga vê o perfil do candidato
+        if (!$this->podeGerenciarVaga($vaga)) {
+            $this->redirect(URL_BASE . '/403');
+            return;
+        }
+
+        $trabalhador = $this->usuarioService->buscarPorId($candidatura->getIdTrabalhador());
+
+        $this->view('usuario/perfil_candidato', [
+            'trabalhador' => $trabalhador,
+            'habilidades' => $this->usuarioService->buscarHabilidades($candidatura->getIdTrabalhador()),
+            'interesse' => $candidatura,
+            'vaga' => $vaga,
+        ]);
     }
 
     /**
-     * Rejeitar candidato
-     */
-    public function rejeitar(): void
-    {
-        $this->contratanteRequired();
-
-        $usuario = $this->usuarioLogado();
-        $idCandidatura = (int)($_POST['id'] ?? 0);
-
-        try {
-            $this->service->rejeitar($idCandidatura, $usuario->getIdUsuario());
-            $this->json(['sucesso' => true, 'mensagem' => 'Candidato rejeitado!']);
-        } catch (\Exception $e) {
-            $this->json(['sucesso' => false, 'erro' => $e->getMessage()], 400);
-        }
-    }
-
-    /**
-     * Confirmar candidatura (trabalhador)
-     */
-    public function confirmar(): void
-    {
-        $this->trabalhadorRequired();
-
-        $usuario = $this->usuarioLogado();
-        $idCandidatura = (int)($_POST['id'] ?? 0);
-
-        try {
-            $this->service->confirmar($idCandidatura, $usuario->getIdUsuario());
-
-            $candidatura = $this->service->buscarPorId($idCandidatura);
-            $vaga = null;
-            if ($candidatura) {
-                $vagaService = new \app\services\VagaService();
-                $vaga = $vagaService->buscarPorId($candidatura->getIdVaga());
-            }
-
-            $this->view('candidatura/confirmada', [
-                'candidatura' => $candidatura,
-                'vaga' => $vaga,
-                'usuarioLogado' => $usuario,
-            ]);
-        } catch (\Exception $e) {
-            $this->json(['sucesso' => false, 'erro' => $e->getMessage()], 400);
-        }
-    }
-
-    /**
-     * Histórico de candidaturas do trabalhador
+     * Histórico de candidaturas (trabalhador)
      */
     public function historico(): void
     {
         $this->trabalhadorRequired();
 
         $usuario = $this->usuarioLogado();
-        $candidaturas = $this->service->listarPorTrabalhador($usuario->getIdUsuario());
-        $vagaService = new \app\services\VagaService();
-        $usuarioService = new \app\services\UsuarioService();
+        $interesses = $this->service->listarHistorico($usuario->getIdUsuario());
 
-        $itensHistorico = [];
-        foreach ($candidaturas as $candidatura) {
-            $vaga = $vagaService->buscarPorId($candidatura->getIdVaga());
-            $contratante = $vaga ? $usuarioService->buscarPorId($vaga->getIdContratante()) : null;
+        // Busca vagas e contratantes em lote (evita N+1: antes eram até 2 queries por candidatura)
+        $vagas = $this->vagaService->buscarPorIds(array_map(
+            fn($candidatura) => $candidatura->getIdVaga(),
+            $interesses
+        ));
+        $contratantes = $this->usuarioService->buscarPorIds(array_map(
+            fn($vaga) => $vaga->getIdContratante(),
+            $vagas
+        ));
 
-            $itensHistorico[] = [
+        $candidaturas = array_map(function ($candidatura) use ($vagas, $contratantes) {
+            $vaga = $vagas[$candidatura->getIdVaga()] ?? null;
+            return [
                 'candidatura' => $candidatura,
                 'vaga' => $vaga,
-                'contratante' => $contratante,
+                'contratante' => $vaga ? ($contratantes[$vaga->getIdContratante()] ?? null) : null
             ];
-        }
+        }, $interesses);
 
-        $this->view('candidatura/historico', [
-            'candidaturas' => $itensHistorico,
+        $this->view('interesse/historico', [
+            'interesses' => $candidaturas,
             'usuarioLogado' => $usuario
         ]);
     }

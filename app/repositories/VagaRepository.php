@@ -35,12 +35,12 @@ return new Vaga(
     isset($row['total_aceitos']) ? (int)$row['total_aceitos'] : 0,
     (bool)($row['is_user_active'] ?? true),
     isset($row['horario']) ? substr($row['horario'], 0, 5) : null,
-    $row['tipo_servico'] ?? 'FIXO',
     $row['duracao'] ?? null,
     $row['observacoes'] ?? null,
     $row['data_servico'] ?? null,
     $row['visibilidade'] ?? 'VISIVEL',
-    $row['categoria_nome'] ?? null
+    $row['categoria_nome'] ?? null,
+    $row['bairro'] ?? null
 );
     }
 
@@ -50,10 +50,10 @@ return new Vaga(
             SELECT
                 v.*,
                 c.nome AS categoria_nome,
-                COUNT(i.id_interesse) AS total_aceitos
+                COUNT(i.id_candidatura) AS total_aceitos
             FROM vaga v
             INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-            LEFT JOIN interesse i
+            LEFT JOIN candidatura i
                 ON i.id_vaga = v.id_vaga
             AND i.status = 'ACEITO'
             WHERE v.id_vaga = :id
@@ -66,6 +66,40 @@ return new Vaga(
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ? $this->mapear($row) : null;
+    }
+
+    /**
+     * Buscar várias vagas de uma vez (evita N+1 ao listar itens que referenciam vagas).
+     * Retorna indexado por id_vaga.
+     */
+    public function buscarPorIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "
+            SELECT v.*, c.nome AS categoria_nome, COUNT(i.id_candidatura) AS total_aceitos
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
+            LEFT JOIN candidatura i
+                ON i.id_vaga = v.id_vaga
+                AND i.status = 'ACEITO'
+            WHERE v.id_vaga IN ($placeholders)
+            GROUP BY v.id_vaga
+        ";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($ids);
+
+        $resultado = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $resultado[(int)$row['id_vaga']] = $this->mapear($row);
+        }
+
+        return $resultado;
     }
 
     public function listar(int $limit = 50, int $offset = 0): array
@@ -97,20 +131,20 @@ return new Vaga(
 
     public function listarPorContratante(int $idContratante): array
     {
-$sql = "
-    SELECT
-        v.*,
-        c.nome AS categoria_nome,
-        COUNT(i.id_interesse) AS total_aceitos
-    FROM vaga v
-    INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-    LEFT JOIN interesse i
-        ON i.id_vaga = v.id_vaga
-       AND i.status = 'ACEITO'
-    WHERE v.id_contratante = :id
-    GROUP BY v.id_vaga
-    ORDER BY v.data_publicacao DESC
-";
+        $sql = "
+            SELECT
+                v.*,
+                c.nome AS categoria_nome,
+                COUNT(i.id_candidatura) AS total_aceitos
+            FROM vaga v
+            INNER JOIN categoria c ON c.id_categoria = v.id_categoria
+            LEFT JOIN candidatura i
+                ON i.id_vaga = v.id_vaga
+               AND i.status = 'ACEITO'
+            WHERE v.id_contratante = :id
+            GROUP BY v.id_vaga
+            ORDER BY v.data_publicacao DESC
+        ";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $idContratante, PDO::PARAM_INT);
@@ -126,18 +160,19 @@ $sql = "
     }
 
     /**
-     * Busca vagas ativas. Filtros aceitos (todos opcionais): titulo, localizacao, tipo_servico,
-     * data_from, remuneracao_min, remuneracao_max. Vagas sem remuneração ficam fora quando há filtro de valor.
+     * RN 06: Mostra só vagas ativas, visíveis, não excluídas, dentro do prazo e com aceitos < limite.
      */
     public function buscar(array $filtros = []): array
     {
         $sql = "
-            SELECT v.*, c.nome AS categoria_nome
+            SELECT v.*, c.nome AS categoria_nome, COUNT(i.id_candidatura) AS total_aceitos
             FROM vaga v
             INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-            WHERE status = 'ATIVA'
-              AND is_user_active = 1
-              AND visibilidade = 'VISIVEL'
+            LEFT JOIN candidatura i ON i.id_vaga = v.id_vaga AND i.status = 'ACEITO'
+            WHERE v.status = 'ATIVA'
+              AND v.is_user_active = 1
+              AND v.visibilidade = 'VISIVEL'
+              AND (v.data_limite IS NULL OR v.data_limite >= CURDATE())
         ";
 
         $params = [];
@@ -167,12 +202,7 @@ $sql = "
             $params['remuneracao_max'] = $filtros['remuneracao_max'];
         }
 
-        if (($filtros['tipo_servico'] ?? '') !== '') {
-            $sql .= " AND tipo_servico = :tipo_servico";
-            $params['tipo_servico'] = $filtros['tipo_servico'];
-        }
-
-        $sql .= " ORDER BY data_publicacao DESC";
+        $sql .= " GROUP BY v.id_vaga HAVING v.trabalhadores_limite > COUNT(i.id_candidatura) ORDER BY v.data_publicacao DESC";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -201,11 +231,11 @@ $sql = "
                 titulo,
                 descricao,
                 localizacao,
+                bairro,
                 remuneracao,
                 data_limite,
                 data_servico,
                 horario,
-                tipo_servico,
                 duracao,
                 observacoes,
                 trabalhadores_limite,
@@ -218,11 +248,11 @@ $sql = "
                 :titulo,
                 :descricao,
                 :localizacao,
+                :bairro,
                 :remuneracao,
                 :data_limite,
                 :data_servico,
                 :horario,
-                :tipo_servico,
                 :duracao,
                 :observacoes,
                 :trabalhadores_limite,
@@ -237,11 +267,11 @@ $sql = "
         $stmt->bindValue(':titulo', $vaga->getTitulo());
         $stmt->bindValue(':descricao', $vaga->getDescricao());
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
+        $stmt->bindValue(':bairro', $vaga->getBairro());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
         $stmt->bindValue(':data_servico', $vaga->getDataServico());
         $stmt->bindValue(':horario', $vaga->getHorario());
-        $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
         $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
@@ -260,11 +290,11 @@ $sql = "
                 titulo = :titulo,
                 descricao = :descricao,
                 localizacao = :localizacao,
+                bairro = :bairro,
                 remuneracao = :remuneracao,
                 data_limite = :data_limite,
                 data_servico = :data_servico,
                 horario = :horario,
-                tipo_servico = :tipo_servico,
                 duracao = :duracao,
                 observacoes = :observacoes,
                 trabalhadores_limite = :trabalhadores_limite
@@ -278,11 +308,11 @@ $sql = "
         $stmt->bindValue(':titulo', $vaga->getTitulo());
         $stmt->bindValue(':descricao', $vaga->getDescricao());
         $stmt->bindValue(':localizacao', $vaga->getLocalizacao());
+        $stmt->bindValue(':bairro', $vaga->getBairro());
         $stmt->bindValue(':remuneracao', $vaga->getRemuneracao());
         $stmt->bindValue(':data_limite', $vaga->getDataLimite());
         $stmt->bindValue(':data_servico', $vaga->getDataServico());
         $stmt->bindValue(':horario', $vaga->getHorario());
-        $stmt->bindValue(':tipo_servico', $vaga->getTipoServico());
         $stmt->bindValue(':duracao', $vaga->getDuracao());
         $stmt->bindValue(':observacoes', $vaga->getObservacoes());
         $stmt->bindValue(':trabalhadores_limite', $vaga->getTrabalhadoresLimite(), PDO::PARAM_INT);
@@ -322,7 +352,7 @@ $sql = "
     public function possuiCandidaturas(int $idVaga): bool
     {
         $stmt = $this->conn->prepare(
-            "SELECT COUNT(*) FROM interesse WHERE id_vaga = :id"
+            "SELECT COUNT(*) FROM candidatura WHERE id_vaga = :id"
         );
 
         $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);

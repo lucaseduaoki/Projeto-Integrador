@@ -10,6 +10,8 @@ class Candidatura
     private string $dataCandidatura;
     private string $status;
     private ?string $dataSelecao;
+    private ?string $nomeTrabalhador = null;
+    private ?string $telefoneTrabalhador = null;
 
     public function __construct(
         int $idCandidatura,
@@ -58,7 +60,29 @@ class Candidatura
         return $this->dataSelecao;
     }
 
+    public function getNomeTrabalhador(): ?string
+    {
+        return $this->nomeTrabalhador;
+    }
+
+    public function getTelefoneTrabalhador(): ?string
+    {
+        return $this->telefoneTrabalhador;
+    }
+
     // Setters
+    public function setNomeTrabalhador(?string $nome): self
+    {
+        $this->nomeTrabalhador = $nome;
+        return $this;
+    }
+
+    public function setTelefoneTrabalhador(?string $telefone): self
+    {
+        $this->telefoneTrabalhador = $telefone;
+        return $this;
+    }
+
     public function setStatus(string $status): self
     {
         $this->status = $status;
@@ -90,7 +114,7 @@ class Candidatura
     // Método estático para converter array em objeto
     public static function arrayParaObjeto(array $data): static
     {
-        return new self(
+        $obj = new self(
             $data['id_candidatura'],
             $data['id_vaga'],
             $data['id_trabalhador'],
@@ -98,5 +122,8 @@ class Candidatura
             $data['data_candidatura'] ?? date('Y-m-d H:i:s'),
             $data['data_selecao'] ?? null
         );
+        $obj->setNomeTrabalhador($data['nome_trabalhador'] ?? null);
+        $obj->setTelefoneTrabalhador($data['telefone_trabalhador'] ?? null);
+        return $obj;
     }
 }

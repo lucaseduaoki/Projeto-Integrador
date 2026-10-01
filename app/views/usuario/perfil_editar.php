@@ -29,6 +29,19 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
         <div class="bg-white rounded-md border border-gray-100 p-8">
             <h1 class="text-2xl font-bold text-gray-900 mb-6">Editar Perfil</h1>
 
+            <!-- REMOVÍVEL: Botão para preencher com dados fictícios (apenas para apresentação) -->
+            <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded flex items-center justify-between">
+                <span class="text-sm text-purple-700">💡 Preencher com dados de exemplo para teste</span>
+                <button
+                    type="button"
+                    id="btnPreencherPerfil"
+                    class="px-4 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition"
+                    onclick="preencherPerfilExemplo()"
+                >
+                    📋 Preencher
+                </button>
+            </div>
+
             <!-- Mensagem de Sucesso -->
             <?php if ($sucesso): ?>
                 <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-sm mb-6">
@@ -43,7 +56,7 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="<?= URL_BASE ?>/perfil/editar" enctype="multipart/form-data" class="space-y-6">
+            <form method="POST" action="<?= URL_BASE ?>/perfil/editar" enctype="multipart/form-data" class="space-y-6" id="formPerfil">
                 
 
                 <!-- Foto de Perfil -->
@@ -127,37 +140,6 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                             >
                         </div>
 
-                        <?php if (!$usuario->isPessoaJuridica() && !$usuario->isAdmin() && !($usuario->isTrabalhador() && $usuario->isContratante())): ?>
-                        <!-- Pessoa física pode acumular os dois papéis -->
-                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="adicionar_papeis[]" value="<?= $usuario->isTrabalhador() ? 'CONTRATANTE' : 'TRABALHADOR' ?>">
-                                Também quero atuar como <?= $usuario->isTrabalhador() ? 'contratante (publicar vagas)' : 'trabalhador (me candidatar a vagas)' ?>
-                            </label>
-                            <?php if (isset($erros['adicionar_papeis'])): ?>
-                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['adicionar_papeis'], ENT_QUOTES, 'UTF-8') ?></p>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
-
-                        <?php if ($usuario->isPessoaJuridica() && $usuario->isTrabalhador()): ?>
-                        <!-- Responsável (empresa prestadora) -->
-                        <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
-                            <label for="nome_responsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável pela execução do serviço</label>
-                            <input
-                                type="text"
-                                id="nome_responsavel"
-                                name="nome_responsavel"
-                                maxlength="100"
-                                required
-                                value="<?= htmlspecialchars($usuario->getNomeResponsavel() ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                            <?php if (isset($erros['nome_responsavel'])): ?>
-                                <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['nome_responsavel'], ENT_QUOTES, 'UTF-8') ?></p>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
 
                     </div>
                 </div>
@@ -175,18 +157,6 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                     <?php if (isset($erros['descricao'])): ?>
                         <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
                     <?php endif; ?>
-                </div>
-
-                <!-- Localização -->
-                <div>
-                    <label for="localizacao" class="block text-sm font-medium text-gray-700 mb-1">Localização</label>
-                    <input 
-                        type="text" 
-                        id="localizacao" 
-                        name="localizacao" 
-                        placeholder="Cidade, Estado"
-                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
                 </div>
 
                 <!-- Habilidades (apenas trabalhadores) -->
@@ -234,5 +204,42 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
         </div>
     </div>
 </main>
+
+<script>
+// REMOVÍVEL: Função para preencher formulário de perfil com dados fictícios
+// Delete this function when removing the example data feature
+function preencherPerfilExemplo() {
+    const isTrabalhador = document.body.textContent.includes('Profissional') || true;
+    const isContratante = document.querySelector('input[name="razao_social"]') !== null;
+
+    if (isContratante) {
+        // Dados de contratante
+        const dadosContratante = {
+            'nome': 'Restaurante Sabor Real',
+            'razao_social': 'Sabor Real Gastronomia LTDA',
+            'nome_fantasia': 'Sabor Real',
+            'telefone': '(46) 3333-0001',
+            'bairro': 'Centro Histórico',
+            'descricao': 'Restaurante de culinária regional com mais de 15 anos de tradição. Buscamos profissionais responsáveis e experientes.'
+        };
+        Object.entries(dadosContratante).forEach(([id, valor]) => {
+            const campo = document.getElementById(id);
+            if (campo) campo.value = valor;
+        });
+    } else {
+        // Dados de trabalhador
+        const dadosTrabalhador = {
+            'nome': 'João Silva Santos Atualizado',
+            'telefone': '(46) 98888-0001',
+            'bairro': 'Vila Central',
+            'descricao': 'Profissional experiente em atendimento, garçom, cozinha e eventos. Disponível para trabalhos pontuais. Responsável e comprometido.'
+        };
+        Object.entries(dadosTrabalhador).forEach(([id, valor]) => {
+            const campo = document.getElementById(id);
+            if (campo) campo.value = valor;
+        });
+    }
+}
+</script>
 
 <?php include __DIR__ . '/../shared/footer.php'; ?>

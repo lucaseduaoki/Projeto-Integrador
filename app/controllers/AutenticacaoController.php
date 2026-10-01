@@ -117,9 +117,10 @@ class AutenticacaoController extends Controller
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
         $senha = $_POST['senha'] ?? '';
         $confirmaSenha = $_POST['confirma_senha'] ?? '';
-        $papeis = array_values(array_unique(array_filter((array)($_POST['papeis'] ?? []), 'is_string')));
         $tipoPessoa = trim($_POST['tipo_pessoa'] ?? '');
-        $nomeResponsavel = trim($_POST['nome_responsavel'] ?? '');
+        // Papel é definido pelo tipo de pessoa, sem escolha livre: CNPJ (PJ) é sempre
+        // contratante, CPF (PF) é sempre trabalhador.
+        $papeis = $tipoPessoa === 'PJ' ? ['CONTRATANTE'] : ['TRABALHADOR'];
         $documento = htmlspecialchars(trim($_POST['documento'] ?? ''), ENT_QUOTES, 'UTF-8');
         $telefone = htmlspecialchars(trim($_POST['telefone'] ?? ''), ENT_QUOTES, 'UTF-8');
 
@@ -143,7 +144,6 @@ class AutenticacaoController extends Controller
         // Documento coerente com o tipo de pessoa (CPF para PF, CNPJ para PJ)
         $validador->papeis('papeis', $papeis, $tipoPessoa);
         $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
-        $validador->responsavelPrestadora('nome_responsavel', $nomeResponsavel, $tipoPessoa, in_array('TRABALHADOR', $papeis, true));
         $documento = preg_replace('/\D/', '', $documento);
 
         // Verificar se senhas coincidem
@@ -173,7 +173,7 @@ class AutenticacaoController extends Controller
                 $telefone ?: null,
                 $documento ?: null,
                 $tipoPessoa,
-                ($tipoPessoa === 'PJ' && in_array('TRABALHADOR', $papeis, true)) ? $nomeResponsavel : null
+                null
             );
 
             // Logar automaticamente após cadastro

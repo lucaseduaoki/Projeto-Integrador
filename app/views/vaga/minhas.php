@@ -151,7 +151,7 @@ Editar
 </div>
 
 <a
-href="<?= URL_BASE ?>/interesse/interessados?id=<?= $vaga->getIdVaga() ?>"
+href="<?= URL_BASE ?>/candidatura/interessados?id=<?= $vaga->getIdVaga() ?>"
 class="block mt-3 text-center bg-green-600 text-white py-2 rounded">
 
 Ver interessados
@@ -165,6 +165,35 @@ class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
 Ver contatos aprovados
 
 </button>
+
+<?php if($status === 'ENCERRADA'): ?>
+<button
+disabled
+class="w-full mt-3 bg-gray-300 text-gray-500 py-2 rounded cursor-not-allowed">
+Vaga encerrada
+</button>
+<?php else: ?>
+<form
+method="POST"
+action="<?= URL_BASE ?>/vagas/encerrar"
+class="mt-3"
+onsubmit="<?php if($aceitos < $limite): ?>alert('A vaga só pode ser encerrada quando o número de aceitos atingir o limite.'); return false;<?php endif; ?>">
+
+<input
+type="hidden"
+name="id"
+value="<?= $vaga->getIdVaga() ?>">
+
+<button
+type="submit"
+class="w-full <?php if($aceitos < $limite): ?>bg-gray-300 text-gray-500 cursor-not-allowed<?php else: ?>bg-black text-white hover:bg-gray-800<?php endif; ?> py-2 rounded">
+
+Encerrar vaga
+
+</button>
+
+</form>
+<?php endif; ?>
 
 <form
 method="POST"
@@ -277,7 +306,7 @@ const tbody = document.getElementById('tbodyContatos');
 tbody.innerHTML =
 '<tr><td colspan="3" class="text-center p-4">Carregando...</td></tr>';
 
-fetch('<?= URL_BASE ?>/interesse/aceitos?id=' + idVaga)
+fetch('<?= URL_BASE ?>/candidatura/aceitos?id=' + idVaga)
 
 .then(response => response.json())
 

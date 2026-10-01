@@ -30,7 +30,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
                 <?php endif; ?>
                 
                 <?php if ($usuarioLogado && $isTrabalhador): ?>
-                    <a href="<?= URL_BASE ?>/interesse/historico" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Minhas Candidaturas</a>
+                    <a href="<?= URL_BASE ?>/candidatura/historico" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Minhas Candidaturas</a>
                 <?php endif; ?>
                 
                 <?php if ($usuarioLogado && $isAdmin): ?>
@@ -85,7 +85,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
             <?php endif; ?>
             
             <?php if ($usuarioLogado && $isTrabalhador): ?>
-                <a href="<?= URL_BASE ?>/interesse/historico" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Minhas Candidaturas</a>
+                <a href="<?= URL_BASE ?>/candidatura/historico" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Minhas Candidaturas</a>
             <?php endif; ?>
             
             <?php if ($usuarioLogado && $isAdmin): ?>
@@ -111,20 +111,7 @@ $inicialNome = $usuarioLogado ? strtoupper(substr($usuarioLogado->getNome(), 0, 
 <!-- Espaço para compensar navbar fixa -->
 <div class="h-16"></div>
 
-<?php foreach (($advertenciasPendentes ?? []) as $advertencia): ?>
-    <div class="bg-amber-50 border-b border-amber-300 text-amber-900">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p class="text-sm">
-                <strong>Advertência da moderação:</strong>
-                <?= htmlspecialchars($advertencia->getMensagem(), ENT_QUOTES, 'UTF-8') ?>
-            </p>
-            <form method="POST" action="<?= URL_BASE ?>/advertencias/dispensar" class="shrink-0">
-                <input type="hidden" name="id" value="<?= $advertencia->getIdAdvertencia() ?>">
-                <button type="submit" class="text-sm font-semibold underline">Entendi</button>
-            </form>
-        </div>
-    </div>
-<?php endforeach; ?>
+<?php include __DIR__ . '/flash.php'; ?>
 
 <script>
     document.getElementById('mobileMenuBtn').addEventListener('click', function() {

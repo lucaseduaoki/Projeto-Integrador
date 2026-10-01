@@ -3,10 +3,10 @@
 namespace app\services;
 
 use app\models\Denuncia;
+use app\models\Candidatura;
 use app\database\ConnectionFactory;
-use app\repositories\AdvertenciaRepository;
 use app\repositories\DenunciaRepository;
-use app\repositories\InteresseRepository;
+use app\repositories\CandidaturaRepository;
 use app\repositories\UsuarioRepository;
 use app\repositories\VagaRepository;
 use Exception;
@@ -16,16 +16,14 @@ class DenunciaService
     private DenunciaRepository $repository;
     private UsuarioRepository $usuarioRepository;
     private VagaRepository $vagaRepository;
-    private AdvertenciaRepository $advertenciaRepository;
-    private InteresseRepository $interesseRepository;
+    private CandidaturaRepository $candidaturaRepository;
 
     public function __construct()
     {
         $this->repository = new DenunciaRepository();
         $this->usuarioRepository = new UsuarioRepository();
         $this->vagaRepository = new VagaRepository();
-        $this->advertenciaRepository = new AdvertenciaRepository();
-        $this->interesseRepository = new InteresseRepository();
+        $this->candidaturaRepository = new CandidaturaRepository();
     }
 
     /**
@@ -75,12 +73,12 @@ class DenunciaService
      * Regras: quem registra é o contratante dono da vaga; o trabalhador precisa ter sido
      * selecionado (ACEITO); só depois da data do serviço; e um único registro por trabalhador/vaga.
      */
-    public function validarNaoComparecimento(int $idInteresse, int $idContratante): \app\models\Interesse
+    public function validarNaoComparecimento(int $idInteresse, int $idContratante): Candidatura
     {
-        $interesse = $this->interesseRepository->buscarPorId($idInteresse);
-        $vaga = $interesse ? $this->vagaRepository->buscarPorId($interesse->getIdVaga()) : null;
+        $candidatura = $this->candidaturaRepository->buscarPorId($idInteresse);
+        $vaga = $candidatura ? $this->vagaRepository->buscarPorId($candidatura->getIdVaga()) : null;
 
-        if (!$interesse || !$vaga) {
+        if (!$candidatura || !$vaga) {
             throw new Exception('Candidatura não encontrada.');
         }
 
@@ -88,19 +86,15 @@ class DenunciaService
             throw new Exception('Você só pode registrar não comparecimento nas suas próprias vagas.');
         }
 
-        if ($interesse->getStatus() !== 'ACEITO') {
+        if ($candidatura->getStatus() !== 'ACEITO') {
             throw new Exception('Só é possível registrar não comparecimento de um trabalhador selecionado.');
         }
 
-        if ($vaga->getDataServico() !== null && $vaga->getDataServico() > date('Y-m-d')) {
-            throw new Exception('O não comparecimento só pode ser registrado a partir da data do serviço.');
-        }
-
-        if ($this->repository->existeNaoComparecimento($interesse->getIdTrabalhador(), $vaga->getIdVaga())) {
+        if ($this->repository->existeNaoComparecimento($candidatura->getIdTrabalhador(), $vaga->getIdVaga())) {
             throw new Exception('O não comparecimento deste trabalhador nesta vaga já foi registrado.');
         }
 
-        return $interesse;
+        return $candidatura;
     }
 
     /**
@@ -205,7 +199,7 @@ class DenunciaService
     /**
      * Moderar denúncia (admin) - bloquear a conta do usuário atingido
      */
-    public function bloquearPorDenuncia(int $idDenuncia): bool
+    public function bloquearPorDenuncia(int $idDenuncia, int $idAdmin): bool
     {
         $denuncia = $this->denunciaPendente($idDenuncia);
 
@@ -214,7 +208,7 @@ class DenunciaService
 
         try {
             $this->usuarioRepository->bloquear($this->usuarioAlvo($denuncia));
-            $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO');
+            $this->repository->registrarModeracao($idDenuncia, 'BLOQUEIO', $idAdmin);
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
@@ -225,51 +219,11 @@ class DenunciaService
     }
 
     /**
-     * Moderar denúncia (admin) - advertir o usuário atingido (RN14).
-     * A advertência fica registrada e é mostrada ao advertido até ele dispensá-la.
+     * Moderar denúncia de anúncio (admin): remove o anúncio (exclusão lógica), sem apagá-lo (RN14).
+     * O anúncio some da listagem e o dono não pode mais editá-lo nem excluí-lo.
      */
-    public function advertir(int $idDenuncia, string $mensagem, int $idModerador): bool
+    public function moderarAnuncio(int $idDenuncia, int $idAdmin): bool
     {
-        $mensagem = trim($mensagem);
-
-        if (mb_strlen($mensagem) < 5 || mb_strlen($mensagem) > 500) {
-            throw new Exception('A mensagem da advertência deve ter entre 5 e 500 caracteres.');
-        }
-
-        $denuncia = $this->denunciaPendente($idDenuncia);
-
-        $pdo = ConnectionFactory::getConnection();
-        $pdo->beginTransaction();
-
-        try {
-            $this->advertenciaRepository->criar(
-                $this->usuarioAlvo($denuncia),
-                $idDenuncia,
-                $idModerador,
-                $mensagem
-            );
-            $this->repository->registrarModeracao($idDenuncia, 'ADVERTENCIA');
-            $pdo->commit();
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
-            throw $e;
-        }
-
-        return true;
-    }
-
-    /**
-     * Moderar denúncia de anúncio (admin): oculta ou remove o anúncio, sem apagá-lo (RN14).
-     * $visibilidade: 'OCULTA' ou 'REMOVIDA'.
-     */
-    public function moderarAnuncio(int $idDenuncia, string $visibilidade): bool
-    {
-        $acoes = ['OCULTA' => 'ANUNCIO_OCULTO', 'REMOVIDA' => 'ANUNCIO_REMOVIDO'];
-
-        if (!isset($acoes[$visibilidade])) {
-            throw new Exception('Ação de moderação inválida.');
-        }
-
         $denuncia = $this->denunciaPendente($idDenuncia);
 
         if ($denuncia->getIdVagaDenunciada() === null || $denuncia->getIdUsuarioDenunciado() !== null) {
@@ -280,8 +234,8 @@ class DenunciaService
         $pdo->beginTransaction();
 
         try {
-            $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), $visibilidade);
-            $this->repository->registrarModeracao($idDenuncia, $acoes[$visibilidade]);
+            $this->vagaRepository->mudarVisibilidade($denuncia->getIdVagaDenunciada(), 'REMOVIDA');
+            $this->repository->registrarModeracao($idDenuncia, 'VAGA_REMOVIDA', $idAdmin);
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
@@ -294,11 +248,11 @@ class DenunciaService
     /**
      * Moderar denúncia (admin) - apenas marcar como analisada, sem sanção
      */
-    public function analisar(int $idDenuncia): bool
+    public function arquivar(int $idDenuncia, int $idAdmin): bool
     {
         $this->denunciaPendente($idDenuncia);
 
-        return $this->repository->registrarModeracao($idDenuncia, 'NENHUMA');
+        return $this->repository->registrarModeracao($idDenuncia, 'NENHUMA', $idAdmin);
     }
 
     /**

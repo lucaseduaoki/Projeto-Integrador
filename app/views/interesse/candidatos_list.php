@@ -41,11 +41,39 @@ include __DIR__ . '/../shared/navbar.php';
                     </p>
                 </div>
 
+                <div class="flex gap-4 items-center">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-700">
+                            Trabalhadores aceitos: <?= $vaga->getTotalAceitos() ?? 0 ?> / <?= $vaga->getTrabalhadoresLimite() ?? 0 ?>
+                        </span>
+                        <div class="bg-gray-200 rounded-full h-2 w-48">
+                            <div
+                                class="bg-green-600 h-2 rounded-full"
+                                style="width: <?php
+                                    $aceitos = $vaga->getTotalAceitos() ?? 0;
+                                    $limite = $vaga->getTrabalhadoresLimite() ?? 1;
+                                    echo min(100, ($aceitos / $limite) * 100);
+                                ?>%">
+                            </div>
+                        </div>
+                    </div>
 
-                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                    <?= count($interessados) ?>
-                    interessado<?= count($interessados) != 1 ? 's' : '' ?>
-                </span>
+                    <?php if($ehDono): ?>
+                        <?php $aceitos = $vaga->getTotalAceitos() ?? 0; $limite = $vaga->getTrabalhadoresLimite() ?? 0; ?>
+                        <?php if($vaga->getStatus() === 'ENCERRADA'): ?>
+                            <button disabled class="px-4 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed text-sm">
+                                Vaga encerrada
+                            </button>
+                        <?php else: ?>
+                            <form method="POST" action="<?= URL_BASE ?>/vagas/encerrar" style="display: inline;">
+                                <input type="hidden" name="id" value="<?= $vaga->getIdVaga() ?>">
+                                <button type="submit" class="px-4 py-2 <?php if($aceitos < $limite): ?>bg-gray-300 text-gray-500 cursor-not-allowed<?php else: ?>bg-black text-white hover:bg-gray-800<?php endif; ?> rounded text-sm" <?php if($aceitos < $limite): ?>disabled<?php endif; ?>>
+                                    Encerrar vaga
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
 
             </div>
 
@@ -76,6 +104,10 @@ include __DIR__ . '/../shared/navbar.php';
 
                             <th class="px-6 py-3 text-left">
                                 Trabalhador
+                            </th>
+
+                            <th class="px-6 py-3 text-left">
+                                Telefone
                             </th>
 
                             <th class="px-6 py-3 text-left">
@@ -145,7 +177,7 @@ include __DIR__ . '/../shared/navbar.php';
 
 
                                         <a
-                                            href="<?= URL_BASE ?>/interesse/candidato?id=<?= $interesse->getIdInteresse() ?>"
+                                            href="<?= URL_BASE ?>/candidatura/candidato?id=<?= $interesse->getIdCandidatura() ?>"
                                             class="text-sm text-blue-600 hover:text-blue-800">
 
                                             Ver perfil
@@ -160,13 +192,15 @@ include __DIR__ . '/../shared/navbar.php';
 
                             </td>
 
-
+                            <td class="px-6 py-4 text-gray-600">
+                                <?= htmlspecialchars($interesse->getTelefoneTrabalhador() ?? 'N/A', ENT_QUOTES, 'UTF-8') ?>
+                            </td>
 
                             <td class="px-6 py-4 text-gray-600">
 
                                 <?= date(
                                     'd/m/Y H:i',
-                                    strtotime($interesse->getDataInteresse())
+                                    strtotime($interesse->getDataCandidatura())
                                 ) ?>
 
 
@@ -194,12 +228,12 @@ include __DIR__ . '/../shared/navbar.php';
                                 <?php if($ehDono && $status === 'PENDENTE'): ?>
 
 
-                                    <form method="POST" action="<?= URL_BASE ?>/interesse/aceitar">
+                                    <form method="POST" action="<?= URL_BASE ?>/candidatura/aceitar">
 
                                         <input
                                             type="hidden"
                                             name="id"
-                                            value="<?= $interesse->getIdInteresse() ?>"
+                                            value="<?= $interesse->getIdCandidatura() ?>"
                                         >
 
 
@@ -219,7 +253,7 @@ include __DIR__ . '/../shared/navbar.php';
                                 <?php if($ehDono && $status === 'ACEITO'): ?>
 
                                     <a
-                                        href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdInteresse() ?>"
+                                        href="<?= URL_BASE ?>/denuncia/nao-comparecimento?id=<?= $interesse->getIdCandidatura() ?>"
                                         class="text-red-600 hover:text-red-800 font-medium text-sm">
 
                                         Registrar não comparecimento

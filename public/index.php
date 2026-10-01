@@ -31,12 +31,11 @@ $router->get('/logout',         'AutenticacaoController@logout');
 $router->get('/cadastro',       'AutenticacaoController@exibirCadastro');
 $router->post('/cadastro/submit','AutenticacaoController@cadastrar');
 
-$router->post('/advertencias/dispensar', 'AdvertenciaController@dispensar');
-
 // ============================================================================
 // PERFIL DE USUÁRIO
 // ============================================================================
 $router->get('/perfil',         'UsuarioController@exibirPerfil');
+$router->get('/perfil/ver',       'UsuarioController@exibirPerfilPublico');
 $router->get('/perfil/editar',    'UsuarioController@exibirFormEditarPerfil');
 $router->post('/perfil/editar', 'UsuarioController@editarPerfil');
 
@@ -52,17 +51,17 @@ $router->get('/vagas/editar',        'VagaController@exibirFormEditar');
 $router->post('/vagas/editar/submit','VagaController@editar');
 $router->post('/vagas/excluir',      'VagaController@excluir');
 $router->get('/vagas/minhas',        'VagaController@minhas');
+$router->post('/vagas/encerrar',      'VagaController@encerrar');
 
 // ============================================================================
-// INTERESSES
+// CANDIDATURAS
 // ============================================================================
-$router->post('/interesse/demonstrar',      'InteresseController@demonstrar');
-$router->get('/interesse/candidato',        'InteresseController@visualizarCandidato');
-$router->get('/interesse/interessados',     'InteresseController@listarInteressados');
-$router->get('/interesse/historico',     'InteresseController@historico');
-$router->get('/interesse/historico/visualizar',     'InteresseController@visualizarHistorico');
-$router->post('/interesse/aceitar',      'InteresseController@aceitar');
-$router->get('/interesse/aceitos',      'InteresseController@listarAceitos');
+$router->post('/candidatura/demonstrar',      'CandidaturaController@demonstrar');
+$router->get('/candidatura/candidato',        'CandidaturaController@visualizarCandidato');
+$router->get('/candidatura/interessados',     'CandidaturaController@listarInteressados');
+$router->get('/candidatura/historico',     'CandidaturaController@historico');
+$router->post('/candidatura/aceitar',      'CandidaturaController@aceitar');
+$router->get('/candidatura/aceitos',      'CandidaturaController@listarAceitos');
 
 
 

@@ -18,97 +18,169 @@ class CandidaturaRepository
     public function buscarPorId(int $id): ?Candidatura
     {
         $sql = "SELECT * FROM candidatura WHERE id_candidatura = :id";
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
-        $resultado = $stmt->fetch();
+
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $resultado ? Candidatura::arrayParaObjeto($resultado) : null;
     }
 
-    public function buscarPorVagaDeTrabalhador(int $idVaga, int $idTrabalhador): ?Candidatura
+    public function buscarPorVagaETrabalhador(int $idVaga, int $idTrabalhador): ?Candidatura
     {
-        $sql = "SELECT * FROM candidatura WHERE id_vaga = :id_vaga AND id_trabalhador = :id_trabalhador";
+        $sql = "SELECT *
+                FROM candidatura
+                WHERE id_vaga = :vaga
+                AND id_trabalhador = :trabalhador";
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id_vaga', $idVaga, PDO::PARAM_INT);
-        $stmt->bindValue(':id_trabalhador', $idTrabalhador, PDO::PARAM_INT);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->bindValue(':trabalhador', $idTrabalhador, PDO::PARAM_INT);
         $stmt->execute();
-        $resultado = $stmt->fetch();
-        return $resultado ? Candidatura::arrayParaObjeto($resultado) : null;
+
+        $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($resultado)) {
+            return Candidatura::arrayParaObjeto($resultado[0]);
+        }
+
+        return null;
     }
 
-    public function listarPorVaga(int $idVaga): array
+    public function listarContatosAceitos(int $idVaga): array
     {
-        $sql = "SELECT * FROM candidatura WHERE id_vaga = :id_vaga ORDER BY data_candidatura DESC";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id_vaga', $idVaga, PDO::PARAM_INT);
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        return array_map(fn($row) => Candidatura::arrayParaObjeto($row), $resultados);
-    }
+        $sql = "
+            SELECT
+                u.nome,
+                u.telefone
+            FROM candidatura i
+            INNER JOIN usuario u
+                ON u.id_usuario = i.id_trabalhador
+            WHERE i.id_vaga = :vaga
+              AND i.status = 'ACEITO'
+            ORDER BY u.nome
+        ";
 
-    public function listarPorTrabalhador(int $idTrabalhador): array
-    {
-        $sql = "SELECT * FROM candidatura WHERE id_trabalhador = :id_trabalhador ORDER BY data_candidatura DESC";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id_trabalhador', $idTrabalhador, PDO::PARAM_INT);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
         $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        return array_map(fn($row) => Candidatura::arrayParaObjeto($row), $resultados);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function criar(Candidatura $candidatura): int
     {
-        $sql = "INSERT INTO candidatura (id_vaga, id_trabalhador, status) 
-                VALUES (:id_vaga, :id_trabalhador, :status)";
-        
+        $sql = "INSERT INTO candidatura (id_vaga, id_trabalhador, status, data_candidatura)
+                VALUES (:vaga, :trabalhador, :status, :data)";
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id_vaga', $candidatura->getIdVaga(), PDO::PARAM_INT);
-        $stmt->bindValue(':id_trabalhador', $candidatura->getIdTrabalhador(), PDO::PARAM_INT);
+        $stmt->bindValue(':vaga', $candidatura->getIdVaga(), PDO::PARAM_INT);
+        $stmt->bindValue(':trabalhador', $candidatura->getIdTrabalhador(), PDO::PARAM_INT);
         $stmt->bindValue(':status', $candidatura->getStatus(), PDO::PARAM_STR);
-        
+        $stmt->bindValue(':data', $candidatura->getDataCandidatura(), PDO::PARAM_STR);
         $stmt->execute();
-        return (int)$this->conn->lastInsertId();
+
+        $id = (int)$this->conn->lastInsertId();
+
+        return $id;
     }
 
-    public function atualizar(Candidatura $candidatura): bool
+    public function listarPorVaga(int $idVaga): array
     {
-        $sql = "UPDATE candidatura 
-                SET status = :status, data_selecao = :data_selecao 
+        $sql = "SELECT i.*, u.nome AS nome_trabalhador, u.telefone AS telefone_trabalhador
+                FROM candidatura i
+                INNER JOIN usuario u ON u.id_usuario = i.id_trabalhador
+                WHERE i.id_vaga = :vaga
+                ORDER BY i.data_candidatura ASC";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(
+            fn($row) => Candidatura::arrayParaObjeto($row),
+            $dados
+        );
+    }
+
+    public function listarAceitos(int $idVaga): array
+    {
+        $sql = "SELECT *
+                FROM candidatura
+                WHERE id_vaga = :vaga
+                AND status = 'ACEITO'
+                ORDER BY data_candidatura";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(
+            fn($row) => Candidatura::arrayParaObjeto($row),
+            $dados
+        );
+    }
+
+    public function contarAceitos(int $idVaga): int
+    {
+        $sql = "SELECT COUNT(*) AS total
+                FROM candidatura
+                WHERE id_vaga = :vaga
+                AND status = 'ACEITO'";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function aceitar(int $idInteresse): bool
+    {
+        $sql = "UPDATE candidatura
+                SET status = 'ACEITO'
                 WHERE id_candidatura = :id";
-        
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id', $candidatura->getIdCandidatura(), PDO::PARAM_INT);
-        $stmt->bindValue(':status', $candidatura->getStatus(), PDO::PARAM_STR);
-        $stmt->bindValue(':data_selecao', $candidatura->getDataSelecao(), PDO::PARAM_STR);
-        
+        $stmt->bindValue(':id', $idInteresse, PDO::PARAM_INT);
+
         return $stmt->execute();
     }
 
-    public function deletar(int $idCandidatura): bool
+    public function remover(int $idInteresse): bool
     {
-        $sql = "DELETE FROM candidatura WHERE id_candidatura = :id";
+        $sql = "DELETE
+                FROM candidatura
+                WHERE id_candidatura = :id";
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id', $idCandidatura, PDO::PARAM_INT);
+        $stmt->bindValue(':id', $idInteresse, PDO::PARAM_INT);
+
         return $stmt->execute();
     }
 
-    public function buscarAceitosPorVaga(int $idVaga): array
+    public function listarPorTrabalhador(int $idTrabalhador): array
     {
-        $sql = "SELECT * FROM candidatura WHERE id_vaga = :id_vaga AND status = 'ACEITO'";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id_vaga', $idVaga, PDO::PARAM_INT);
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        return array_map(fn($row) => Candidatura::arrayParaObjeto($row), $resultados);
-    }
+        $sql = "SELECT *
+                FROM candidatura
+                WHERE id_trabalhador = :trabalhador
+                ORDER BY data_candidatura DESC";
 
-    public function contarCandidatos(int $idVaga): int
-    {
-        $sql = "SELECT COUNT(*) as total FROM candidatura WHERE id_vaga = :id_vaga";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id_vaga', $idVaga, PDO::PARAM_INT);
+        $stmt->bindValue(':trabalhador', $idTrabalhador, PDO::PARAM_INT);
         $stmt->execute();
-        $resultado = $stmt->fetch();
-        return (int)$resultado['total'];
+
+        $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(
+            fn($row) => Candidatura::arrayParaObjeto($row),
+            $dados
+        );
     }
 }

@@ -123,11 +123,7 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                             <p class="text-gray-900 font-medium"><?= date('d/m/Y', strtotime($vaga->getDataServico())) ?></p>
                         </div>
                         <?php endif; ?>
-                        <div>
-                            <p class="text-xs text-gray-600 uppercase font-semibold">Tipo de serviço</p>
-                            <p class="text-gray-900 font-medium"><?= $vaga->isTemporario() ? 'Temporário' : 'Fixo' ?></p>
-                        </div>
-                        <?php if ($vaga->isTemporario() && $vaga->getDuracao()): ?>
+                        <?php if ($vaga->getDuracao()): ?>
                         <div>
                             <p class="text-xs text-gray-600 uppercase font-semibold">Duração</p>
                             <p class="text-gray-900 font-medium"><?= htmlspecialchars($vaga->getDuracao(), ENT_QUOTES, 'UTF-8') ?></p>
@@ -167,12 +163,15 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                         </div>
                         <h3 class="font-bold text-gray-900"><?= htmlspecialchars($contratante->getNome(), ENT_QUOTES, 'UTF-8') ?></h3>
                         <p class="text-sm text-gray-600">Contratante</p>
+                        <a href="<?= URL_BASE ?>/perfil/ver?id=<?= $contratante->getIdUsuario() ?>" class="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block">
+                            Ver perfil
+                        </a>
                     </div>
 
                     <!-- Ação Principal -->
                     <?php if ($isTrabalhador && !$isProprietario && $disponivel && !$jaDemonstrouInteresse): ?>
 
-                        <form method="POST" action="<?= URL_BASE ?>/interesse/demonstrar" class="mb-4">
+                        <form method="POST" action="<?= URL_BASE ?>/candidatura/demonstrar" class="mb-4">
 
                             <input type="hidden" 
                                 name="id_vaga" 
@@ -232,7 +231,7 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
 
                         <div class="pt-4 border-t border-gray-200 mt-4">
 
-                            <a href="<?= URL_BASE ?>/interesse/interessados?id=<?= $vaga->getIdVaga() ?>"
+                            <a href="<?= URL_BASE ?>/candidatura/interessados?id=<?= $vaga->getIdVaga() ?>"
                             class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
 
                                 Ver interessados →

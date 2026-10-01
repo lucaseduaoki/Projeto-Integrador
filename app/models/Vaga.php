@@ -18,12 +18,12 @@ class Vaga
     private int $totalAceitos = 0;
     private bool $isUserActive = true;
     private ?string $horario = null;
-    private string $tipoServico = 'FIXO';
     private ?string $duracao = null;
     private ?string $observacoes = null;
     private ?string $dataServico = null;
     private string $visibilidade = 'VISIVEL';
     private ?string $categoriaNome = null;
+    private ?string $bairro = null;
 
 public function __construct(
     int $idVaga,
@@ -40,12 +40,12 @@ public function __construct(
     int $totalAceitos = 0,
     bool $isUserActive = true,
     ?string $horario = null,
-    string $tipoServico = 'FIXO',
     ?string $duracao = null,
     ?string $observacoes = null,
     ?string $dataServico = null,
     string $visibilidade = 'VISIVEL',
-    ?string $categoriaNome = null
+    ?string $categoriaNome = null,
+    ?string $bairro = null
 ) {
         $this->idVaga = $idVaga;
         $this->idContratante = $idContratante;
@@ -61,38 +61,12 @@ public function __construct(
         $this->totalAceitos = $totalAceitos;
         $this->isUserActive = $isUserActive;
         $this->horario = $horario;
-        $this->tipoServico = $tipoServico;
         $this->duracao = $duracao;
         $this->observacoes = $observacoes;
         $this->dataServico = $dataServico;
         $this->visibilidade = $visibilidade;
         $this->categoriaNome = $categoriaNome;
-    }
-
-    public static function arrayParaObjeto(array $dados): Vaga
-    {
-        return new Vaga(
-            (int)$dados['id_vaga'],
-            (int)$dados['id_contratante'],
-            (int)$dados['id_categoria'],
-            $dados['titulo'],
-            $dados['descricao'],
-            $dados['localizacao'] ?? null,
-            isset($dados['remuneracao']) ? (float)$dados['remuneracao'] : null,
-            $dados['data_publicacao'] ?? null,
-            $dados['data_limite'] ?? null,
-            isset($dados['trabalhadores_limite']) ? (int)$dados['trabalhadores_limite'] : null,
-            $dados['status'] ?? 'ATIVA',
-            isset($dados['total_aceitos']) ? (int)$dados['total_aceitos'] : 0,
-            (bool)($dados['is_user_active'] ?? true),
-            isset($dados['horario']) ? substr($dados['horario'], 0, 5) : null,
-            $dados['tipo_servico'] ?? 'FIXO',
-            $dados['duracao'] ?? null,
-            $dados['observacoes'] ?? null,
-            $dados['data_servico'] ?? null,
-            $dados['visibilidade'] ?? 'VISIVEL',
-            $dados['categoria_nome'] ?? null
-        );
+        $this->bairro = $bairro;
     }
 
     /**
@@ -151,6 +125,16 @@ public function __construct(
         return $this->localizacao;
     }
 
+    public function getBairro(): ?string
+    {
+        return $this->bairro;
+    }
+
+    public function setBairro(?string $bairro): void
+    {
+        $this->bairro = $bairro;
+    }
+
     public function getRemuneracao(): ?float
     {
         return $this->remuneracao;
@@ -159,16 +143,6 @@ public function __construct(
     public function getDataPublicacao(): ?string
     {
         return $this->dataPublicacao;
-    }
-
-    public function getTipoServico(): string
-    {
-        return $this->tipoServico;
-    }
-
-    public function setTipoServico(string $tipoServico): void
-    {
-        $this->tipoServico = $tipoServico;
     }
 
     public function getDuracao(): ?string
@@ -222,11 +196,6 @@ public function __construct(
     public function setObservacoes(?string $observacoes): void
     {
         $this->observacoes = $observacoes;
-    }
-
-    public function isTemporario(): bool
-    {
-        return $this->tipoServico === 'TEMPORARIO';
     }
 
     public function getHorario(): ?string
@@ -303,6 +272,7 @@ public function __construct(
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
             'localizacao' => $this->localizacao,
+            'bairro' => $this->bairro,
             'remuneracao' => $this->remuneracao,
             'dataPublicacao' => $this->dataPublicacao,
             'dataLimite' => $this->dataLimite,
@@ -310,7 +280,6 @@ public function __construct(
             'status' => $this->status,
             'isUserActive' => $this->isUserActive,
             'horario' => $this->horario,
-            'tipoServico' => $this->tipoServico,
             'duracao' => $this->duracao,
             'observacoes' => $this->observacoes,
             'dataServico' => $this->dataServico,
