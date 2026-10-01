@@ -6,21 +6,18 @@ use app\core\Controller;
 use app\services\CandidaturaService;
 use app\services\UsuarioService;
 use app\services\VagaService;
-use app\services\ValidadorRegrasNegocio;
 
 class CandidaturaController extends Controller
 {
     private CandidaturaService $service;
     private VagaService $vagaService;
     private UsuarioService $usuarioService;
-    private ValidadorRegrasNegocio $validador;
 
     public function __construct()
     {
         $this->usuarioService = new UsuarioService();
         $this->service = new CandidaturaService();
         $this->vagaService = new VagaService();
-        $this->validador = new ValidadorRegrasNegocio();
     }
 
     /**
@@ -46,7 +43,7 @@ class CandidaturaController extends Controller
 
         // RN 07, RN 15: Validar candidatura
         try {
-            $this->validador->validarCandidatura($usuario, $vaga);
+            $this->service->validarCandidatura($usuario, $vaga);
             $this->service->demonstrarInteresse(
                 $idVaga,
                 $usuario->getIdUsuario()
@@ -118,7 +115,7 @@ public function aceitar(): void
         }
 
         // RN 10: Validar aceitação (não exceder limite)
-        $this->validador->validarAceitacaoCandidato($vaga, $candidatura->getIdTrabalhador());
+        $this->service->validarAceitacaoCandidato($vaga, $candidatura->getIdTrabalhador());
 
         $this->service->aceitarInteressado(
             $idInteresse,

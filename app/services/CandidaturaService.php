@@ -3,6 +3,8 @@
 namespace app\services;
 
 use app\models\Candidatura;
+use app\models\Usuario;
+use app\models\Vaga;
 use app\repositories\CandidaturaRepository;
 use app\repositories\VagaRepository;
 use Exception;
@@ -16,6 +18,60 @@ class CandidaturaService
     {
         $this->repository = new CandidaturaRepository();
         $this->vagaRepository = new VagaRepository();
+    }
+
+    /**
+     * RN 10: Validar aceitação (não pode exceder limite)
+     */
+    public function validarAceitacaoCandidato(Vaga $vaga, int $idCandidato): void
+    {
+        $aceitos = $vaga->getTotalAceitos();
+        $limite = $vaga->getTrabalhadoresLimite();
+
+        if ($aceitos >= $limite) {
+            throw new Exception('Esta vaga já atingiu o limite de trabalhadores aceitos.');
+        }
+    }
+
+    /**
+     * RN 07-15: Validar candidatura (trabalhador, vaga ativa, dentro prazo, única por vaga)
+     */
+    public function validarCandidatura(Usuario $trabalhador, Vaga $vaga): void
+    {
+        // RN 07: Só trabalhador se candidata
+        if (!$trabalhador->isTrabalhador()) {
+            throw new Exception('Apenas trabalhadores podem se candidatar a vagas.');
+        }
+
+        // RN 06-07: Vaga deve estar ativa
+        if ($vaga->getStatus() !== 'ATIVA') {
+            throw new Exception('Esta vaga não está mais ativa.');
+        }
+
+        // RN 06-07: Vaga deve estar visível
+        if (!$vaga->estaVisivel()) {
+            throw new Exception('Esta vaga não está disponível.');
+        }
+
+        // RN 06: Vaga deve estar dentro do prazo (data_limite)
+        if ($vaga->getDataLimite() !== null && $vaga->getDataLimite() < date('Y-m-d')) {
+            throw new Exception('O prazo para se candidatar a esta vaga já expirou.');
+        }
+
+        // RN 06: Deve ter vagas disponíveis (aceitos < limite)
+        if ($vaga->getTotalAceitos() >= $vaga->getTrabalhadoresLimite()) {
+            throw new Exception('Esta vaga já atingiu o limite de candidatos aceitos.');
+        }
+
+        // RN 15: Uma candidatura por vaga
+        $candidaturaExistente = $this->repository->buscarPorVagaETrabalhador(
+            $vaga->getIdVaga(),
+            $trabalhador->getIdUsuario()
+        );
+
+        if ($candidaturaExistente !== null) {
+            throw new Exception('Você já se candidatou a esta vaga.');
+        }
     }
 
     /**
