@@ -14,7 +14,7 @@ Uma advertência de método: os números de linha mudam quando alguém edita o a
 
 **Decisão arquitetural central.** É um monólito em **PHP puro** com **MVC próprio**, sem framework, sem Composer e sem ORM. O roteador, o carregador de classes e o controller base foram escritos pela equipe (`app/core/`). A regra que organiza tudo é a divisão em camadas com uma responsabilidade cada: o **controller** recebe a requisição, autentica/autoriza e valida a entrada; o **service** decide as regras de negócio (RN); o **repository** fala SQL; o **model** representa os dados; e a **view** só desenha HTML. O banco é **MySQL** acessado por **PDO** com consultas parametrizadas.
 
-**Tamanho (conferido em 2026-10-01).** 53 arquivos PHP, cerca de 9.000 linhas. 33 rotas, 7 tabelas, 2 triggers. 6 controllers, 6 services, 4 repositories, 5 models, 23 views. Não há testes automatizados.
+**Tamanho (conferido em 2026-10-01).** 52 arquivos PHP, cerca de 9.000 linhas. 33 rotas, 7 tabelas, 2 triggers. 6 controllers, 5 services, 4 repositories, 5 models, 23 views. Não há testes automatizados.
 
 **Se a banca pedir "descreva seu sistema", uma resposta de cabeça:** *"É uma plataforma de vagas de serviços pontuais em PHP com MVC próprio. Toda requisição entra por um único arquivo, `public/index.php`, que registra as rotas; o roteador escolhe um controller; o controller confere quem é o usuário e valida a entrada; o service aplica as regras de negócio, como limite de trabalhadores aceitos, candidatura duplicada e liberação de contato só depois da seleção; o repository executa SQL parametrizado no MySQL; e uma view renderiza o resultado. Pessoa física só pode ser trabalhador, pessoa jurídica só pode ser contratante — sem acúmulo. A moderação é feita por denúncias: bloqueio de conta, remoção lógica de anúncio ou arquivamento sem sanção, sem apagar dados."*
 
@@ -48,10 +48,10 @@ Em seguida o controller lê `id_vaga`, converte para inteiro, confere se a vaga 
 
 `CandidaturaController::demonstrar()` chama duas coisas, nessa ordem:
 
-1. `ValidadorRegrasNegocio::validarCandidatura($usuario, $vaga)` — confere, em sequência: é trabalhador; a vaga está `ATIVA`; a vaga está `visível` (não oculta/removida pela moderação); está dentro do prazo (`data_limite`); ainda há vaga disponível (`total_aceitos < trabalhadores_limite`); e que o trabalhador **ainda não se candidatou** a essa vaga (RN15, unicidade). Qualquer falha lança uma `Exception` com uma mensagem já pronta para a tela.
+1. `CandidaturaService::validarCandidatura($usuario, $vaga)` — confere, em sequência: é trabalhador; a vaga está `ATIVA`; a vaga está `visível` (não oculta/removida pela moderação); está dentro do prazo (`data_limite`); ainda há vaga disponível (`total_aceitos < trabalhadores_limite`); e que o trabalhador **ainda não se candidatou** a essa vaga (RN15, unicidade). Qualquer falha lança uma `Exception` com uma mensagem já pronta para a tela.
 2. `CandidaturaService::demonstrarInteresse($idVaga, $idTrabalhador)` — repete parte dessas checagens (vaga ativa, visível, dentro do prazo, não é o dono se candidatando na própria vaga, não duplicada) e, se tudo OK, monta um objeto `Candidatura` e manda `CandidaturaRepository::criar()` persistir.
 
-Por que a mesma coisa é checada duas vezes (no validador e no service)? Não há uma razão de design documentada — são duas camadas de validação que foram crescendo em paralelo. Funciona porque as duas concordam, mas é redundância, não defesa em profundidade deliberada.
+Por que a mesma coisa é checada duas vezes (em `validarCandidatura()` e dentro de `demonstrarInteresse()`, os dois no mesmo `CandidaturaService`)? Não há uma razão de design documentada — são duas checagens que foram crescendo em paralelo dentro da mesma classe. Funciona porque as duas concordam, mas é redundância, não defesa em profundidade deliberada.
 
 Se qualquer exceção for lançada, o controller captura e grava a mensagem na sessão via `flashErro()`; se der certo, `flashSucesso('Candidatura enviada com sucesso!')`. Os dois casos **redirecionam** (padrão Post-Redirect-Get) para `/vagas/visualizar?id=X`.
 
@@ -78,7 +78,7 @@ O redirect leva a um novo `GET /vagas/visualizar?id=X`, que passa por todo o cic
 
 Os 6 controllers: `AutenticacaoController`, `UsuarioController`, `VagaController`, `CandidaturaController`, `DenunciaController`, `ErroController` (só a página 403).
 
-Os 6 services: `AutenticacaoService`, `UsuarioService`, `VagaService`, `CandidaturaService`, `DenunciaService`, e `ValidadorRegrasNegocio` (concentra as regras numeradas RN04 a RN17 — ver seção 5).
+Os 5 services: `AutenticacaoService`, `UsuarioService`, `VagaService`, `CandidaturaService`, `DenunciaService`. Cada um guarda tanto a orquestração (criar, buscar, atualizar) quanto as regras de negócio (RN) da sua própria área — não existe mais uma classe genérica à parte para isso (ver seção 5).
 
 Os 4 repositories: `UsuarioRepository`, `VagaRepository`, `CandidaturaRepository`, `DenunciaRepository`. Repare que **não existe um `CategoriaRepository` nem `HabilidadeRepository` dedicados** — consultas de categoria/habilidade vivem dentro de `VagaRepository`/`UsuarioRepository` mesmo.
 
@@ -99,20 +99,26 @@ Os 5 models: `Usuario`, `Vaga`, `Candidatura`, `Denuncia`, `Habilidade`. Todos s
 
 A numeração "RN04", "RN17" etc. aparece em comentários espalhados pelo código; não há uma lista central numerada de RN01 a RNxx em nenhum arquivo. O que existe de fato, por função:
 
-**`app/services/ValidadorRegrasNegocio.php`** (classe dedicada, usada por `VagaController` e `CandidaturaController`):
+Cada regra mora direto no service dono do assunto — não existe mais uma classe genérica à parte para isso (até 2026-10-01 existia um `ValidadorRegrasNegocio.php` com todas elas juntas; foi eliminado e cada método foi movido pro service correspondente, porque não fazia sentido ter as regras de vaga e de candidatura centralizadas num lugar que não era nem `VagaService` nem `CandidaturaService`).
+
+**`app/services/VagaService.php`:**
 - `validarCriadorVaga()` — só contratante ativo cria vaga (RN04).
 - `validarEncerramentoVaga()` — só encerra se `total_aceitos >= trabalhadores_limite` (RN05).
-- `validarAceitacaoCandidato()` — não aceita além do limite (RN10).
 - `validarNovoLimite()` — ao editar, não reduz o limite abaixo da quantidade já aceita (RN10).
+- `validarEdicaoVaga()` — com candidaturas existentes, título e categoria ficam travados (RN17). Esse método é o único motivo de `VagaService` depender de `CandidaturaRepository` (precisa saber se a vaga já tem candidaturas).
+
+**`app/services/CandidaturaService.php`:**
+- `validarAceitacaoCandidato()` — não aceita além do limite (RN10).
 - `validarCandidatura()` — a cadeia de checagens da seção 2.3 (RN06/07/15).
-- `validarEdicaoVaga()` — com candidaturas existentes, título e categoria ficam travados (RN17).
+
+Os controllers (`VagaController`, `CandidaturaController`) chamam esses métodos direto em `$this->vagaService`/`$this->service` — não existe mais uma propriedade `$validador` separada.
 
 **`app/helpers/Validador.php`** (helper genérico de validação de formulário, não é regra de negócio pura — mistura validação de campo com algumas RN):
 - `papeis()` — aplica a regra PF-só-trabalhador / PJ-só-contratante no cadastro.
 - `documentoPorTipoPessoa()` — CPF para PF, CNPJ para PJ, com dígito verificador real (`cpf()`/`cnpj()` calculam os dígitos, não é só tamanho).
 - `responsavelPrestadora()` — ainda existe no código mas hoje é inatingível: só dispara para "PJ que presta serviço", estado que a regra de papéis atual não permite mais criar. Ver seção 8.
 
-**Dentro dos services** (`CandidaturaService`, `DenunciaService`, `VagaService`): regras mais específicas de cada ação — por exemplo, `CandidaturaService::aceitarInteressado()` confere dono da vaga, vaga ativa/visível, candidato ainda não aceito, e limite — em parte repetindo o que `ValidadorRegrasNegocio` já confere antes de chamar o service.
+**Dentro dos próprios métodos de ação dos services** (`CandidaturaService::aceitarInteressado()`, por exemplo): regras mais específicas da ação — confere dono da vaga, vaga ativa/visível, candidato ainda não aceito, e limite — em parte repetindo o que `validarAceitacaoCandidato()` já confere antes de chamar o service lá do controller.
 
 ---
 
