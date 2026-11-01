@@ -40,6 +40,11 @@ class AutenticacaoController extends Controller
      */
     public function exibirLogin(): void
     {
+        // Já logado? Não faz sentido mostrar o login de novo
+        if (isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'] instanceof Usuario) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
         $erros = [];
 
         if (($_GET['motivo'] ?? '') === 'conta_inativa') {
@@ -71,8 +76,7 @@ class AutenticacaoController extends Controller
         $validador = new Validador();
         $validador->obrigatorio('email', $email)
                   ->email('email', $email)
-                  ->obrigatorio('senha', $senha)
-                  ->minimo('senha', $senha, 6);
+                  ->obrigatorio('senha', $senha);
 
         if ($validador->temErros()) {
             error_log('[LOGIN] Erros de validação=' . json_encode($validador->getErros(), JSON_UNESCAPED_UNICODE));
@@ -102,6 +106,11 @@ class AutenticacaoController extends Controller
      */
     public function exibirCadastro(): void
     {
+        if (isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'] instanceof Usuario) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
+
         $this->view('autenticacao/cadastro', [
         ]);
     }
@@ -145,11 +154,6 @@ class AutenticacaoController extends Controller
         $validador->papeis('papeis', $papeis, $tipoPessoa);
         $validador->documentoPorTipoPessoa('documento', $documento, $tipoPessoa);
         $documento = preg_replace('/\D/', '', $documento);
-
-        // Verificar se senhas coincidem
-        if ($senha !== $confirmaSenha) {
-            $validador->obrigatorio('confirma_senha', 'As senhas não coincidem.');
-        }
 
         if ($validador->temErros()) {
             $this->view('autenticacao/cadastro', [

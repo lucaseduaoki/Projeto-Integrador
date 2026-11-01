@@ -196,7 +196,6 @@ public function criar(): void
     $localizacao = trim($_POST['localizacao'] ?? '');
     $bairro = trim($_POST['bairro'] ?? '');
     $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
-    $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
     $duracao = trim($_POST['duracao'] ?? '');
@@ -204,7 +203,7 @@ public function criar(): void
     $trabalhadoresLimite = $_POST['trabalhadores_limite'] ?? 1;
 
     $validador = $this->validarDadosVaga(compact(
-        'idCategoria', 'titulo', 'descricao', 'localizacao', 'bairro', 'remuneracao', 'dataLimite', 'dataServico', 'horario', 'duracao', 'observacoes'
+        'idCategoria', 'titulo', 'descricao', 'localizacao', 'bairro', 'remuneracao', 'dataServico', 'horario', 'duracao', 'observacoes'
     ));
 
     if ($validador->temErros()) {
@@ -215,6 +214,9 @@ public function criar(): void
         return;
     }
 
+    // Prazo para candidatura: sempre 1 dia antes da data do serviço, não é mais escolhido pelo contratante
+    $dataLimite = date('Y-m-d', strtotime($dataServico . ' -1 day'));
+
     try {
         $id = $this->vagaService->criar(
             $usuario->getIdUsuario(),
@@ -223,7 +225,7 @@ public function criar(): void
             $descricao,
             $localizacao ?: null,
             $remuneracao !== '' ? (float)$remuneracao : null,
-            $dataLimite ?: null,
+            $dataLimite,
             (int)$trabalhadoresLimite,
             $horario,
             $duracao ?: null,
@@ -247,7 +249,7 @@ public function criar(): void
 /**
  * Valida os campos do formulário de vaga. Criação e edição compartilham as mesmas regras.
  */
-private function validarDadosVaga(array $d): Validador
+private function validarDadosVaga(array $d, ?string $dataServicoPermitida = null): Validador
 {
     $validador = new Validador();
 
@@ -260,8 +262,7 @@ private function validarDadosVaga(array $d): Validador
         ->monetario('remuneracao', $d['remuneracao'])
         ->obrigatorio('data_servico', $d['dataServico'], 'Informe a data do serviço.')
         ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
-        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.')
-        ->dataValida('data_limite', $d['dataLimite'], false, 'O prazo para candidatura deve ser uma data válida (aaaa-mm-dd).')
+        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.', $dataServicoPermitida)
         ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
         ->horaValida('horario', $d['horario'], 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('duracao', $d['duracao'], 'Informe a duração do serviço (ex.: 3 dias).')
@@ -354,7 +355,6 @@ public function editar(): void
     $localizacao = trim($_POST['localizacao'] ?? '');
     $bairro = trim($_POST['bairro'] ?? '');
     $remuneracao = str_replace(',', '.', trim((string)($_POST['remuneracao'] ?? '')));
-    $dataLimite = trim($_POST['data_limite'] ?? '');
     $dataServico = trim($_POST['data_servico'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
     $duracao = trim($_POST['duracao'] ?? '');
@@ -375,9 +375,10 @@ public function editar(): void
         return;
     }
 
+    // A data já gravada continua aceita, mesmo que passada, para não travar a edição dos outros campos
     $validador = $this->validarDadosVaga(compact(
-        'idCategoria', 'titulo', 'descricao', 'localizacao', 'bairro', 'remuneracao', 'dataLimite', 'dataServico', 'horario', 'duracao', 'observacoes'
-    ));
+        'idCategoria', 'titulo', 'descricao', 'localizacao', 'bairro', 'remuneracao', 'dataServico', 'horario', 'duracao', 'observacoes'
+    ), $vaga->getDataServico());
 
     if ($validador->temErros()) {
         $this->view('vaga/vaga_form', [
@@ -395,7 +396,8 @@ public function editar(): void
         $vaga->setLocalizacao($localizacao ?: null);
         $vaga->setBairro($bairro ?: null);
         $vaga->setRemuneracao($remuneracao !== '' ? (float)$remuneracao : null);
-        $vaga->setDataLimite($dataLimite ?: null);
+        // Prazo para candidatura: sempre 1 dia antes da data do serviço, não é mais escolhido pelo contratante
+        $vaga->setDataLimite(date('Y-m-d', strtotime($dataServico . ' -1 day')));
         $vaga->setTrabalhadoresLimite((int)$trabalhadoresLimite);
         $vaga->setHorario($horario);
         $vaga->setDuracao($duracao ?: null);

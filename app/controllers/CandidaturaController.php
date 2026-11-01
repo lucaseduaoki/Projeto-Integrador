@@ -56,6 +56,28 @@ class CandidaturaController extends Controller
         $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
     }
 
+    public function remover(): void
+    {
+        $this->trabalhadorRequired();
+
+        $usuario = $this->usuarioLogado();
+        $idVaga = (int)($_POST['id_vaga'] ?? 0);
+
+        if ($idVaga <= 0) {
+            $this->redirect(URL_BASE . '/vagas');
+            return;
+        }
+
+        try {
+            $this->service->removerInteresse($idVaga, $usuario->getIdUsuario());
+            $this->flashSucesso('Candidatura removida.');
+        } catch (\Exception $e) {
+            $this->flashErro($this->mensagemAmigavel($e, 'Não foi possível remover sua candidatura agora. Tente novamente em instantes.'));
+        }
+
+        $this->redirect(URL_BASE . '/vagas/visualizar?id=' . $idVaga);
+    }
+
     /**
      * Listar candidatos de uma vaga (RN 08)
      */

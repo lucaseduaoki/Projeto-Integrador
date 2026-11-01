@@ -169,28 +169,30 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                     </div>
 
                     <!-- Ação Principal -->
-                    <?php if ($isTrabalhador && !$isProprietario && $disponivel && !$jaDemonstrouInteresse): ?>
+                    <?php if ($isTrabalhador && !$isProprietario && ($disponivel || $jaDemonstrouInteresse)): ?>
 
-                        <form method="POST" action="<?= URL_BASE ?>/candidatura/demonstrar" class="mb-4">
+                        <form method="POST"
+                              action="<?= URL_BASE ?><?= $jaDemonstrouInteresse ? '/candidatura/remover' : '/candidatura/demonstrar' ?>"
+                              class="mb-4">
 
-                            <input type="hidden" 
-                                name="id_vaga" 
-                                value="<?= $vaga->getIdVaga() ?>">
+                            <input type="hidden"
+                                   name="id_vaga"
+                                   value="<?= $vaga->getIdVaga() ?>">
 
-                            <button type="submit"
-                                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">
-                                Demonstrar Interesse
-                            </button>
+                            <?php if ($jaDemonstrouInteresse): ?>
+                                <button type="submit"
+                                        onclick="return confirm('Deseja remover sua candidatura desta vaga?')"
+                                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">
+                                    Remover Candidatura
+                                </button>
+                            <?php else: ?>
+                                <button type="submit"
+                                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">
+                                    Demonstrar Interesse
+                                </button>
+                            <?php endif; ?>
 
                         </form>
-
-
-                    <?php elseif ($jaDemonstrouInteresse): ?>
-
-                        <div class="w-full bg-green-50 border border-green-200 text-green-700 font-semibold py-2 px-4 rounded text-center mb-4">
-                            Você já demonstrou interesse
-                        </div>
-
 
                     <?php elseif ($isTrabalhador && !$isProprietario && !$disponivel): ?>
 

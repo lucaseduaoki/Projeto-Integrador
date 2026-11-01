@@ -219,6 +219,16 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
 </main>
 
 <script>
+// Senha e confirmação precisam coincidir: o navegador bloqueia o envio e mostra a mensagem
+function conferirSenhas() {
+    const confirma = document.getElementById('confirma_senha');
+    confirma.setCustomValidity(
+        confirma.value !== document.getElementById('senha').value ? 'As senhas não coincidem.' : ''
+    );
+}
+document.getElementById('senha').addEventListener('input', conferirSenhas);
+document.getElementById('confirma_senha').addEventListener('input', conferirSenhas);
+
 function atualizarDocumento() {
     const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
     document.getElementById('documentoLabel').textContent = pj ? 'CNPJ' : 'CPF';
