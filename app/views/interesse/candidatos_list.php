@@ -82,7 +82,7 @@ include __DIR__ . '/../shared/navbar.php';
 
         <?php if(empty($interessados)): ?>
 
-            <div class="text-center py-16 bg-white rounded-md border">
+            <div class="text-center py-16 bg-white rounded-md border border-gray-100">
 
                 <p class="text-gray-500 text-lg">
                     Nenhum trabalhador demonstrou interesse ainda.
@@ -94,7 +94,7 @@ include __DIR__ . '/../shared/navbar.php';
         <?php else: ?>
 
 
-            <div class="bg-white rounded-md shadow border overflow-hidden">
+            <div class="bg-white rounded-md border border-gray-100 overflow-hidden">
 
                 <table class="w-full">
 
@@ -234,7 +234,7 @@ include __DIR__ . '/../shared/navbar.php';
                             <td class="px-6 py-4">
 
 
-                                <span class="px-3 py-1 rounded-full text-xs font-medium <?= $statusClass ?>">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold <?= $statusClass ?>">
 
                                     <?= ucfirst(strtolower($status)) ?>
 

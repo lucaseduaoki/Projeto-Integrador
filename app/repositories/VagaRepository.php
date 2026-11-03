@@ -197,12 +197,18 @@ return new Vaga(
             $params['remuneracao_min'] = $filtros['remuneracao_min'];
         }
 
-        if (isset($filtros['remuneracao_max'])) {
-            $sql .= " AND remuneracao <= :remuneracao_max";
-            $params['remuneracao_max'] = $filtros['remuneracao_max'];
+        if (($filtros['categoria'] ?? '') !== '') {
+            $sql .= " AND v.id_categoria = :categoria";
+            $params['categoria'] = $filtros['categoria'];
         }
 
-        $sql .= " GROUP BY v.id_vaga HAVING v.trabalhadores_limite > COUNT(i.id_candidatura) ORDER BY v.data_publicacao DESC";
+        $ordem = match ($filtros['ordenar'] ?? 'recentes') {
+            'maior_salario' => 'v.remuneracao DESC',
+            'menor_salario' => 'v.remuneracao ASC',
+            default => 'v.data_publicacao DESC'
+        };
+
+        $sql .= " GROUP BY v.id_vaga HAVING v.trabalhadores_limite > COUNT(i.id_candidatura) ORDER BY {$ordem}";
 
         $stmt = $this->conn->prepare($sql);
 

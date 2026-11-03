@@ -46,7 +46,7 @@ Criar anúncio
 
 <?php else: ?>
 
-<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
 
 <?php foreach($vagas as $vaga): ?>
 
@@ -63,9 +63,11 @@ $status = $vaga->getStatus();
 
 ?>
 
-<div class="bg-white border rounded-md p-6">
+<div class="bg-white rounded-md border border-gray-100 p-6 h-full flex flex-col hover:border-blue-500 transition-colors">
 
-<div class="flex justify-between">
+<div class="flex-1">
+
+<div class="flex justify-between items-start gap-2">
 
 <h2 class="font-bold text-xl">
 <?= htmlspecialchars($vaga->getTitulo()) ?>
@@ -73,19 +75,19 @@ $status = $vaga->getStatus();
 
 <?php if(!$vaga->estaVisivel()): ?>
 
-<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs">
+<span class="shrink-0 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">
 <?= $vaga->foiRemovidaPelaModeracao() ? 'REMOVIDA PELA MODERAÇÃO' : 'OCULTA PELA MODERAÇÃO' ?>
 </span>
 
 <?php elseif($status === 'ATIVA'): ?>
 
-<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">
+<span class="shrink-0 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
 ATIVA
 </span>
 
 <?php else: ?>
 
-<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs">
+<span class="shrink-0 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
 ENCERRADA
 </span>
 
@@ -130,11 +132,15 @@ style="width:<?= $porcentagem ?>%">
 
 </div>
 
-<div class="grid grid-cols-2 gap-2 mt-6">
+</div>
+
+<div class="mt-6">
+
+<div class="grid grid-cols-2 gap-2">
 
 <a
 href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
-class="text-center bg-blue-50 py-2 rounded">
+class="text-center bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2 rounded-md transition-colors">
 
 Visualizar
 
@@ -142,7 +148,7 @@ Visualizar
 
 <a
 href="<?= URL_BASE ?>/vagas/editar?id=<?= $vaga->getIdVaga() ?>"
-class="text-center bg-gray-100 py-2 rounded">
+class="text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-md transition-colors">
 
 Editar
 
@@ -152,7 +158,7 @@ Editar
 
 <a
 href="<?= URL_BASE ?>/candidatura/interessados?id=<?= $vaga->getIdVaga() ?>"
-class="block mt-3 text-center bg-green-600 text-white py-2 rounded">
+class="block mt-3 text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-md transition-colors">
 
 Ver interessados
 
@@ -160,7 +166,7 @@ Ver interessados
 
 <button
 onclick="abrirContatos(<?= $vaga->getIdVaga() ?>)"
-class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
+class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition-colors">
 
 Ver contatos aprovados
 
@@ -169,7 +175,7 @@ Ver contatos aprovados
 <?php if($status === 'ENCERRADA'): ?>
 <button
 disabled
-class="w-full mt-3 bg-gray-300 text-gray-500 py-2 rounded cursor-not-allowed">
+class="w-full mt-3 bg-gray-200 text-gray-500 font-semibold py-2 rounded-md cursor-not-allowed">
 Vaga encerrada
 </button>
 <?php else: ?>
@@ -186,7 +192,7 @@ value="<?= $vaga->getIdVaga() ?>">
 
 <button
 type="submit"
-class="w-full <?php if($aceitos < $limite): ?>bg-gray-300 text-gray-500 cursor-not-allowed<?php else: ?>bg-black text-white hover:bg-gray-800<?php endif; ?> py-2 rounded">
+class="w-full <?php if($aceitos < $limite): ?>bg-gray-200 text-gray-500 cursor-not-allowed<?php else: ?>bg-black text-white hover:bg-gray-800<?php endif; ?> font-semibold py-2 rounded-md transition-colors">
 
 Encerrar vaga
 
@@ -206,13 +212,15 @@ name="id"
 value="<?= $vaga->getIdVaga() ?>">
 
 <button
-class="w-full bg-red-50 text-red-600 py-2 rounded">
+class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 rounded-md transition-colors">
 
 Excluir
 
 </button>
 
 </form>
+
+</div>
 
 </div>
 

@@ -141,10 +141,12 @@ $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
                         <label id="documentoLabel" for="documento" class="block text-sm font-medium text-gray-700 mb-1">
                             <?= $tipoPessoa === 'PJ' ? 'CNPJ' : 'CPF' ?>
                         </label>
-                        <input 
-                            type="text" 
-                            id="documento" 
-                            name="documento" 
+                        <input
+                            type="text"
+                            id="documento"
+                            name="documento"
+                            inputmode="numeric"
+                            maxlength="18"
                             required
                             placeholder="<?= $tipoPessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00' ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -229,11 +231,38 @@ function conferirSenhas() {
 document.getElementById('senha').addEventListener('input', conferirSenhas);
 document.getElementById('confirma_senha').addEventListener('input', conferirSenhas);
 
+function mascararCPF(v) {
+    v = v.replace(/\D/g, '').slice(0, 11);
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    return v;
+}
+
+function mascararCNPJ(v) {
+    v = v.replace(/\D/g, '').slice(0, 14);
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+    return v;
+}
+
+function aplicarMascaraDocumento() {
+    const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
+    const campo = document.getElementById('documento');
+    campo.value = pj ? mascararCNPJ(campo.value) : mascararCPF(campo.value);
+}
+
 function atualizarDocumento() {
     const pj = document.querySelector('input[name=tipo_pessoa]:checked').value === 'PJ';
     document.getElementById('documentoLabel').textContent = pj ? 'CNPJ' : 'CPF';
     document.getElementById('documento').placeholder = pj ? '00.000.000/0000-00' : '000.000.000-00';
+    aplicarMascaraDocumento();
 }
+
+document.getElementById('documento').addEventListener('input', aplicarMascaraDocumento);
+aplicarMascaraDocumento();
 
 // REMOVÍVEL: Função para preencher formulário com dados fictícios
 // Delete this function when removing the example data feature
