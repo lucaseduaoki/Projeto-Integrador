@@ -35,39 +35,47 @@ $totalResultados = $totalResultados ?? count($vagas);
                             >
                         </div>
 
-                        <!-- Tipo de Serviço -->
+                        <!-- Categoria -->
                         <div>
-                            <select 
+                            <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                            <?php
+                                $categorias = [
+                                    1 => 'Faxina',
+                                    2 => 'Garçom',
+                                    3 => 'Construção Civil',
+                                    4 => 'Jardinagem',
+                                    5 => 'Entregas',
+                                    6 => 'Tecnologia',
+                                    7 => 'Eventos',
+                                    8 => 'Atendimento',
+                                    9 => 'Manutenção',
+                                    10 => 'Outros',
+                                ];
+                                $categoriaSelecionada = $filtros['categoria'] ?? '';
+                            ?>
+                            <select
+                                id="categoria"
+                                name="categoria"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
-                                <option value="">Todos</option>
+                                <option value="">Todas</option>
+                                <?php foreach ($categorias as $id => $nome): ?>
+                                    <option value="<?= $id ?>" <?= (string)$categoriaSelecionada === (string)$id ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
 
                         <!-- Remuneração Mínima -->
                         <div>
                             <label for="remuneracao_min" class="block text-sm font-medium text-gray-700 mb-1">Remuneração Mínima (R$)</label>
-                            <input 
-                                type="number" 
-                                id="remuneracao_min" 
-                                name="remuneracao_min" 
+                            <input
+                                type="number"
+                                id="remuneracao_min"
+                                name="remuneracao_min"
                                 value="<?= htmlspecialchars($filtros['remuneracao_min'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                                 placeholder="0.00"
-                                step="0.01"
-                                min="0"
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            >
-                        </div>
-
-                        <!-- Remuneração Máxima -->
-                        <div>
-                            <label for="remuneracao_max" class="block text-sm font-medium text-gray-700 mb-1">Remuneração Máxima (R$)</label>
-                            <input 
-                                type="number" 
-                                id="remuneracao_max" 
-                                name="remuneracao_max" 
-                                value="<?= htmlspecialchars($filtros['remuneracao_max'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                placeholder="999999.99"
                                 step="0.01"
                                 min="0"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -119,12 +127,25 @@ $totalResultados = $totalResultados ?? count($vagas);
                     <h2 class="text-xl font-bold text-gray-900">
                         <?= $totalResultados ?> vaga<?= $totalResultados !== 1 ? 's' : '' ?> encontrada<?= $totalResultados !== 1 ? 's' : '' ?>
                     </h2>
-                    <select class="mt-4 sm:mt-0 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                        <option>Mais recentes</option>
-                        <option>Maior salário</option>
-                        <option>Menor salário</option>
+                    <?php $ordenarAtual = $filtros['ordenar'] ?? 'recentes'; ?>
+                    <select
+                        id="ordenar"
+                        onchange="atualizarOrdenacao(this.value)"
+                        class="mt-4 sm:mt-0 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                        <option value="recentes" <?= $ordenarAtual === 'recentes' ? 'selected' : '' ?>>Mais recentes</option>
+                        <option value="maior_salario" <?= $ordenarAtual === 'maior_salario' ? 'selected' : '' ?>>Maior salário</option>
+                        <option value="menor_salario" <?= $ordenarAtual === 'menor_salario' ? 'selected' : '' ?>>Menor salário</option>
                     </select>
                 </div>
+
+                <script>
+                    function atualizarOrdenacao(valor) {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('ordenar', valor);
+                        window.location.href = url.toString();
+                    }
+                </script>
 
                 <!-- Grid de Resultados -->
                 <?php if (empty($vagas)): ?>
@@ -143,11 +164,11 @@ $totalResultados = $totalResultados ?? count($vagas);
                             $localizacao = htmlspecialchars($vaga->getLocalizacao(), ENT_QUOTES, 'UTF-8');
                             $remuneracao = number_format($vaga->getRemuneracao(), 2, ',', '.');
                         ?>
-                            <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>" class="bg-white rounded border border-gray-100 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <a href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>" class="bg-white rounded-md border border-gray-100 p-6 hover:border-blue-500 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div class="flex-1">
                                     <h3 class="text-lg font-semibold text-gray-900"><?= $titulo ?></h3>
                                     <?php if ($vaga->getCategoriaNome()): ?>
-                                        <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"><?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?></span>
+                                        <span class="inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800"><?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?></span>
                                     <?php endif; ?>
                                     <p class="text-sm text-gray-600 mt-1"><?= $descricao ?></p>
                                     <div class="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">

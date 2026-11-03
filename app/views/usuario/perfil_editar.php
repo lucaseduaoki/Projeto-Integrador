@@ -9,7 +9,7 @@ $habilidadesUsuario = $habilidadesUsuario ?? [];
 $nome = htmlspecialchars($usuario->getNome() ?? '', ENT_QUOTES, 'UTF-8');
 $telefone = htmlspecialchars($usuario->getTelefone() ?? '', ENT_QUOTES, 'UTF-8');
 $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8');
-$documento = htmlspecialchars($usuario->getDocumento() ?? '', ENT_QUOTES, 'UTF-8');
+$documento = htmlspecialchars(\app\helpers\Formatador::documento($usuario->getDocumento()), ENT_QUOTES, 'UTF-8');
 $erros = $erros ?? [];
 $sucesso = $sucesso ?? null;
 
@@ -130,10 +130,12 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                         <!-- Documento -->
                         <div class="w-full mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600">
                             <label for="documento" class="block text-sm font-medium text-gray-700 mb-1"><?= $usuario->isPessoaJuridica() ? 'CNPJ' : 'CPF' ?></label>
-                            <input 
-                                type="text" 
-                                id="documento" 
-                                name="documento" 
+                            <input
+                                type="text"
+                                id="documento"
+                                name="documento"
+                                inputmode="numeric"
+                                maxlength="18"
                                 value="<?= $documento ?>"
                                 placeholder="<?= $usuario->isPessoaJuridica() ? '00.000.000/0000-00' : '000.000.000-00' ?>"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -206,6 +208,34 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
 </main>
 
 <script>
+(function () {
+    const isPJ = <?= $usuario->isPessoaJuridica() ? 'true' : 'false' ?>;
+
+    function mascararCPF(v) {
+        v = v.replace(/\D/g, '').slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        return v;
+    }
+
+    function mascararCNPJ(v) {
+        v = v.replace(/\D/g, '').slice(0, 14);
+        v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        v = v.replace(/(\d{4})(\d)/, '$1-$2');
+        return v;
+    }
+
+    const campo = document.getElementById('documento');
+    if (campo) {
+        const aplicar = () => { campo.value = isPJ ? mascararCNPJ(campo.value) : mascararCPF(campo.value); };
+        campo.addEventListener('input', aplicar);
+        aplicar();
+    }
+})();
+
 // REMOVÍVEL: Função para preencher formulário de perfil com dados fictícios
 // Delete this function when removing the example data feature
 function preencherPerfilExemplo() {
