@@ -284,28 +284,7 @@ $erros = $erros ?? [];
                             <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['data_servico'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
 
-                    </div>
-
-
-
-                    <!-- Data limite -->
-                    <div>
-
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Prazo para candidatura
-                        </label>
-
-                        <input
-                            type="date"
-                            id="data_limite"
-                            name="data_limite"
-                            value="<?= htmlspecialchars($_POST['data_limite'] ?? ($vaga ? ($vaga->getDataLimite() ?? '') : ''), ENT_QUOTES, 'UTF-8') ?>"
-                            class="w-full border border-gray-300 rounded px-3 py-2"
-                        >
-
-                        <?php if (isset($erros['data_limite'])): ?>
-                            <p class="text-red-600 text-sm mt-1"><?= htmlspecialchars($erros['data_limite'], ENT_QUOTES, 'UTF-8') ?></p>
-                        <?php endif; ?>
+                        <p class="text-xs text-gray-500 mt-1">O prazo para candidatura é fechado automaticamente 1 dia antes desta data.</p>
 
                     </div>
 
@@ -437,7 +416,6 @@ function preencherVagaExemplo() {
         'horario': '18:00',
         'duracao': '5 horas',
         'trabalhadores_limite': '2',
-        'data_limite': new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         'observacoes': 'Preferencialmente com experiência em eventos corporativos. Uniforme e materiais fornecidos.'
     };
 

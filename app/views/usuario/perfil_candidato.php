@@ -17,9 +17,13 @@ $descricao = htmlspecialchars($trabalhador->getDescricao() ?? '', ENT_QUOTES, 'U
 
         <div class="bg-white rounded-md border border-gray-100 p-6 mt-4">
             <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold">
-                    <?= htmlspecialchars(strtoupper(mb_substr($trabalhador->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
-                </div>
+                <?php if ($trabalhador->getFotoUrl()): ?>
+                    <img src="<?= htmlspecialchars($trabalhador->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="Foto de <?= $nome ?>" class="w-16 h-16 rounded-full object-cover">
+                <?php else: ?>
+                    <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold">
+                        <?= htmlspecialchars(strtoupper(mb_substr($trabalhador->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900"><?= $nome ?></h1>
                     <p class="text-sm text-gray-600">

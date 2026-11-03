@@ -57,6 +57,7 @@ $router->post('/vagas/encerrar',      'VagaController@encerrar');
 // CANDIDATURAS
 // ============================================================================
 $router->post('/candidatura/demonstrar',      'CandidaturaController@demonstrar');
+$router->post('/candidatura/remover',         'CandidaturaController@remover');
 $router->get('/candidatura/candidato',        'CandidaturaController@visualizarCandidato');
 $router->get('/candidatura/interessados',     'CandidaturaController@listarInteressados');
 $router->get('/candidatura/historico',     'CandidaturaController@historico');

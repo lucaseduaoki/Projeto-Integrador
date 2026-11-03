@@ -3,6 +3,7 @@
 namespace app\services;
 
 use app\database\ConnectionFactory;
+use app\helpers\UploadImagemValidador;
 use app\models\Usuario;
 use app\repositories\UsuarioRepository;
 use Exception;
@@ -138,11 +139,6 @@ class UsuarioService
         return $this->repository->atualizarSenha($idUsuario, $senhaHash);
     }
 
-    // Foto de perfil: só estes tipos (detectados pelo conteúdo) e até 2 MB
-    private const FOTO_TIPOS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif'];
-    private const FOTO_TAMANHO_MAX = 2 * 1024 * 1024;
-    private const FOTO_LADO_MAX = 4096;
-    private const FOTO_PIXELS_MAX = 12000000;
     private const FOTO_PASTA = 'uploads/perfis/';
 
     /**
@@ -152,52 +148,7 @@ class UsuarioService
      */
     public function salvarFotoPerfil(array $arquivo): string
     {
-        $erroUpload = $arquivo['error'] ?? UPLOAD_ERR_NO_FILE;
-
-        if ($erroUpload === UPLOAD_ERR_INI_SIZE || $erroUpload === UPLOAD_ERR_FORM_SIZE) {
-            throw new Exception('A foto deve ter no máximo 2 MB.');
-        }
-
-        if ($erroUpload !== UPLOAD_ERR_OK) {
-            throw new Exception('Não foi possível enviar a foto. Tente novamente.');
-        }
-
-        $temporario = $arquivo['tmp_name'] ?? '';
-
-        if (!is_uploaded_file($temporario)) {
-            throw new Exception('Arquivo de foto inválido.');
-        }
-
-        $tamanho = filesize($temporario);
-
-        if ($tamanho === 0) {
-            throw new Exception('O arquivo enviado está vazio.');
-        }
-
-        if ($tamanho > self::FOTO_TAMANHO_MAX) {
-            throw new Exception('A foto deve ter no máximo 2 MB.');
-        }
-
-        $tipo = (new \finfo(FILEINFO_MIME_TYPE))->file($temporario);
-
-        $dimensoes = @getimagesize($temporario);
-
-        if (!isset(self::FOTO_TIPOS[$tipo]) || $dimensoes === false) {
-            throw new Exception('Formato inválido. Envie uma imagem JPG, PNG ou GIF.');
-        }
-
-        // Limites de dimensão: evitam imagens gigantes que estouram memória ao serem exibidas/processadas
-        [$largura, $altura] = $dimensoes;
-
-        if ($largura > self::FOTO_LADO_MAX || $altura > self::FOTO_LADO_MAX || $largura * $altura > self::FOTO_PIXELS_MAX) {
-            throw new Exception('A foto é grande demais: use até 4096 x 4096 pixels (12 megapixels).');
-        }
-
-        // Sem GD não dá para recodificar a imagem; barra o polyglot mais comum (imagem válida com PHP anexado).
-        // Só "<?php": "<?" sozinho aparece por acaso em dados binários de imagens legítimas.
-        if (stripos((string)file_get_contents($temporario), '<?php') !== false) {
-            throw new Exception('Formato inválido. Envie uma imagem JPG, PNG ou GIF.');
-        }
+        $validado = UploadImagemValidador::validar($arquivo);
 
         $pasta = dirname(__DIR__, 2) . '/public/' . self::FOTO_PASTA;
 
@@ -205,9 +156,9 @@ class UsuarioService
             throw new Exception('Não foi possível salvar a foto. Tente novamente mais tarde.');
         }
 
-        $nome = bin2hex(random_bytes(16)) . '.' . self::FOTO_TIPOS[$tipo];
+        $nome = bin2hex(random_bytes(16)) . '.' . $validado['extensao'];
 
-        if (!move_uploaded_file($temporario, $pasta . $nome)) {
+        if (!move_uploaded_file($validado['tmp'], $pasta . $nome)) {
             throw new Exception('Não foi possível salvar a foto. Tente novamente mais tarde.');
         }
 

@@ -109,7 +109,7 @@ class Validador {
 
     public function minimo(string $campo, string $valor, int $min, ?string $mensagem = null): self
     {
-        if (strlen(trim($valor)) < $min) {
+        if (mb_strlen(trim($valor)) < $min) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter no mínimo {$min} caracteres";
         }
         return $this;
@@ -117,7 +117,7 @@ class Validador {
 
     public function maximo(string $campo, string $valor, int $max, ?string $mensagem = null): self
     {
-        if (strlen(trim($valor)) > $max) {
+        if (mb_strlen(trim($valor)) > $max) {
             $this->erros[$campo] = $mensagem ?? "O campo {$campo} deve ter no máximo {$max} caracteres";
         }
         return $this;

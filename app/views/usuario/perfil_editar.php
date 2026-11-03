@@ -71,14 +71,14 @@ $descricao = htmlspecialchars($usuario->getDescricao() ?? '', ENT_QUOTES, 'UTF-8
                             </div>
                         <?php endif; ?>
                         <div class="flex-1">
-                            <input 
-                                type="file" 
-                                id="foto_perfil" 
-                                name="foto_perfil" 
+                            <input
+                                type="file"
+                                id="foto_perfil"
+                                name="foto_perfil"
                                 accept="image/jpeg,image/png,image/gif"
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
                             >
-                            <p class="text-xs text-gray-600 mt-2">Formatos aceitos: JPG, PNG ou GIF, até 2 MB</p>
+                            <p class="text-xs text-gray-600 mt-2">Formatos aceitos: JPG, PNG ou GIF</p>
                         </div>
                     </div>
                 </div>

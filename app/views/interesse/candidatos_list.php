@@ -107,7 +107,7 @@ include __DIR__ . '/../shared/navbar.php';
                             </th>
 
                             <th class="px-6 py-3 text-left">
-                                Telefone
+                                Contato
                             </th>
 
                             <th class="px-6 py-3 text-left">
@@ -193,7 +193,30 @@ include __DIR__ . '/../shared/navbar.php';
                             </td>
 
                             <td class="px-6 py-4 text-gray-600">
-                                <?= htmlspecialchars($interesse->getTelefoneTrabalhador() ?? 'N/A', ENT_QUOTES, 'UTF-8') ?>
+                                <?php
+                                // WhatsApp (wa.me): só dígitos, com o código do Brasil (55) na frente
+                                $telefone = preg_replace('/\D/', '', (string)($interesse->getTelefoneTrabalhador() ?? ''));
+                                if (strlen($telefone) === 10 || strlen($telefone) === 11) {
+                                    $telefone = '55' . $telefone;
+                                }
+                                $telefoneValido = strlen($telefone) >= 12 && strlen($telefone) <= 13;
+
+                                $nomeTrabalhador = $interesse->getNomeTrabalhador() ?? 'tudo bem';
+                                $mensagemWpp = $status === 'ACEITO'
+                                    ? "Olá, {$nomeTrabalhador}! Sua candidatura para a vaga \"{$tituloVaga}\" no FreelaJá foi aceita. Podemos combinar os detalhes?"
+                                    : "Olá, {$nomeTrabalhador}! Vi sua candidatura para a vaga \"{$tituloVaga}\" no FreelaJá e gostaria de conversar com você.";
+                                ?>
+                                <?php if ($telefoneValido): ?>
+                                    <a
+                                        href="https://wa.me/<?= $telefone ?>?text=<?= rawurlencode($mensagemWpp) ?>"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1 text-green-600 hover:text-green-800 font-medium text-sm">
+                                        Chamar no WhatsApp
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-sm text-gray-400">Sem contato</span>
+                                <?php endif; ?>
                             </td>
 
                             <td class="px-6 py-4 text-gray-600">

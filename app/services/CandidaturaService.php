@@ -124,6 +124,25 @@ class CandidaturaService
         return $this->repository->criar($candidatura);
     }
 
+    public function removerInteresse(int $idVaga, int $idTrabalhador): void
+    {
+        $candidatura = $this->repository->buscarPorVagaETrabalhador(
+            $idVaga,
+            $idTrabalhador
+        );
+
+        if (!$candidatura) {
+            throw new Exception("Você não possui candidatura nesta vaga.");
+        }
+
+        // Se o contratante já aceitou, não dá mais para desistir sozinho
+        if ($candidatura->getStatus() === 'ACEITO') {
+            throw new Exception("Sua candidatura já foi aceita. Entre em contato com o contratante para cancelar.");
+        }
+
+        $this->repository->remover($candidatura->getIdCandidatura());
+    }
+
     public function buscarPorId(int $idInteresse): ?Candidatura
     {
         return $this->repository->buscarPorId($idInteresse);
