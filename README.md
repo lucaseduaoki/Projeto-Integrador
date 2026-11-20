@@ -1,6 +1,6 @@
 # FreelaJá
 
-Plataforma web que conecta quem precisa de um serviço pontual (**contratante**) a quem presta esse serviço (**trabalhador**). O contratante publica uma vaga, os trabalhadores se candidatam e o contratante aceita quem quiser, até o limite de vagas. Os dados de contato só aparecem para as duas partes depois que o candidato é aceito. Um **administrador** modera a plataforma por meio de denúncias.
+Plataforma web que conecta quem precisa de um serviço pontual (**contratante**) a quem presta esse serviço (**trabalhador**). O contratante publica uma vaga, os trabalhadores se candidatam e o contratante aceita quem quiser, até o limite de vagas, e fala com o trabalhador pelo WhatsApp direto da lista de candidatos. Um **administrador** modera a plataforma por meio de denúncias.
 
 O FreelaJá não processa pagamentos: ele apenas aproxima as partes.
 
@@ -9,7 +9,7 @@ O FreelaJá não processa pagamentos: ele apenas aproxima as partes.
 - **Cadastro e login** com validação e máscara de CPF/CNPJ. Pessoa física (CPF) é sempre trabalhador e pessoa jurídica (CNPJ) é sempre contratante.
 - **Perfil** com foto, bairro, telefone e habilidades, além de uma página de perfil pública.
 - **Vagas**: criar, editar, encerrar e excluir; listagem com busca e filtros. O prazo da vaga é controlado automaticamente.
-- **Candidaturas**: o trabalhador se candidata e pode cancelar a candidatura. O contratante vê os interessados e aceita até o limite da vaga. Depois de aceito, o contato fica liberado, inclusive pelo WhatsApp.
+- **Candidaturas**: o trabalhador se candidata e pode cancelar a candidatura. O contratante vê os interessados, aceita até o limite da vaga e chama o candidato pelo WhatsApp com uma mensagem pronta.
 - **Histórico** de candidaturas do trabalhador.
 - **Denúncias** de usuários e anúncios, além de registro de não comparecimento.
 - **Moderação (admin)**: bloquear a conta, remover o anúncio (remoção lógica) ou arquivar a denúncia sem sanção. Nenhum dado é apagado.
@@ -103,7 +103,8 @@ Outros trabalhadores e contratantes de exemplo estão em `app/database/scripts/s
 - Um trabalhador só pode se candidatar uma vez a cada vaga.
 - Só é possível se candidatar a vagas ativas, visíveis e dentro do prazo, e enquanto houver vagas disponíveis.
 - O contratante não pode aceitar mais trabalhadores do que o limite definido na vaga.
-- Os dados de contato só ficam visíveis entre as partes depois que o candidato é aceito.
+- A vaga encerra o prazo de candidatura automaticamente um dia antes da data do serviço.
+- O trabalhador só pode cancelar a candidatura enquanto ela não foi aceita.
 - Uma conta desativada ou bloqueada perde o acesso já na próxima requisição, mesmo que a pessoa esteja logada.
 
 ## Documentação
