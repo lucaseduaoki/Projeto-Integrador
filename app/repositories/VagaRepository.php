@@ -107,15 +107,18 @@ return new Vaga(
     public function listar(int $limit = 50, int $offset = 0): array
     {
         $sql = "
-            SELECT v.*, c.nome AS categoria_nome
+            SELECT v.*, c.nome AS categoria_nome, COUNT(i.id_candidatura) AS total_aceitos
             FROM vaga v
             INNER JOIN categoria c ON c.id_categoria = v.id_categoria
-            WHERE status = 'ATIVA'
-              AND is_user_active = 1
-              AND visibilidade = 'VISIVEL'
-              AND excluida_em IS NULL
-              AND (data_limite IS NULL OR data_limite >= CURDATE())
-            ORDER BY data_publicacao DESC
+            LEFT JOIN candidatura i ON i.id_vaga = v.id_vaga AND i.status = 'ACEITO'
+            WHERE v.status = 'ATIVA'
+              AND v.is_user_active = 1
+              AND v.visibilidade = 'VISIVEL'
+              AND v.excluida_em IS NULL
+              AND (v.data_limite IS NULL OR v.data_limite >= CURDATE())
+            GROUP BY v.id_vaga
+            HAVING v.trabalhadores_limite > COUNT(i.id_candidatura)
+            ORDER BY v.data_publicacao DESC
             LIMIT :limit OFFSET :offset
         ";
 
