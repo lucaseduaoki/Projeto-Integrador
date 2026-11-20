@@ -141,7 +141,7 @@ class DenunciaController extends Controller
             );
 
             $this->view('denuncia/sucesso', [
-                'mensagem' => 'Denúncia registrada. Obrigado por manter a plataforma segura!'
+                'mensagem' => 'Denúncia registrada. Obrigado por ajudar a manter a plataforma segura!'
             ]);
         } catch (\Exception $e) {
             $this->view('denuncia/denuncia_form', $dadosForm + ['erro' => $this->mensagemAmigavel($e, 'Não foi possível registrar a denúncia agora. Tente novamente em instantes.')]);

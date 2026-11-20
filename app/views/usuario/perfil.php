@@ -96,8 +96,8 @@ $inicialNome = strtoupper(substr($usuario->getNome(), 0, 1));
                 <!-- Sobre Mim -->
                 <div class="bg-white rounded-md border border-gray-100 p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Sobre mim</h3>
-                    <p class="text-gray-600 whitespace-pre-wrap">
-                        <?= $descricao ?: 'Nenhuma descrição adicionada ainda.' ?>
+                    <p 
+                       class="text-gray-600 whitespace-pre-wrap"><?= $descricao ?: '…' ?>
                     </p>
                 </div>
 

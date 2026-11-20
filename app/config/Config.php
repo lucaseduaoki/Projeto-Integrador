@@ -46,8 +46,8 @@ define('URL_BASE', getenv('URL_BASE') ?: $esquema . '://' . ($_SERVER['HTTP_HOST
 // CONFIGURAÇÕES DO BANCO DE DADOS
 // ============================================================================
 
-define('DB_HOST', 'localhost');
+define('DB_HOST', '');
 define('DB_PORT', '3306');
-define('DB_NAME', 'freelaja');
-define('DB_USER', 'freelaja');
-define('DB_PASS', 'root');
+define('DB_NAME', '');
+define('DB_USER', '');
+define('DB_PASS', '');
