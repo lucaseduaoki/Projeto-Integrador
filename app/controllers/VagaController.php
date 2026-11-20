@@ -256,7 +256,7 @@ private function validarDadosVaga(array $d, ?string $dataServicoPermitida = null
         ->monetario('remuneracao', $d['remuneracao'])
         ->obrigatorio('data_servico', $d['dataServico'], 'Informe a data do serviço.')
         ->dataValida('data_servico', $d['dataServico'], false, 'A data do serviço deve ser uma data válida (aaaa-mm-dd).')
-        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço não pode ser anterior à data de hoje.', $dataServicoPermitida)
+        ->dataNaoAnterior('data_servico', $d['dataServico'], 'A data do serviço deve ser a partir de amanhã, pois o prazo de candidatura encerra um dia antes.', $dataServicoPermitida)
         ->obrigatorio('horario', $d['horario'], 'Informe o horário (hh:mm).')
         ->horaValida('horario', $d['horario'], 'O horário deve estar no formato hh:mm.')
         ->obrigatorio('duracao', $d['duracao'], 'Informe a duração do serviço (ex.: 3 dias).')

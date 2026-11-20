@@ -54,10 +54,6 @@ $descricao = htmlspecialchars($trabalhador->getDescricao() ?? '', ENT_QUOTES, 'U
                 </div>
             </div>
         <?php endif; ?>
-
-        <p class="text-xs text-gray-500 mt-6">
-            Os contatos (e-mail e telefone) só ficam disponíveis depois que o candidato é selecionado.
-        </p>
     </div>
 </main>
 

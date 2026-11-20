@@ -38,25 +38,34 @@ $interesses = $interesses ?? [];
             <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
                 <?php foreach ($interesses as $item):
-
+ 
                     $candidatura = $item['candidatura'];
                     $vaga = $item['vaga'];
                     $contratante = $item['contratante'];
-
+ 
                     $status = $candidatura->getStatus();
-
-                    $badge = match ($status) {
-                        'ACEITO' => 'bg-green-100 text-green-800',
-                        'RECUSADO' => 'bg-red-100 text-red-700',
+ 
+                    // Vaga cheia: candidatura pendente é exibida como "Negado"
+                    $negado = $status === 'PENDENTE'
+                        && $vaga
+                        && ($vaga->getTotalAceitos() ?? 0) >= ($vaga->getTrabalhadoresLimite() ?? 0);
+ 
+                    $badge = match (true) {
+                        !$vaga => 'bg-gray-100 text-gray-700',
+                        $negado => 'bg-red-100 text-red-700',
+                        $status === 'ACEITO' => 'bg-green-100 text-green-800',
+                        $status === 'RECUSADO' => 'bg-red-100 text-red-700',
                         default => 'bg-yellow-100 text-yellow-700'
                     };
-
-                    $statusLabel = match ($status) {
-                        'ACEITO' => 'Aceito',
-                        'RECUSADO' => 'Recusado',
+ 
+                    $statusLabel = match (true) {
+                        !$vaga => 'Encerrada',
+                        $negado => 'Negado',
+                        $status === 'ACEITO' => 'Aceito',
+                        $status === 'RECUSADO' => 'Recusado',
                         default => 'Pendente'
                     };
-
+ 
                 ?>
 
                     <div class="bg-white rounded-md border border-gray-100 p-6 hover:border-blue-500 transition-colors flex flex-col">
@@ -75,13 +84,15 @@ $interesses = $interesses ?? [];
 
                         </div>
 
-                        <h3 class="text-lg font-semibold text-gray-900 mb-1">
-                            <?= htmlspecialchars($vaga ? $vaga->getTitulo() : 'Vaga removida') ?>
+                        <h3 class="text-lg font-semibold text-gray-900 <?= $contratante ? 'mb-1' : 'mb-3' ?>">
+                            <?= htmlspecialchars($vaga ? $vaga->getTitulo() : 'Vaga cancelada') ?>
                         </h3>
 
-                        <p class="text-sm text-gray-500 mb-5">
-                            <?= htmlspecialchars($contratante ? $contratante->getNome() : 'Contratante não encontrado') ?>
-                        </p>
+                        <?php if ($contratante): ?>
+                            <p class="text-sm text-gray-500 mb-5">
+                                <?= htmlspecialchars($contratante->getNome()) ?>
+                            </p>
+                        <?php endif; ?>
 
                         <?php if ($vaga): ?>
 
@@ -142,8 +153,14 @@ $interesses = $interesses ?? [];
 
                         <?php else: ?>
 
-                            <div class="mt-5 text-red-600 text-sm">
-                                Esta vaga foi removida.
+                            <div class="flex-1 space-y-2 text-sm">
+                                <p class="text-red-600">
+                                    Esta vaga foi cancelada pelo contratante.
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    Candidatura em
+                                    <?= date('d/m/Y H:i', strtotime($candidatura->getDataCandidatura())) ?>
+                                </p>
                             </div>
 
                         <?php endif; ?>

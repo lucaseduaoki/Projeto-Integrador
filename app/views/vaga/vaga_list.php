@@ -104,7 +104,7 @@ if (!empty($vagas)) {
 
                     <a
                         href="<?= URL_BASE ?>/vagas/visualizar?id=<?= $vaga->getIdVaga() ?>"
-                        class="bg-white rounded-md border border-gray-100 p-6 hover:border-blue-500 transition-colors">
+                        class="flex flex-col h-full bg-white rounded-md border border-gray-100 p-6 hover:border-blue-500 transition-colors">
 
                         <div class="flex justify-between items-center mb-3">
 
@@ -128,7 +128,7 @@ if (!empty($vagas)) {
                             <?= $descricao ?>
                         </p>
 
-                        <div class="space-y-2 text-sm text-gray-600">
+                        <div class="space-y-2 text-sm text-gray-600 mb-4">
 
                             <div class="flex items-center gap-2">
 
@@ -187,7 +187,7 @@ if (!empty($vagas)) {
 
                         </div>
 
-                        <div class="pt-4 mt-4 border-t border-gray-100">
+                        <div class="pt-4 mt-auto border-t border-gray-100">
 
                             <span class="text-blue-600 font-semibold text-sm">
                                 Ver detalhes

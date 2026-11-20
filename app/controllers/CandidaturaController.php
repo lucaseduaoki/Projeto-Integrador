@@ -237,6 +237,14 @@ public function listarAceitos(): void
             $vagas
         ));
 
+        // Vaga excluída pelo contratante: candidatura pendente deixa de aparecer; quem já estava
+        // ACEITO continua vendo o card, com aviso de cancelamento.
+        $interesses = array_values(array_filter(
+            $interesses,
+            fn($candidatura) => isset($vagas[$candidatura->getIdVaga()])
+                || $candidatura->getStatus() === 'ACEITO'
+        ));
+
         $candidaturas = array_map(function ($candidatura) use ($vagas, $contratantes) {
             $vaga = $vagas[$candidatura->getIdVaga()] ?? null;
             return [

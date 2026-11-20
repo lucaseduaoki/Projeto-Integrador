@@ -276,6 +276,7 @@ $erros = $erros ?? [];
                             id="data_servico"
                             name="data_servico"
                             required
+                            min="<?= htmlspecialchars(($vaga && $vaga->getDataServico() && $vaga->getDataServico() < date('Y-m-d', strtotime('+1 day'))) ? $vaga->getDataServico() : date('Y-m-d', strtotime('+1 day')), ENT_QUOTES, 'UTF-8') ?>"
                             value="<?= $vaga ? htmlspecialchars($vaga->getDataServico() ?? '', ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['data_servico'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                             class="w-full border border-gray-300 rounded px-3 py-2"
                         >
@@ -363,16 +364,6 @@ $erros = $erros ?? [];
                 <div class="flex gap-4 pt-6 border-t border-gray-200">
 
 
-                    <!-- Botão teste -->
-                    <button
-                        type="button"
-                        onclick="preencherVagaExemplo()"
-                        class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded"
-                    >
-                        Preencher teste
-                    </button>
-
-
                     <button
                         type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
@@ -398,34 +389,6 @@ $erros = $erros ?? [];
 
     </div>
 </main>
-
-
-
-<script>
-// REMOVÍVEL: Função para preencher formulário com dados fictícios
-// Delete this function when removing the example data feature
-function preencherVagaExemplo() {
-    const dados = {
-        'id_categoria': '2',
-        'titulo': 'Garçom para Evento Corporativo',
-        'descricao': 'Necessário profissional experiente para atuar em evento corporativo. Uniforme fornecido, treinamento no local. Experiência com atendimento premium é um diferencial.',
-        'bairro': 'Centro',
-        'localizacao': 'Rua das Flores, 456 - Centro de Eventos',
-        'remuneracao': '350.00',
-        'data_servico': new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        'horario': '18:00',
-        'duracao': '5 horas',
-        'trabalhadores_limite': '2',
-        'observacoes': 'Preferencialmente com experiência em eventos corporativos. Uniforme e materiais fornecidos.'
-    };
-
-    Object.entries(dados).forEach(([id, valor]) => {
-        const campo = document.getElementById(id);
-        if (campo) campo.value = valor;
-    });
-}
-</script>
-
 
 
 <?php include __DIR__ . '/../shared/footer.php'; ?>

@@ -158,9 +158,21 @@ $podeGerenciar = $isProprietario || ($usuarioLogado && $usuarioLogado->isAdmin()
                     
                     <!-- Contratante Info -->
                     <div class="text-center mb-6 pb-6 border-b border-gray-200">
-                        <div class="w-16 h-16 rounded bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-3">
-                            <?= htmlspecialchars(strtoupper(substr($contratante->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8') ?>
-                        </div>
+                        <?php $inicialContratante = htmlspecialchars(strtoupper(substr($contratante->getNome(), 0, 1)), ENT_QUOTES, 'UTF-8'); ?>
+                        <?php if ($contratante->getFotoUrl()): ?>
+                            <img
+                                src="<?= htmlspecialchars($contratante->getFotoUrl(), ENT_QUOTES, 'UTF-8') ?>"
+                                alt="Foto de <?= htmlspecialchars($contratante->getNome(), ENT_QUOTES, 'UTF-8') ?>"
+                                class="w-16 h-16 rounded-full object-cover mx-auto mb-3"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display:none" class="w-16 h-16 rounded-full bg-blue-600 text-white items-center justify-center text-2xl font-bold mx-auto mb-3">
+                                <?= $inicialContratante ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-3">
+                                <?= $inicialContratante ?>
+                            </div>
+                        <?php endif; ?>
                         <h3 class="font-bold text-gray-900"><?= htmlspecialchars($contratante->getNome(), ENT_QUOTES, 'UTF-8') ?></h3>
                         <p class="text-sm text-gray-600">Contratante</p>
                         <a href="<?= URL_BASE ?>/perfil/ver?id=<?= $contratante->getIdUsuario() ?>" class="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block">

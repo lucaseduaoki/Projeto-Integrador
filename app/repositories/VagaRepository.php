@@ -57,6 +57,7 @@ return new Vaga(
                 ON i.id_vaga = v.id_vaga
             AND i.status = 'ACEITO'
             WHERE v.id_vaga = :id
+              AND v.excluida_em IS NULL
             GROUP BY v.id_vaga
         ";
         $stmt = $this->conn->prepare($sql);
@@ -89,6 +90,7 @@ return new Vaga(
                 ON i.id_vaga = v.id_vaga
                 AND i.status = 'ACEITO'
             WHERE v.id_vaga IN ($placeholders)
+              AND v.excluida_em IS NULL
             GROUP BY v.id_vaga
         ";
         $stmt = $this->conn->prepare($sql);
@@ -111,6 +113,8 @@ return new Vaga(
             WHERE status = 'ATIVA'
               AND is_user_active = 1
               AND visibilidade = 'VISIVEL'
+              AND excluida_em IS NULL
+              AND (data_limite IS NULL OR data_limite >= CURDATE())
             ORDER BY data_publicacao DESC
             LIMIT :limit OFFSET :offset
         ";
@@ -142,6 +146,7 @@ return new Vaga(
                 ON i.id_vaga = v.id_vaga
                AND i.status = 'ACEITO'
             WHERE v.id_contratante = :id
+              AND v.excluida_em IS NULL
             GROUP BY v.id_vaga
             ORDER BY v.data_publicacao DESC
         ";
@@ -172,6 +177,7 @@ return new Vaga(
             WHERE v.status = 'ATIVA'
               AND v.is_user_active = 1
               AND v.visibilidade = 'VISIVEL'
+              AND v.excluida_em IS NULL
               AND (v.data_limite IS NULL OR v.data_limite >= CURDATE())
         ";
 
@@ -326,10 +332,14 @@ return new Vaga(
         return $stmt->execute();
     }
 
+    /**
+     * Exclusão lógica (RN 17): a vaga some das telas, mas o registro e as candidaturas
+     * ficam preservados no banco.
+     */
     public function deletar(int $idVaga): bool
     {
         $stmt = $this->conn->prepare(
-            "DELETE FROM vaga WHERE id_vaga = :id"
+            "UPDATE vaga SET excluida_em = NOW() WHERE id_vaga = :id AND excluida_em IS NULL"
         );
 
         $stmt->bindValue(':id', $idVaga, PDO::PARAM_INT);

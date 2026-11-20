@@ -10,7 +10,8 @@ $erros = $erros ?? [];
     <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         <!-- Left Column - Ilustração (Desktop only) -->
-        <div class="hidden lg:flex flex-col justify-center bg-marca rounded-md p-12 text-white relative overflow-hidden">
+        <div class="hidden lg:block relative">
+        <div class="h-full flex flex-col justify-center bg-marca rounded-md p-12 text-white relative overflow-hidden">
             <span class="absolute -top-4 right-8 h-8 w-40 rounded-full bg-white/15"></span>
             <span class="absolute top-10 right-24 h-8 w-28 rounded-full bg-white/10"></span>
             <h2 class="text-3xl font-bold mb-8 leading-tight relative">Serviço combinado, prazo combinado, pagamento combinado.</h2>
@@ -28,6 +29,10 @@ $erros = $erros ?? [];
                     <p class="text-blue-100 text-sm mt-0.5">Algo saiu errado? A moderação analisa cada caso.</p>
                 </li>
             </ul>
+        </div>
+            <!-- Mascote no canto inferior esquerdo do card (vaza um pouco para fora) -->
+            <img src="<?= URL_BASE ?>/img/mascote2.png" alt="Mascote do FreelaJá"
+                 class="absolute -bottom-6 lg:-left-4 xl:-left-12 h-40 w-auto pointer-events-none select-none drop-shadow-lg">
         </div>
 
         <!-- Right Column - Formulário -->

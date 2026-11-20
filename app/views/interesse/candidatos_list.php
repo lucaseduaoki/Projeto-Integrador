@@ -7,6 +7,9 @@ $interessados = $interessados ?? [];
 // Aceitar e registrar não comparecimento são do dono da vaga; o admin só consulta
 $ehDono = isset($usuario, $vaga) && $usuario->getIdUsuario() === $vaga->getIdContratante();
 
+// RN 10: com o limite de trabalhadores atingido, não há mais o que aceitar
+$vagaCheia = $vaga && ($vaga->getTotalAceitos() ?? 0) >= ($vaga->getTrabalhadoresLimite() ?? 0);
+
 $tituloVaga = $vaga && method_exists($vaga, 'getTitulo')
     ? $vaga->getTitulo()
     : 'Vaga selecionada';
@@ -149,6 +152,13 @@ include __DIR__ . '/../shared/navbar.php';
                                 => 'bg-yellow-100 text-yellow-800'
                         };
 
+                        // Vaga cheia: quem ficou pendente é exibido como "Negado" e sem contato
+                        $negado = $status === 'PENDENTE' && $vagaCheia;
+
+                        if ($negado) {
+                            $statusClass = 'bg-red-100 text-red-800';
+                        }
+
                         ?>
 
 
@@ -206,7 +216,9 @@ include __DIR__ . '/../shared/navbar.php';
                                     ? "Olá, {$nomeTrabalhador}! Sua candidatura para a vaga \"{$tituloVaga}\" no FreelaJá foi aceita. Podemos combinar os detalhes?"
                                     : "Olá, {$nomeTrabalhador}! Vi sua candidatura para a vaga \"{$tituloVaga}\" no FreelaJá e gostaria de conversar com você.";
                                 ?>
-                                <?php if ($telefoneValido): ?>
+                                <?php if ($negado): ?>
+                                    <span class="text-sm text-gray-400">—</span>
+                                <?php elseif ($telefoneValido): ?>
                                     <a
                                         href="https://wa.me/<?= $telefone ?>?text=<?= rawurlencode($mensagemWpp) ?>"
                                         target="_blank"
@@ -236,7 +248,7 @@ include __DIR__ . '/../shared/navbar.php';
 
                                 <span class="px-2 py-1 rounded-full text-xs font-semibold <?= $statusClass ?>">
 
-                                    <?= ucfirst(strtolower($status)) ?>
+                                    <?= $negado ? 'Negado' : ucfirst(strtolower($status)) ?>
 
                                 </span>
 
@@ -248,7 +260,7 @@ include __DIR__ . '/../shared/navbar.php';
                             <td class="px-6 py-4">
 
 
-                                <?php if($ehDono && $status === 'PENDENTE'): ?>
+                                <?php if($ehDono && $status === 'PENDENTE' && !$vagaCheia): ?>
 
 
                                     <form method="POST" action="<?= URL_BASE ?>/candidatura/aceitar">

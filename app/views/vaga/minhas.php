@@ -46,7 +46,7 @@ Criar anúncio
 
 <?php else: ?>
 
-<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
 
 <?php foreach($vagas as $vaga): ?>
 
@@ -61,80 +61,119 @@ $porcentagem = $limite > 0
 
 $status = $vaga->getStatus();
 
+$titulo = htmlspecialchars($vaga->getTitulo(), ENT_QUOTES, 'UTF-8');
+
+$descricao = htmlspecialchars(
+mb_strimwidth($vaga->getDescricao(), 0, 120, "..."),
+ENT_QUOTES,
+'UTF-8'
+);
+
+$localizacao = htmlspecialchars(
+$vaga->getLocalizacao() ?? 'Não informado',
+ENT_QUOTES,
+'UTF-8'
+);
+
+$remuneracao = $vaga->getRemuneracao() !== null
+? 'R$ ' . number_format($vaga->getRemuneracao(), 2, ',', '.')
+: 'A combinar';
+
+$statusBadge = $status === 'ATIVA'
+? 'bg-green-100 text-green-800'
+: 'bg-gray-100 text-gray-700';
+
 ?>
 
 <div class="bg-white rounded-md border border-gray-100 p-6 h-full flex flex-col hover:border-blue-500 transition-colors">
 
 <div class="flex-1">
 
-<div class="flex justify-between items-start gap-2">
-
-<h2 class="font-bold text-xl">
-<?= htmlspecialchars($vaga->getTitulo()) ?>
-</h2>
+<div class="flex justify-between items-center mb-3">
 
 <?php if(!$vaga->estaVisivel()): ?>
 
-<span class="shrink-0 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">
-<?= $vaga->foiRemovidaPelaModeracao() ? 'REMOVIDA PELA MODERAÇÃO' : 'OCULTA PELA MODERAÇÃO' ?>
-</span>
-
-<?php elseif($status === 'ATIVA'): ?>
-
-<span class="shrink-0 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-ATIVA
+<span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+<?= $vaga->foiRemovidaPelaModeracao() ? 'Removida pela moderação' : 'Oculta pela moderação' ?>
 </span>
 
 <?php else: ?>
 
-<span class="shrink-0 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
-ENCERRADA
+<span class="px-2 py-1 rounded-full text-xs font-semibold <?= $statusBadge ?>">
+<?= $status === 'ATIVA' ? 'Ativa' : 'Encerrada' ?>
 </span>
 
 <?php endif; ?>
 
+<?php if ($vaga->getCategoriaNome()): ?>
+<span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+<?= htmlspecialchars($vaga->getCategoriaNome(), ENT_QUOTES, 'UTF-8') ?>
+</span>
+<?php endif; ?>
+
 </div>
 
-<p class="mt-3 text-gray-600">
+<h3 class="text-lg font-semibold text-gray-900 mb-2">
+<?= $titulo ?>
+</h3>
 
-<?= htmlspecialchars($vaga->getDescricao()) ?>
-
+<p class="text-sm text-gray-600 mb-5">
+<?= $descricao ?>
 </p>
 
-<div class="mt-5 text-lg font-bold text-green-700">
+<div class="space-y-2 text-sm text-gray-600">
 
-R$ <?= number_format($vaga->getRemuneracao(),2,',','.') ?>
+<div class="flex items-center gap-2">
+
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+</svg>
+
+<?= $localizacao ?>
 
 </div>
 
-<div class="mt-5">
+<div class="flex items-center gap-2">
 
-<div class="flex justify-between text-sm mb-2">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
 
-<span>Trabalhadores aceitos</span>
-
-<span>
-
-<?= $aceitos ?> / <?= $limite ?>
-
+<span class="font-semibold text-green-600">
+<?= $remuneracao ?>
 </span>
 
 </div>
 
-<div class="bg-gray-200 rounded-full h-3">
+<?php if ($vaga->getDataLimite()): ?>
+<div class="text-xs text-gray-500 pt-2">
+Inscrições até
+<?= date('d/m/Y', strtotime($vaga->getDataLimite())) ?>
+</div>
+<?php endif; ?>
 
-<div
-class="bg-green-600 h-3 rounded-full"
-style="width:<?= $porcentagem ?>%">
 </div>
 
 </div>
 
+<div class="mt-5 pt-1">
+
+<div class="flex justify-between text-sm text-gray-600 mb-2">
+<span>Trabalhadores aceitos</span>
+<span><?= $aceitos ?> / <?= $limite ?></span>
+</div>
+
+<div class="bg-gray-200 rounded-full h-2">
+<div class="bg-green-600 h-2 rounded-full" style="width:<?= $porcentagem ?>%"></div>
 </div>
 
 </div>
 
-<div class="mt-6">
+<div class="pt-4 mt-4 border-t border-gray-100">
 
 <div class="grid grid-cols-2 gap-2">
 
